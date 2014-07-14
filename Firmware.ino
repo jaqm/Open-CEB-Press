@@ -94,23 +94,40 @@ void setOn(){
 }
 
 void setAuto(){
- if(!on) return;			//is the ON button set to off? if yes, get outta here
-  if(digitalRead(pressuresens)==LOW && !ledPIsLit){	//
-    delay(3);
-    if(digitalRead(pressuresens)==LOW){
-      digitalWrite(ledP,HIGH);
-      ledPIsLit=1;
-      prestime=millis();
+  // This function is run every mainloop increment. It makes sure the correct LEDs are on
+  // at evey given instant
+ if(!on) return;			
+
+ //If we're reading high pressure, we want ledP to be lit
+  if(digitalRead(pressuresens)==LOW && !ledPIsLit){	//If we read high pressure, but ledP is not lit
+    delay(3); //debounce
+    if(digitalRead(pressuresens)==LOW){  
+
+      //...then turn on ledP
+      digitalWrite(ledP,HIGH);           
+
+      //set ledPIsLit flag so as not to run this block redundently
+      ledPIsLit=true;   
+
+      //Record the time we lit up ledP
+      prestime=millis(); 
     }
   }else{
-      delay(3);
+      delay(3); //debounce
 
-    if(digitalRead(pressuresens)==HIGH && ((millis()-prestime)>delaytime)){
-      ledPIsLit=0;
+    //If we're no longer reading high pressure and enough time has passed for the user to see the LED
+    if(digitalRead(pressuresens)==HIGH && ((millis()-prestime)>delaytime)){  
+
+      //Then change flag accordingly
+      ledPIsLit=false;
+
+      //And turn it off
       digitalWrite(ledP,LOW);
     }
 
   }
+
+ //If the auto switch is toggled, ledA should blink
  if(digitalRead(switchAUTO)==HIGH){
   delay(3);
   if(digitalRead(switchAUTO)==HIGH){
