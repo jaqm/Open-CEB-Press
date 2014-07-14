@@ -193,6 +193,7 @@ void actButtons(){		//this is the function for controlling the machine manually 
     switchSol(4,LOW);
   }
  }
+}
 
 /////////TEST FUNCTIONS/////////////
 void drawerBounce(){                
@@ -214,6 +215,26 @@ void drawerBounce(){
   return;
 }
 
+// With regards to our drawerBounceWithHalt test method:
+// We want our cylinders to stop at increments down the shaft in order to coordinate movement between them
+// As our machines only means of sense is testing pressure threshold, we need our press to autonomously generate an
+// interval of time with which to push and pull the cylinders in order to reach the correct distance interval.
+// As it appears to us, there are two ways to calibrate this 'halt time'
+
+
+void drawerBounceWithHalt(){
+  // read in the voltage permitted by our potentiometer
+  // derive 'perc,' a percentage of our original voltage to calibrate where in the shaft we want to retract to
+  // retract cylinder until we reahc threshold pressure
+  // start the timer
+  // extend the cylinder until we reach threshold pressure
+  // record how much time it took to ascend the shaft
+  // calculate haltTime the amount of time it would take to retract perc percent of the way down the shaft
+  // start retractionTimer
+  // retract until retractionTimer has reached haltTime
+  // The cylinder should now be in position, stop here
+}
+
 void testButtons(){    //this is the function for controlling the machine manually via buttons
  if(on) return;    //if we ended up here somehow when the on switch is low, go back to where we came from
  if(digitalRead(btnU)==LOW){  //if we read up button on, wait 3ms for debounce
@@ -222,15 +243,10 @@ void testButtons(){    //this is the function for controlling the machine manual
     drawerBounce();
   }
  }
- if(digitalRead(btnD)==LOW){  //if down button is presssed, debounce dat ish
+ if(digitalRead(btnD)==LOW){ 
   delay(3);
-  if(digitalRead(btnD)==LOW){ //still low? ok, drive dat puppy
-    switchSol(1,HIGH);
-  }
- }else{       //otherwise turn off the solenoid and check the next button
-    delay(3);
-  if(digitalRead(btnD)==HIGH){
-    switchSol(1,LOW);
+  if(digitalRead(btnD)==LOW){ 
+    //Put test procedure here
   }
  }
  if(digitalRead(btnL)==LOW){  //if left button is low, debounce it
@@ -238,35 +254,13 @@ void testButtons(){    //this is the function for controlling the machine manual
   if(digitalRead(btnL)==LOW){ //still low? turn on solenoid
     switchSol(2,HIGH);
   }
- }else{       //otherwise turn off solenoid and move on to right button
-    delay(3);
-  if(digitalRead(btnL)==HIGH){
-    switchSol(2,LOW);
-  }
  }
   if(digitalRead(btnR)==LOW){
-  delay(3);
-  if(digitalRead(btnR)==LOW){
-    switchSol(3,HIGH);
-  }
- }else{
     delay(3);
-  if(digitalRead(btnR)==HIGH){
-    switchSol(3,LOW);
+    if(digitalRead(btnR)==LOW){
+      switchSol(3,HIGH);
   }
  }
- if(digitalRead(btnS)==LOW){  //is the shaker motor button pressed?
-  delay(3);
-  if(digitalRead(btnS)==LOW){ //
-    switchSol(4,HIGH);
-  }
- }else{
-    delay(3);
-  if(digitalRead(btnS)==HIGH){
-    switchSol(4,LOW);
-  }
- }
-
 }
 
 // the setup routine runs once when you press reset:
