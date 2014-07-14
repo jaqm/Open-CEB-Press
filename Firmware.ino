@@ -32,10 +32,10 @@ unsigned long prestime=0;
 
 boolean automode=false;		//automode starts at off
 boolean on=false;		//on starts at off
-boolean pressure=false;		//pressure starts at off
+boolean ledPIsLit=false;		//ledPIsLit starts at off
 
 
-boolean ledblink=false;		//led starts at off
+boolean ledAIsLit=false;		//led starts at off
 
 void switchSol(int number, int state){		
  int sol=-1;					
@@ -95,18 +95,18 @@ void setOn(){
 
 void setAuto(){
  if(!on) return;			//is the ON button set to off? if yes, get outta here
-  if(digitalRead(pressuresens)==LOW && !pressure){	//
+  if(digitalRead(pressuresens)==LOW && !ledPIsLit){	//
     delay(3);
     if(digitalRead(pressuresens)==LOW){
       digitalWrite(ledP,HIGH);
-      pressure=1;
+      ledPIsLit=1;
       prestime=millis();
     }
   }else{
       delay(3);
 
     if(digitalRead(pressuresens)==HIGH && ((millis()-prestime)>delaytime)){
-      pressure=0;
+      ledPIsLit=0;
       digitalWrite(ledP,LOW);
     }
 
@@ -116,12 +116,12 @@ void setAuto(){
   if(digitalRead(switchAUTO)==HIGH){
    automode=true;
    if((millis()-lasttime)>delaytime){
-    if(ledblink){
+    if(ledAIsLit){
     digitalWrite(xledA,LOW);
-    ledblink=0;
+    ledAIsLit=0;
     }else{
     digitalWrite(xledA,HIGH);
-    ledblink=1;
+    ledAIsLit=1;
     }
     lasttime=millis();
     }
