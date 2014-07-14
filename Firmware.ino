@@ -221,11 +221,6 @@ void testButtons(){    //this is the function for controlling the machine manual
   if(digitalRead(btnU)==LOW){ //if we read it low still, then button is pressed, run drawer bounce routine
     drawerBounce();
   }
- }else{
-    delay(3);
-  if(digitalRead(btnU)==HIGH){  //if after debounce it is high, go to switch case 0 and set it low
-    switchSol(0,LOW);   
-  }
  }
  if(digitalRead(btnD)==LOW){  //if down button is presssed, debounce dat ish
   delay(3);
