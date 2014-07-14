@@ -194,6 +194,83 @@ void actButtons(){		//this is the function for controlling the machine manually 
   }
  }
 
+/////////TEST FUNCTIONS/////////////
+void drawerBounce(){                
+  // This function sends the drawer to its forward most point, then returns to its back limit. 
+  // We will change direction and halt whenever we reach a threshold of pressure indicated by our
+  // 'pressuresens' register going LOW. 
+  switchSol(3,HIGH);                //Begin fowards pressure
+  while(digitalRead(pressuresens)){ //When our pressuresens pin is high, it means that we have not reached 
+                                    //a threshhold of pressure
+    delay(50);                      //so we continue to push the drawer
+  }
+  switchSol(3,LOW);                 //Cut forward pressure
+  delay(5);
+  switchSol(2,HIGH);                //Begin backwards pressure
+  while(digitalRead(pressuresens)){
+    delay(50);
+  }
+  switchSol(2,LOW);
+  return;
+}
+
+void testButtons(){    //this is the function for controlling the machine manually via buttons
+ if(on) return;    //if we ended up here somehow when the on switch is low, go back to where we came from
+ if(digitalRead(btnU)==LOW){  //if we read up button on, wait 3ms for debounce
+  delay(3);
+  if(digitalRead(btnU)==LOW){ //if we read it low still, then button is pressed, run drawer bounce routine
+    drawerBounce();
+  }
+ }else{
+    delay(3);
+  if(digitalRead(btnU)==HIGH){  //if after debounce it is high, go to switch case 0 and set it low
+    switchSol(0,LOW);   
+  }
+ }
+ if(digitalRead(btnD)==LOW){  //if down button is presssed, debounce dat ish
+  delay(3);
+  if(digitalRead(btnD)==LOW){ //still low? ok, drive dat puppy
+    switchSol(1,HIGH);
+  }
+ }else{       //otherwise turn off the solenoid and check the next button
+    delay(3);
+  if(digitalRead(btnD)==HIGH){
+    switchSol(1,LOW);
+  }
+ }
+ if(digitalRead(btnL)==LOW){  //if left button is low, debounce it
+  delay(3);
+  if(digitalRead(btnL)==LOW){ //still low? turn on solenoid
+    switchSol(2,HIGH);
+  }
+ }else{       //otherwise turn off solenoid and move on to right button
+    delay(3);
+  if(digitalRead(btnL)==HIGH){
+    switchSol(2,LOW);
+  }
+ }
+  if(digitalRead(btnR)==LOW){
+  delay(3);
+  if(digitalRead(btnR)==LOW){
+    switchSol(3,HIGH);
+  }
+ }else{
+    delay(3);
+  if(digitalRead(btnR)==HIGH){
+    switchSol(3,LOW);
+  }
+ }
+ if(digitalRead(btnS)==LOW){  //is the shaker motor button pressed?
+  delay(3);
+  if(digitalRead(btnS)==LOW){ //
+    switchSol(4,HIGH);
+  }
+ }else{
+    delay(3);
+  if(digitalRead(btnS)==HIGH){
+    switchSol(4,LOW);
+  }
+ }
 
 }
 
@@ -242,6 +319,10 @@ void loop() {
   if(automode){
    //put in auto press state machine here
   }else{
-    actButtons();
+    if(on){
+      actButtons();
+    }else{
+      testButtons();
+    }
   }
 }
