@@ -304,19 +304,19 @@ void testButtons(){    //this is the function for controlling the machine manual
  if(digitalRead(btnD)==LOW){ 
   delay(3);
   if(digitalRead(btnD)==LOW){ 
-    //Put test procedure here
+    drawerTiming();
   }
  }
  if(digitalRead(btnL)==LOW){  //if left button is low, debounce it
   delay(3);
   if(digitalRead(btnL)==LOW){ //still low? turn on solenoid
-    switchSol(2,HIGH);
+    mainBounce();
   }
  }
   if(digitalRead(btnR)==LOW){
     delay(3);
     if(digitalRead(btnR)==LOW){
-      switchSol(3,HIGH);
+      mainTiming();
   }
  }
 }
