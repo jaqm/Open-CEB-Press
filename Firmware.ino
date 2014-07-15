@@ -225,7 +225,7 @@ void actButtons(){		//this is the function for controlling the machine manually 
 //TODO: Don't do redundant work. Record our retraction time from drawerbounce and call drawerbounce
 //from drawerTiming if the value does not already exist.
 
-long int retractionTime = -1; //A vanlue of -1 means that we have not yet recorded a value for retractionTime
+long int dRetractionTime = -1; //A vanlue of -1 means that we have not yet recorded a value for dRetractionTime
 
 void drawerBounce(){                
   // This function sends the drawer to its forward-most point, then returns to its back limit. 
@@ -242,7 +242,7 @@ void drawerBounce(){
   while(digitalRead(pressuresens)){
     delay(50);
   }
-  long int retractionTime = millis() - retractionStart;
+  long int dRetractionTime = millis() - retractionStart;
   switchSol(2,LOW);
   return;
 }
@@ -265,7 +265,7 @@ void drawerTiming(){
   //Gives us the fraction that the potentiometer has been turned as a float between 0 and 1.0
   float fracTurn = potDValue / 1023.0;
   
-  if(retractionTime==-1){ //If we do not yet have a value for retracionTime, call drawerBounce to derive one
+  if(dRetractionTime==-1){ //If we do not yet have a value for retracionTime, call drawerBounce to derive one
     drawerBounce();
   }
 
@@ -277,20 +277,78 @@ void drawerTiming(){
   switchSol(3,LOW);                 //Cut forward pressure
 
   // calculate haltTime the amount of time it would take to retract perc percent of the way down the shaft
-  float haltTime = fracTurn * retractionTime;
+  float haltTime = fracTurn * dRetractionTime;
 
-  // start retractionTimer
+  // start timer
   long int timerStart = millis();
   long int timeElapsed; //This will represent the elapsed time since beginning of retraction
 
-  // retract until retractionTimer has reached haltTime
+  // retract until timeElapsed has reached haltTime
   switchSol(2,HIGH);    //Begin retraction pressure
   while(timeElapsed < haltTime){ //Continue retracting until we hit our halting time
     delay(hydraulicTestFreq);
     timeElapsed = millis() - timerStart;
   }
   switchSol(2,LOW); // The cylinder should now be in position, stop here
+  return;
+}
 
+void mainBounce(){                
+  // This function sends the drawer to its most retracted point, then returns to its upper limit. 
+  // We will change direction and halt whenever we reach a threshold of pressure indicated by our
+  // 'pressuresens' register going LOW. 
+  switchSol(1,HIGH);                //Begin retraction pressure
+  while(digitalRead(pressuresens)){ //While we have not reached threshold pressure we have not reached 
+    delay(hydraulicTestFreq);                      //continue to push the drawer
+  }
+  switchSol(1,LOW);                 //Cut retraction pressure
+  delay(5);
+  switchSol(0,HIGH);                //Begin backwards pressure
+  long int extensionStart = millis();   //Record the starttime of our extension
+  while(digitalRead(pressuresens)){
+    delay(hydraulicTestFreq);
+  }
+  long int mExtensionTime = millis() - extensionStart;
+  switchSol(0,LOW);
+  return;
+}
+
+void mainTiming(){
+  // This test function sets the main cylinder to a position configured with a potentiometer
+  // It is used to calibrate the appropriate halt time as follows
+  
+  // read in the value of the main potentiometer
+  int potMValue = analogRead(potM);
+
+  //Gives us the fraction that the potentiometer has been turned as a float between 0 and 1.0
+  float fracTurn = potMValue / 1023.0;
+  
+  if(mExtensionTime==-1){ //If we do not yet have a value for retracionTime, call drawerBounce to derive one
+    mainBounce();
+  }
+
+  // retract the cylinder until we reach threshold pressure
+  switchSol(1,HIGH);                //Begin fowards pressure
+  while(digitalRead(pressuresens)){ //While we are not at threshold pressure... 
+    delay(hydraulicTestFreq);                      //continue to push the drawer
+  }
+  switchSol(1,LOW);                 //Cut forward pressure
+
+  // calculate haltTime the amount of time it would take to retract perc percent of the way down the shaft
+  float haltTime = fracTurn * mExtensionTime;
+
+  // start timer
+  long int timerStart = millis();
+  long int timeElapsed; //This will represent the elapsed time since beginning of retraction
+
+  // retract until timeElapsed has reached haltTime
+  switchSol(0,HIGH);    //Begin retraction pressure
+  while(timeElapsed < haltTime){ //Continue retracting until we hit our halting time
+    delay(hydraulicTestFreq);
+    timeElapsed = millis() - timerStart;
+  }
+  switchSol(0,LOW); // The cylinder should now be in position, stop here
+  return;
 }
 
 void testButtons(){    //this is the function for controlling the machine manually via buttons
