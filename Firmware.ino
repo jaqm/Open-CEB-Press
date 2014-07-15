@@ -383,25 +383,71 @@ void testButtons(){    //this is the function for controlling the machine manual
 }
 
 ////////AUTO STATE MACHINE////////
-//The following is a state machine to 
-short int autoState = 0;
-//Change to 'short int'? Does arduino accept const?
-short DUMP_DIRT = 1;
-short OBSTRUCT_PASSAGE = 2;
-short COMPRESS_BLOCK = 3;
-short OPEN_PASSAGE = 4;
-short RAISE_BRICK = 5;
-short PUSH_BRICK = 6; 
+//The following is a state machine to automate the brick pressing process
+const short SET_UP = 0; //TODO: Consider revising to enumerated type 
+const short DUMP_DIRT = 1;
+const short OBSTRUCT_PASSAGE = 2;
+const short COMPRESS_BLOCK = 3;
+const short OPEN_PASSAGE = 4;
+const short RAISE_BRICK = 5;
+const short PUSH_BRICK = 6; 
 
-void autoSetup(){
-  //Make sure main cylinders are in position
+//The state we track
+short autoState = SET_UP;
+
+void autoSetup(){ //TODO: Account for abrupt termination, function static variables may need to be reset.
+  //When the autoStateMachine is in this state, it will position
+  // the drawer and main cylinders (in that order) and change state to DUMP_DIRT
+
+
+  static boolean dExtending = false;
+  static boolean mRetracting = false;
+
+
+  //If the drawer is extending, check if we have reached threshold pressure
+  if(dExtending) {
+    //Check for threshold pressure
+    if digitalRead(pressuresens){
+      //Turn off the drawer cylinder if we've reached full extension
+      digitalWrite(solR, LOW)
+      dExtending = false;
+
+      //Enter main retraction state
+      mRetracting = true;
+      digitalWrite(solU, HIGH)
+    }
+    else{delay(2)}
+  }
+  //If we do, we are fully extended. Mark thusly, stop drawer extension and begin main retraction.
+  else if(mRetracting){
+    //test if we have finished retracting
+    if digitalRead(pressuresens){
+    //If we're in position, turn off solonoid
+      digitalWrite(solD, LOW);
+      mRetracting = false;
+
+      //We should now be in position, change states
+      autoState = DUMP_DIRT;
+
+    }
+    //If we have not yet reached pressure threshold, keep retracting
+    else{delay(2)} 
+  }
+  //If we have not started drawer extension, start the cylinder and mark in flags
+  if(!dExtending && !mRetracting){
+    //Start the cylinder
+    digitalWrite(solR, HIGH);
+    dExtending = true;
+  }
 }
 
 void autoExec(){
+//This function is essentially a state machine, performing a single incremental action
+//every loop cycle depending on the state of autoState
   if(!on || !automode){return;}
-  if(needsAutoSetup){autoSetup();}
+  if(needsAutoSetup){autoSetup();} //Change this to use autoState==SET_UP
   if(autoState==DUMP_DIRT){
-    //We assume in this state that we are reading high 
+    
 
   }else if(autoState==OBSTRUCT_PASSAGE){
 
