@@ -14,8 +14,8 @@ int btnL=PIN_C3;	//button for left
 int btnR=PIN_C2;	//button for right
 int btnS=PIN_C1;	//button for shaker
 
-int potA=PIN_F2;	//
-int potB=PIN_F1;	//
+int potD=PIN_F2;	//potentiometer for the drawer
+int potM=PIN_F1;	//potentiometer for the main cylinder
 
 int pressuresens=PIN_F0;
 
@@ -27,7 +27,7 @@ int xledA=PIN_E1;//either xledA or xledM may be on at the same time
 unsigned long delaytime=500; //500ms - half second blink of pressure sensor indicator
 
 
-unsigned long lasttime=0;
+unsigned long ledAStartTime=0;
 unsigned long prestime=0;
 
 boolean automode=false;		//automode starts at off
@@ -98,7 +98,7 @@ void setAuto(){
   // at evey given instant
  if(!on) return;			
 
- //If we're reading high pressure, we want ledP to be lit
+ //This block makes sure that if we're reading high pressure, ledP is lit
   if(digitalRead(pressuresens)==LOW && !ledPIsLit){	//If we read high pressure, but ledP is not lit
     delay(3); //debounce
     if(digitalRead(pressuresens)==LOW){  
@@ -127,26 +127,33 @@ void setAuto(){
 
   }
 
- //If the auto switch is toggled, ledA should blink
+ //This block makes sure that if the auto switch is toggled, ledA is blinking
  if(digitalRead(switchAUTO)==HIGH){
-  delay(3);
+  delay(3); //debounce
   if(digitalRead(switchAUTO)==HIGH){
+
+   //Set the automode global flag. Indicates to the rest of the program that automode is active
    automode=true;
-   if((millis()-lasttime)>delaytime){
+
+   //Blink Procedure
+   //If we have waited an entire blink cycle...
+   if((millis()-ledAStartTime)>delaytime){
+
+    //Turn ledA on if it is off, off if it's on
     if(ledAIsLit){
     digitalWrite(xledA,LOW);
     ledAIsLit=0;
     }else{
-    digitalWrite(xledA,HIGH);
-    ledAIsLit=1;
+    digitalWrite(xledA,HIGH0u    ledAIsLit=1;
     }
-    lasttime=millis();
+    ledAStartTime=millis(); //Either way, reset the clock
     }
 
   }
+ //If the autoswitch is not on, make sure that ledA and automode flag are off
  }else{
    delay(3);
-  if(digitalRead(switchAUTO)==LOW){
+  if(automode && digitalRead(switchAUTO)==LOW){
    automode=false;
    digitalWrite(xledA,HIGH);
   }
@@ -214,13 +221,12 @@ void actButtons(){		//this is the function for controlling the machine manually 
 
 /////////TEST FUNCTIONS/////////////
 void drawerBounce(){                
-  // This function sends the drawer to its forward most point, then returns to its back limit. 
+  // This function sends the drawer to its forward-most point, then returns to its back limit. 
   // We will change direction and halt whenever we reach a threshold of pressure indicated by our
   // 'pressuresens' register going LOW. 
   switchSol(3,HIGH);                //Begin fowards pressure
-  while(digitalRead(pressuresens)){ //When our pressuresens pin is high, it means that we have not reached 
-                                    //a threshhold of pressure
-    delay(50);                      //so we continue to push the drawer
+  while(digitalRead(pressuresens)){ //While we have not reached threshold pressure we have not reached 
+    delay(50);                      //continue to push the drawer
   }
   switchSol(3,LOW);                 //Cut forward pressure
   delay(5);
@@ -232,24 +238,56 @@ void drawerBounce(){
   return;
 }
 
-// With regards to our drawerBounceWithHalt test method:
+// With regards to our drawerTiming test method:
 // We want our cylinders to stop at increments down the shaft in order to coordinate movement between them
 // As our machines only means of sense is testing pressure threshold, we need our press to autonomously generate an
 // interval of time with which to push and pull the cylinders in order to reach the correct distance interval.
 // As it appears to us, there are two ways to calibrate this 'halt time'
 
 
-void drawerBounceWithHalt(){
-  // read in the voltage permitted by our potentiometer
-  // derive 'perc,' a percentage of our original voltage to calibrate where in the shaft we want to retract to
-  // retract cylinder until we reahc threshold pressure
+void drawerTiming(){
+  // read in the value of the drawer potentiometer
+  int potDValue = analogRead(potD);
+
+  //Gives us the fraction that the potentiometer has been turned as a float between 0 and 1.0
+  float fracTurn = potDValue * (1.0 / 1023.0);
+  
+  // retract cylinder until we reach threshold pressure
+  // (This guarentees that we begin at the bottom allowing us to accurately guage the time it takes to go from bottom to top)
+  switchSol(2,HIGH);                //Begin retraction pressure
+  while(digitalRead(pressuresens)){
+    delay(50);
+  }
+  switchSol(2,LOW);
+
   // start the timer
+  long int extensionStart = millis()
+
   // extend the cylinder until we reach threshold pressure
+  switchSol(3,HIGH);                //Begin fowards pressure
+  while(digitalRead(pressuresens)){ //While we are not at threshold pressure... 
+    delay(50);                      //continue to push the drawer
+  }
+  switchSol(3,LOW);                 //Cut forward pressure
+
   // record how much time it took to ascend the shaft
+  long int extensionStart = millis() - extensionTimer;
+
   // calculate haltTime the amount of time it would take to retract perc percent of the way down the shaft
+  float haltTime = fracTurn * extensionTime;
+
   // start retractionTimer
+  long int retractionStart = millis();
+  long int retractionTime; //This will represent the elapsed time since beginning of retraction
+
   // retract until retractionTimer has reached haltTime
-  // The cylinder should now be in position, stop here
+  switchSol(2,HIGH);    //Begin retraction pressure
+  while(retractionTime < haltTime){ //Continue retracting until we hit our halting time
+    delay(50);
+    retractionTime = millis() - retractionStart;
+  }
+  switchSol(2,LOW); // The cylinder should now be in position, stop here
+
 }
 
 void testButtons(){    //this is the function for controlling the machine manually via buttons
