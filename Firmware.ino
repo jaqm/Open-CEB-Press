@@ -32,6 +32,9 @@ unsigned long prestime=0;
 
 boolean automode=false;		//automode starts at off
 boolean on=false;		//on starts at off
+boolean needsAutoSetup //This flag indicates whether or not setupAuto should run.
+                       //It will we set to true when the auto switch is flipped and 
+                       //set to false when the cylinders are in position to begin the auto procedure
 
 boolean ledPIsLit=false;		//ledPIsLit starts at off
 boolean ledAIsLit=false;		//led starts at off
@@ -390,10 +393,27 @@ short OPEN_PASSAGE = 4;
 short RAISE_BRICK = 5;
 short PUSH_BRICK = 6; 
 
-void autoExec(){
-  if(!on || !automode)
-  if(autoState==DUMP_DIRT)
+void autoSetup(){
+  //Make sure main cylinders are in position
+}
 
+void autoExec(){
+  if(!on || !automode){return;}
+  if(needsAutoSetup){autoSetup();}
+  if(autoState==DUMP_DIRT){
+    //We assume in this state that we are reading high 
+
+  }else if(autoState==OBSTRUCT_PASSAGE){
+
+  }else if(autoState==COMPRESS_BLOCK){
+
+  }else if(autoState==OPEN_PASSAGE){
+
+  }else if(autoState==RAISE_BRICK){
+
+  }else if(autoState==PUSH_BRICK){
+
+  }
 }
 
 
@@ -431,6 +451,7 @@ void setup() {
   pinMode(potA, INPUT);
   pinMode(potB, INPUT);
 
+  Serial.begin(9600);
 }
 
 
@@ -445,7 +466,7 @@ void loop() {
     if(on){
       actButtons();
     }else{
-      drawerTiming();
+      testButtons();
     }
   }
 }
