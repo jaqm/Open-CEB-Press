@@ -39,6 +39,9 @@ boolean ledAIsLit=false;		//led starts at off
 int hydraulicTestFreq = 20; //The number of miliseconds between 
                             //tests of hydraulic pressure sensors
 
+//Used within autoExec
+long int shakeBegin = 0;
+
 void switchSol(int number, int state){		
  int sol=-1;					
  switch(number){				
@@ -426,6 +429,9 @@ void autoSetup(){ //TODO: Account for abrupt termination, function static variab
       //We should now be in position, change states
       autoState = DUMP_DIRT;
 
+      //and make sure to begin the timer now that we are shaking
+      shakeBegin = millis();
+
     }
     //If we have not yet reached pressure threshold, keep retracting
     else{delay(2)} 
@@ -438,12 +444,31 @@ void autoSetup(){ //TODO: Account for abrupt termination, function static variab
   }
 }
 
+
 void autoExec(){
 //This function is essentially a state machine, performing a single incremental action
 //every loop cycle depending on the state of autoState
+
+  const long int desiredShakeTime = 3000;
+  static boolean shaking = false;
+
+  //This state machine should not be operating unless the machine is active and on automode
   if(!on || !automode){return;}
   if(autoState==SET_UP){autoSetup();} 
-  else if(autoState==DUMP_DIRT){}
+  else if(autoState==DUMP_DIRT){
+    if(!shaking){
+      //Begin solonoid and trip flag
+      switchSol(solS,HIGH);
+      shaking = true;
+    }
+    if(millis() - shakeBegin > desiredShakeTime){
+
+      //Terminate solonoid and correct states
+      autoState = OBSTRUCT_PASSAGE;
+      switchSol(solS,LOW);
+      shaking = false;
+    }
+  }
   else if(autoState==OBSTRUCT_PASSAGE){}
   else if(autoState==COMPRESS_BLOCK){}
   else if(autoState==OPEN_PASSAGE){}
