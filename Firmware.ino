@@ -32,10 +32,12 @@ unsigned long prestime=0;
 
 boolean automode=false;		//automode starts at off
 boolean on=false;		//on starts at off
+
 boolean ledPIsLit=false;		//ledPIsLit starts at off
-
-
 boolean ledAIsLit=false;		//led starts at off
+
+int hydraulicTestFreq = 20; //The number of miliseconds between 
+                            //tests of hydraulic pressure sensors
 
 void switchSol(int number, int state){		
  int sol=-1;					
@@ -246,17 +248,20 @@ void drawerBounce(){
 
 
 void drawerTiming(){
+  // This test function sets the drawer cylinder to a position configured with a potentiometer
+  // It is used to calibrate the appropriate halt time as follows
+  
   // read in the value of the drawer potentiometer
   int potDValue = analogRead(potD);
 
   //Gives us the fraction that the potentiometer has been turned as a float between 0 and 1.0
-  float fracTurn = potDValue * (1.0 / 1023.0);
+  float fracTurn = potDValue / 1023.0;
   
   // retract cylinder until we reach threshold pressure
   // (This guarentees that we begin at the bottom allowing us to accurately guage the time it takes to go from bottom to top)
   switchSol(2,HIGH);                //Begin retraction pressure
   while(digitalRead(pressuresens)){
-    delay(50);
+    delay(hydraulicTestFreq);
   }
   switchSol(2,LOW);
 
@@ -266,7 +271,7 @@ void drawerTiming(){
   // extend the cylinder until we reach threshold pressure
   switchSol(3,HIGH);                //Begin fowards pressure
   while(digitalRead(pressuresens)){ //While we are not at threshold pressure... 
-    delay(50);                      //continue to push the drawer
+    delay(hydraulicTestFreq);                      //continue to push the drawer
   }
   switchSol(3,LOW);                 //Cut forward pressure
 
@@ -283,7 +288,7 @@ void drawerTiming(){
   // retract until retractionTimer has reached haltTime
   switchSol(2,HIGH);    //Begin retraction pressure
   while(retractionTime < haltTime){ //Continue retracting until we hit our halting time
-    delay(50);
+    delay(hydraulicTestFreq);
     retractionTime = millis() - retractionStart;
   }
   switchSol(2,LOW); // The cylinder should now be in position, stop here
@@ -317,6 +322,24 @@ void testButtons(){    //this is the function for controlling the machine manual
   }
  }
 }
+
+////////AUTO STATE MACHINE////////
+//The following is a state machine to 
+short int autoState = 0;
+//Change to 'short int'? Does arduino accept const?
+short DUMP_DIRT = 1;
+short OBSTRUCT_PASSAGE = 2;
+short COMPRESS_BLOCK = 3;
+short OPEN_PASSAGE = 4;
+short RAISE_BRICK = 5;
+short PUSH_BRICK = 6; 
+
+void autoExec(){
+  if(!on || !automode)
+  if(autoState==DUMP_DIRT)
+
+}
+
 
 // the setup routine runs once when you press reset:
 void setup() {
@@ -366,7 +389,7 @@ void loop() {
     if(on){
       actButtons();
     }else{
-      testButtons();
+      drawerTiming();
     }
   }
 }
