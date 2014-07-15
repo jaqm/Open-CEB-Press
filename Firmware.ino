@@ -32,9 +32,6 @@ unsigned long prestime=0;
 
 boolean automode=false;		//automode starts at off
 boolean on=false;		//on starts at off
-boolean needsAutoSetup //This flag indicates whether or not setupAuto should run.
-                       //It will we set to true when the auto switch is flipped and 
-                       //set to false when the cylinders are in position to begin the auto procedure
 
 boolean ledPIsLit=false;		//ledPIsLit starts at off
 boolean ledAIsLit=false;		//led starts at off
@@ -445,21 +442,13 @@ void autoExec(){
 //This function is essentially a state machine, performing a single incremental action
 //every loop cycle depending on the state of autoState
   if(!on || !automode){return;}
-  if(needsAutoSetup){autoSetup();} //Change this to use autoState==SET_UP
-  if(autoState==DUMP_DIRT){
-    
-
-  }else if(autoState==OBSTRUCT_PASSAGE){
-
-  }else if(autoState==COMPRESS_BLOCK){
-
-  }else if(autoState==OPEN_PASSAGE){
-
-  }else if(autoState==RAISE_BRICK){
-
-  }else if(autoState==PUSH_BRICK){
-
-  }
+  if(autoState==SET_UP){autoSetup();} 
+  else if(autoState==DUMP_DIRT){}
+  else if(autoState==OBSTRUCT_PASSAGE){}
+  else if(autoState==COMPRESS_BLOCK){}
+  else if(autoState==OPEN_PASSAGE){}
+  else if(autoState==RAISE_BRICK){}
+  else if(autoState==PUSH_BRICK){}
 }
 
 
