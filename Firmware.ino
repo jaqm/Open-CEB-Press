@@ -43,6 +43,15 @@ int hydraulicTestFreq = 20; //The number of miliseconds between
 long int shakeBegin = 0;
 
 //reduced on time to 50 instead of 100
+boolean pressureIsHigh(){
+  if(digitalRead(pressuresens)==LOW){
+    delay(5);
+    if(digitalRead(pressuresens==LOW){
+      return true;
+    })
+  }
+  return false;
+}
 
 void setOn(){
  if(!on){				//if the switch is off,
@@ -74,9 +83,7 @@ void setAuto(){
  if(!on) return;			
 
  //This block makes sure that if we're reading high pressure, ledP is lit
-  if(digitalRead(pressuresens)==LOW && !ledPIsLit){	//If we read high pressure, but ledP is not lit
-    delay(3); //debounce
-    if(digitalRead(pressuresens)==LOW){  
+  if(pressureIsHigh() && !ledPIsLit){	//If we read high pressure, but ledP is not lit
 
       //...then turn on ledP
       digitalWrite(ledP,HIGH);           
@@ -88,10 +95,8 @@ void setAuto(){
       prestime=millis(); 
     }
   }else{
-      delay(3); //debounce
-
     //If we're no longer reading high pressure and enough time has passed for the user to see the LED
-    if(digitalRead(pressuresens)==HIGH && ((millis()-prestime)>delaytime)){  
+    if(!pressureIsHigh() && ((millis()-prestime)>delaytime)){  
 
       //Then change flag accordingly
       ledPIsLit=false;
@@ -206,14 +211,14 @@ void drawerBounce(){
   // We will change direction and halt whenever we reach a threshold of pressure indicated by our
   // 'pressuresens' register going LOW. 
   digitalWrite(solR,HIGH);                //Begin extension pressure
-  while(digitalRead(pressuresens)){ //While we have not reached threshold pressure we have not reached 
+  while(!pressureIsHigh()){ //While we have not reached threshold pressure we have not reached 
     delay(50);                      //continue to push the drawer
   }
   digitalWrite(solR,LOW);                 //Cut extention pressure pressure
   delay(5);
   digitalWrite(solL,HIGH);                //Begin backwards pressure
   long int retractionStart = millis();   //Record the starttime of our retraction
-  while(digitalRead(pressuresens)){
+  while(!pressureIsHigh()){
     delay(50);
   }
   long int dRetractionTime = millis() - retractionStart;
@@ -245,7 +250,7 @@ void drawerTiming(){
 
   // extend the cylinder until we reach threshold pressure
   digitalWrite(solR,HIGH);                //Begin fowards pressure
-  while(digitalRead(pressuresens)){ //While we are not at threshold pressure... 
+  while(!pressureIsHigh()){ //While we are not at threshold pressure... 
     delay(hydraulicTestFreq);                      //continue to push the drawer
   }
   digitalWrite(solR,LOW);                 //Cut forward pressure
@@ -272,14 +277,14 @@ void mainBounce(){
   // We will change direction and halt whenever we reach a threshold of pressure indicated by our
   // 'pressuresens' register going LOW. 
   digitalWrite(solD,HIGH);                //Begin retraction pressure
-  while(digitalRead(pressuresens)){ //While we have not reached threshold pressure we have not reached 
+  while(!pressureIsHigh()){ //While we have not reached threshold pressure we have not reached 
     delay(hydraulicTestFreq);                      //continue to push the drawer
   }
   digitalWrite(solD,LOW);                 //Cut retraction pressure
   delay(5);
   digitalWrite(solU,HIGH);                //Begin backwards pressure
   long int extensionStart = millis();   //Record the starttime of our extension
-  while(digitalRead(pressuresens)){
+  while(!pressureIsHigh()){
     delay(hydraulicTestFreq);
   }
   long int mExtensionTime = millis() - extensionStart;
@@ -303,7 +308,7 @@ void mainTiming(){
 
   // retract the cylinder until we reach threshold pressure
   digitalWrite(solD,HIGH);                //Begin fowards pressure
-  while(digitalRead(pressuresens)){ //While we are not at threshold pressure... 
+  while(!pressureIsHigh()){ //While we are not at threshold pressure... 
     delay(hydraulicTestFreq);                      //continue to push the drawer
   }
   digitalWrite(solD,LOW);                 //Cut forward pressure
@@ -379,7 +384,7 @@ void autoSetup(){ //TODO: Account for abrupt termination, function static variab
   //If the drawer is extending, check if we have reached threshold pressure
   if(dExtending) {
     //Check for threshold pressure
-    if digitalRead(pressuresens){
+    if digitalRead(pressureIsHigh()){
       //Turn off the drawer cylinder if we've reached full extension
       digitalWrite(solR, LOW)
       dExtending = false;
@@ -393,7 +398,7 @@ void autoSetup(){ //TODO: Account for abrupt termination, function static variab
   //If we do, we are fully extended. Mark thusly, stop drawer extension and begin main retraction.
   else if(mRetracting){
     //test if we have finished retracting
-    if digitalRead(pressuresens){
+    if(pressureIsHigh()){
     //If we're in position, turn off solonoid
       digitalWrite(solD, LOW);
       mRetracting = false;
