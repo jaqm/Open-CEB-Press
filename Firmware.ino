@@ -242,11 +242,13 @@ void drawerTiming(){
   int potDValue = analogRead(potD);
 
   //Gives us the fraction that the potentiometer has been turned as a float between 0 and 1.0
-  float fracTurn = potDValue / 1023.0;
+  float fracTurn = potDValue / 1023.0; //TODO: Is this the correct voltage?
   
   if(dRetractionTime==-1){ //If we do not yet have a value for retracionTime, call drawerBounce to derive one
     drawerBounce();
   }
+
+  delay(300); //Debounce 
 
   // extend the cylinder until we reach threshold pressure
   digitalWrite(solR,HIGH);                //Begin fowards pressure
@@ -264,7 +266,7 @@ void drawerTiming(){
 
   // retract until timeElapsed has reached haltTime
   digitalWrite(solL,HIGH);    //Begin retraction pressure
-  while(timeElapsed < haltTime){ //Continue retracting until we hit our halting time
+  while(timeElapsed < haltTime && !pressureIsHigh()){ //Continue retracting until we hit our halting time or pressure threshold
     delay(hydraulicTestFreq);
     timeElapsed = millis() - timerStart;
   }
@@ -276,21 +278,6 @@ void mainBounce(){
   // This function sends the drawer to its most retracted point, then returns to its upper limit. 
   // We will change direction and halt whenever we reach a threshold of pressure indicated by our
   // 'pressuresens' register going LOW.
-
-  // digitalWrite(solR,HIGH);                //Begin extension pressure
-  // while(!pressureIsHigh()){ //While we have not reached threshold pressure we have not reached 
-  //   delay(50);                      //continue to push the drawer
-  // }
-  // digitalWrite(solR,LOW);                 //Cut extention pressure pressure
-  // delay(500);
-  // digitalWrite(solL,HIGH);                //Begin backwards pressure
-  // long int retractionStart = millis();   //Record the starttime of our retraction
-  // while(!pressureIsHigh()){
-  //   delay(50);
-  // }
-  // long int dRetractionTime = millis() - retractionStart;
-  // digitalWrite(solL,LOW);
-  // return;
 
   digitalWrite(solD,HIGH);                //Begin retraction pressure
   while(!pressureIsHigh()){ //While we have not reached threshold pressure we have not reached 
@@ -321,6 +308,8 @@ void mainTiming(){
   if(mExtensionTime==-1){ //If we do not yet have a value for retracionTime, call drawerBounce to derive one
     mainBounce();
   }
+
+  delay(300); //Debounce, don't want to read pressureIsHigh twice in one strike!
 
   // retract the cylinder until we reach threshold pressure
   digitalWrite(solD,HIGH);                //Begin fowards pressure
