@@ -263,7 +263,7 @@ void drawerTiming(){
 
   // start timer
   long int timerStart = millis();
-  long int timeElapsed; //This will represent the elapsed time since beginning of retraction
+  long int timeElapsed 0; //This will represent the elapsed time since beginning of retraction
 
   //Debounce
   delay(300);
@@ -330,7 +330,7 @@ void mainTiming(){
 
   // start timer
   long int timerStart = millis();
-  long int timeElapsed; //This will represent the elapsed time since beginning of retraction
+  long int timeElapsed = 0; //This will represent the elapsed time since beginning of retraction
 
   //Debounce
   delay(300);
