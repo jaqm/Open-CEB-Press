@@ -42,45 +42,15 @@ int hydraulicTestFreq = 20; //The number of miliseconds between
 //Used within autoExec
 long int shakeBegin = 0;
 
-void switchSol(int number, int state){		
- int sol=-1;					
- switch(number){				
-  case 0: //UP					//case 0:  sol = solup
-    sol=solU;					
-    break;
-  case 1: //DOWN				
-    sol=solD;					
-    break;
-  case 2: //LEFT				
-    sol=solL;					
-    break;
-  case 3: //RIGHT				
-    sol=solR;
-    break;
-  case 4: //SHAKER
-    sol=solS;
-    break;
-  default:
-    break;
- }
- if(on && sol!=-1){				//if false(on was initialized as false earlier) AND (not)sol = -1 , 
-  digitalWrite(sol,state);			//set sol equal to the state from the above void
- } else {
-  digitalWrite(sol,LOW);			//otherwise, don't do anything with the solenoid
- }
-
-}
-
-
 //reduced on time to 50 instead of 100
 
 void setOn(){
  if(!on){				//if the switch is off,
-  switchSol(0,LOW);			//turn all solenoids off
-  switchSol(1,LOW);
-  switchSol(2,LOW);
-  switchSol(3,LOW);
-  switchSol(4,LOW);
+  digitalWrite(solU,LOW);			//turn all solenoids off
+  digitalWrite(solD,LOW);
+  digitalWrite(solL,LOW);
+  digitalWrite(solR,LOW);
+  digitalWrite(solS,LOW);
  }
  if(digitalRead(switchON)==LOW){	//if we are reading the ON switch to indeed be on
   delay(5);				// then delay for debounce
@@ -170,61 +140,62 @@ void actButtons(){		//this is the function for controlling the machine manually 
  if(digitalRead(btnU)==LOW){	//if we read up button on, wait 3ms for debounce
   delay(3);
   if(digitalRead(btnU)==LOW){	//if we read it low still, go to switchsol case 0 and set it high
-    switchSol(0,HIGH);
+    digitalWrite(solU,HIGH);
   }
  }else{
     delay(3);
   if(digitalRead(btnU)==HIGH){	//if after debounce it is high, go to switch case 0 and set it low
-    switchSol(0,LOW);		
+    digitalWrite(solU,LOW);		
   }
  }
  if(digitalRead(btnD)==LOW){	//if down button is presssed, debounce dat ish
   delay(3);
   if(digitalRead(btnD)==LOW){	//still low? ok, drive dat puppy
-    switchSol(1,HIGH);
+    digitalWrite(solD,HIGH);
   }
  }else{				//otherwise turn off the solenoid and check the next button
     delay(3);
   if(digitalRead(btnD)==HIGH){
-    switchSol(1,LOW);
+    digitalWrite(solD,LOW);
   }
  }
  if(digitalRead(btnL)==LOW){	//if left button is low, debounce it
   delay(3);
   if(digitalRead(btnL)==LOW){	//still low? turn on solenoid
-    switchSol(2,HIGH);
+    digitalWrite(solL,HIGH);
   }
  }else{				//otherwise turn off solenoid and move on to right button
     delay(3);
   if(digitalRead(btnL)==HIGH){
-    switchSol(2,LOW);
+    digitalWrite(solL,LOW);
   }
  }
   if(digitalRead(btnR)==LOW){
   delay(3);
   if(digitalRead(btnR)==LOW){
-    switchSol(3,HIGH);
+    digitalWrite(solR,HIGH);
   }
  }else{
     delay(3);
   if(digitalRead(btnR)==HIGH){
-    switchSol(3,LOW);
+    digitalWrite(solR,LOW);
   }
  }
  if(digitalRead(btnS)==LOW){	//is the shaker motor button pressed?
   delay(3);
   if(digitalRead(btnS)==LOW){	//
-    switchSol(4,HIGH);
+    digitalWrite(solS,HIGH);
   }
  }else{
     delay(3);
   if(digitalRead(btnS)==HIGH){
-    switchSol(4,LOW);
+    digitalWrite(solS,LOW);
   }
  }
 }
 
 /////////TEST FUNCTIONS/////////////
+
 //TODO: Don't do redundant work. Record our retraction time from drawerbounce and call drawerbounce
 //from drawerTiming if the value does not already exist.
 
@@ -234,19 +205,19 @@ void drawerBounce(){
   // This function sends the drawer to its forward-most point, then returns to its back limit. 
   // We will change direction and halt whenever we reach a threshold of pressure indicated by our
   // 'pressuresens' register going LOW. 
-  switchSol(3,HIGH);                //Begin extension pressure
+  digitalWrite(solR,HIGH);                //Begin extension pressure
   while(digitalRead(pressuresens)){ //While we have not reached threshold pressure we have not reached 
     delay(50);                      //continue to push the drawer
   }
-  switchSol(3,LOW);                 //Cut extention pressure pressure
+  digitalWrite(solR,LOW);                 //Cut extention pressure pressure
   delay(5);
-  switchSol(2,HIGH);                //Begin backwards pressure
+  digitalWrite(solL,HIGH);                //Begin backwards pressure
   long int retractionStart = millis();   //Record the starttime of our retraction
   while(digitalRead(pressuresens)){
     delay(50);
   }
   long int dRetractionTime = millis() - retractionStart;
-  switchSol(2,LOW);
+  digitalWrite(solL,LOW);
   return;
 }
 
@@ -273,11 +244,11 @@ void drawerTiming(){
   }
 
   // extend the cylinder until we reach threshold pressure
-  switchSol(3,HIGH);                //Begin fowards pressure
+  digitalWrite(solR,HIGH);                //Begin fowards pressure
   while(digitalRead(pressuresens)){ //While we are not at threshold pressure... 
     delay(hydraulicTestFreq);                      //continue to push the drawer
   }
-  switchSol(3,LOW);                 //Cut forward pressure
+  digitalWrite(solR,LOW);                 //Cut forward pressure
 
   // calculate haltTime the amount of time it would take to retract perc percent of the way down the shaft
   float haltTime = fracTurn * dRetractionTime;
@@ -287,12 +258,12 @@ void drawerTiming(){
   long int timeElapsed; //This will represent the elapsed time since beginning of retraction
 
   // retract until timeElapsed has reached haltTime
-  switchSol(2,HIGH);    //Begin retraction pressure
+  digitalWrite(solL,HIGH);    //Begin retraction pressure
   while(timeElapsed < haltTime){ //Continue retracting until we hit our halting time
     delay(hydraulicTestFreq);
     timeElapsed = millis() - timerStart;
   }
-  switchSol(2,LOW); // The cylinder should now be in position, stop here
+  digitalWrite(solL,LOW); // The cylinder should now be in position, stop here
   return;
 }
 
@@ -300,19 +271,19 @@ void mainBounce(){
   // This function sends the drawer to its most retracted point, then returns to its upper limit. 
   // We will change direction and halt whenever we reach a threshold of pressure indicated by our
   // 'pressuresens' register going LOW. 
-  switchSol(1,HIGH);                //Begin retraction pressure
+  digitalWrite(solD,HIGH);                //Begin retraction pressure
   while(digitalRead(pressuresens)){ //While we have not reached threshold pressure we have not reached 
     delay(hydraulicTestFreq);                      //continue to push the drawer
   }
-  switchSol(1,LOW);                 //Cut retraction pressure
+  digitalWrite(solD,LOW);                 //Cut retraction pressure
   delay(5);
-  switchSol(0,HIGH);                //Begin backwards pressure
+  digitalWrite(solU,HIGH);                //Begin backwards pressure
   long int extensionStart = millis();   //Record the starttime of our extension
   while(digitalRead(pressuresens)){
     delay(hydraulicTestFreq);
   }
   long int mExtensionTime = millis() - extensionStart;
-  switchSol(0,LOW);
+  digitalWrite(solU,LOW);
   return;
 }
 
@@ -331,11 +302,11 @@ void mainTiming(){
   }
 
   // retract the cylinder until we reach threshold pressure
-  switchSol(1,HIGH);                //Begin fowards pressure
+  digitalWrite(solD,HIGH);                //Begin fowards pressure
   while(digitalRead(pressuresens)){ //While we are not at threshold pressure... 
     delay(hydraulicTestFreq);                      //continue to push the drawer
   }
-  switchSol(1,LOW);                 //Cut forward pressure
+  digitalWrite(solD,LOW);                 //Cut forward pressure
 
   // calculate haltTime the amount of time it would take to retract perc percent of the way down the shaft
   float haltTime = fracTurn * mExtensionTime;
@@ -345,12 +316,12 @@ void mainTiming(){
   long int timeElapsed; //This will represent the elapsed time since beginning of retraction
 
   // retract until timeElapsed has reached haltTime
-  switchSol(0,HIGH);    //Begin retraction pressure
+  digitalWrite(solU,HIGH);    //Begin retraction pressure
   while(timeElapsed < haltTime){ //Continue retracting until we hit our halting time
     delay(hydraulicTestFreq);
     timeElapsed = millis() - timerStart;
   }
-  switchSol(0,LOW); // The cylinder should now be in position, stop here
+  digitalWrite(solU,LOW); // The cylinder should now be in position, stop here
   return;
 }
 
@@ -384,13 +355,14 @@ void testButtons(){    //this is the function for controlling the machine manual
 
 ////////AUTO STATE MACHINE////////
 //The following is a state machine to automate the brick pressing process
-const short SET_UP = 0; //TODO: Consider revising to enumerated type 
-const short DUMP_DIRT = 1;
-const short OBSTRUCT_PASSAGE = 2;
-const short COMPRESS_BLOCK = 3;
-const short OPEN_PASSAGE = 4;
-const short RAISE_BRICK = 5;
-const short PUSH_BRICK = 6; 
+//TODO: Consider revising to enumerated type 
+const short SET_UP = 0;           //Fully extend the drawer and fully retract the main
+const short DUMP_DIRT = 1;        //Shakes dirt into the shaft 
+const short OBSTRUCT_PASSAGE = 2; //Moves the drawer to block shaft and allow a surface for compression
+const short COMPRESS_BLOCK = 3;   //Extends the main cylinder to compress a brick
+const short OPEN_PASSAGE = 4;     //Retract the drawer to open the passage between the hopper and compression chamber
+const short RAISE_BRICK = 5;      //Brings the brick to the drawer level
+const short PUSH_BRICK = 6;       //Extends the drawer to eject the brick.
 
 //The state we track
 short autoState = SET_UP;
@@ -458,18 +430,22 @@ void autoExec(){
   else if(autoState==DUMP_DIRT){
     if(!shaking){
       //Begin solonoid and trip flag
-      switchSol(solS,HIGH);
+      digitalWrite(solS,HIGH);
       shaking = true;
     }
     if(millis() - shakeBegin > desiredShakeTime){
 
       //Terminate solonoid and correct states
       autoState = OBSTRUCT_PASSAGE;
-      switchSol(solS,LOW);
+      digitalWrite(solS,LOW);
       shaking = false;
     }
   }
-  else if(autoState==OBSTRUCT_PASSAGE){}
+  else if(autoState==OBSTRUCT_PASSAGE){
+    //Begin retraction if it has not yet begun
+    
+
+  }
   else if(autoState==COMPRESS_BLOCK){}
   else if(autoState==OPEN_PASSAGE){}
   else if(autoState==RAISE_BRICK){}
