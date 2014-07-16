@@ -274,6 +274,8 @@ void drawerTiming(){
   return;
 }
 
+long int mExtensionTime = -1;
+
 void mainBounce(){                
   // This function sends the drawer to its most retracted point, then returns to its upper limit. 
   // We will change direction and halt whenever we reach a threshold of pressure indicated by our
@@ -290,7 +292,7 @@ void mainBounce(){
   while(!pressureIsHigh()){
     delay(hydraulicTestFreq);
   }
-  long int mExtensionTime = millis() - extensionStart;
+  mExtensionTime = millis() - extensionStart;
   digitalWrite(solU,LOW);
   return;
 }
