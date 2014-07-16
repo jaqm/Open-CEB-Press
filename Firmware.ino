@@ -221,7 +221,7 @@ void drawerBounce(){
   while(!pressureIsHigh()){
     delay(50);
   }
-  long int dRetractionTime = millis() - retractionStart;
+  dRetractionTime = millis() - retractionStart;
   digitalWrite(solL,LOW);
   return;
 }
@@ -275,13 +275,29 @@ void drawerTiming(){
 void mainBounce(){                
   // This function sends the drawer to its most retracted point, then returns to its upper limit. 
   // We will change direction and halt whenever we reach a threshold of pressure indicated by our
-  // 'pressuresens' register going LOW. 
+  // 'pressuresens' register going LOW.
+
+  // digitalWrite(solR,HIGH);                //Begin extension pressure
+  // while(!pressureIsHigh()){ //While we have not reached threshold pressure we have not reached 
+  //   delay(50);                      //continue to push the drawer
+  // }
+  // digitalWrite(solR,LOW);                 //Cut extention pressure pressure
+  // delay(500);
+  // digitalWrite(solL,HIGH);                //Begin backwards pressure
+  // long int retractionStart = millis();   //Record the starttime of our retraction
+  // while(!pressureIsHigh()){
+  //   delay(50);
+  // }
+  // long int dRetractionTime = millis() - retractionStart;
+  // digitalWrite(solL,LOW);
+  // return;
+
   digitalWrite(solD,HIGH);                //Begin retraction pressure
   while(!pressureIsHigh()){ //While we have not reached threshold pressure we have not reached 
     delay(hydraulicTestFreq);                      //continue to push the drawer
   }
   digitalWrite(solD,LOW);                 //Cut retraction pressure
-  delay(5);
+  delay(500);
   digitalWrite(solU,HIGH);                //Begin backwards pressure
   long int extensionStart = millis();   //Record the starttime of our extension
   while(!pressureIsHigh()){
