@@ -1,21 +1,21 @@
 //pin mapping:
 
-int solU=PIN_B6;	//solenoid for cylinder up
-int solD=PIN_B5;	//solenoid for cylinder down
-int solL=PIN_B4;	//solenoid for drawer left
-int solR=PIN_B3;	//solenoid for drawer right
-int solS=PIN_B2;	//solenoid for shaker motor 
+int solU=PIN_B6;    //solenoid for cylinder up
+int solD=PIN_B5;    //solenoid for cylinder down
+int solL=PIN_B4;    //solenoid for drawer left
+int solR=PIN_B3;    //solenoid for drawer right
+int solS=PIN_B2;    //solenoid for shaker motor 
 
-int switchON=PIN_C7;	//on/off switch
-int switchAUTO=PIN_C6;	//auto/manual switch
-int btnU=PIN_C5;	//button for up
-int btnD=PIN_C4;	//button for down
-int btnL=PIN_C3;	//button for left
-int btnR=PIN_C2;	//button for right
-int btnS=PIN_C1;	//button for shaker
+int switchON=PIN_C7;    //on/off switch
+int switchAUTO=PIN_C6;    //auto/manual switch
+int btnU=PIN_C5;    //button for up
+int btnD=PIN_C4;    //button for down
+int btnL=PIN_C3;    //button for left
+int btnR=PIN_C2;    //button for right
+int btnS=PIN_C1;    //button for shaker
 
-int potD=PIN_F2;	//potentiometer for the drawer
-int potM=PIN_F1;	//potentiometer for the main cylinder
+int potD=PIN_F2;    //potentiometer for the drawer
+int potM=PIN_F1;    //potentiometer for the main cylinder
 
 int pressuresens=PIN_F0;
 
@@ -30,11 +30,11 @@ unsigned long delaytime=500; //500ms - half second blink of pressure sensor indi
 unsigned long ledAStartTime=0;
 unsigned long prestime=0;
 
-boolean automode=false;		//automode starts at off
-boolean on=false;		//on starts at off
+boolean automode=false;        //automode starts at off
+boolean on=false;        //on starts at off
 
-boolean ledPIsLit=false;		//ledPIsLit starts at off
-boolean ledAIsLit=false;		//led starts at off
+boolean ledPIsLit=false;        //ledPIsLit starts at off
+boolean ledAIsLit=false;        //led starts at off
 
 int hydraulicTestFreq = 20; //The number of miliseconds between 
                             //tests of hydraulic pressure sensors
@@ -48,25 +48,25 @@ boolean pressureIsHigh(){
     delay(5);
     if(digitalRead(pressuresens)==LOW){
       return true;
-    })
+    }
   }
   return false;
 }
 
 void setOn(){
- if(!on){				//if the switch is off,
-  digitalWrite(solU,LOW);			//turn all solenoids off
+ if(!on){                //if the switch is off,
+  digitalWrite(solU,LOW);            //turn all solenoids off
   digitalWrite(solD,LOW);
   digitalWrite(solL,LOW);
   digitalWrite(solR,LOW);
   digitalWrite(solS,LOW);
  }
- if(digitalRead(switchON)==LOW){	//if we are reading the ON switch to indeed be on
-  delay(5);				// then delay for debounce
-  if(digitalRead(switchON)==LOW){	//if it's still low, then we set ON to be true 
+ if(digitalRead(switchON)==LOW){    //if we are reading the ON switch to indeed be on
+  delay(5);                // then delay for debounce
+  if(digitalRead(switchON)==LOW){    //if it's still low, then we set ON to be true 
    on=true;
   }
- }else{					//otherwise, if the on switch is set to off, 
+ }else{                    //otherwise, if the on switch is set to off, 
    delay(5);
   if(digitalRead(switchON)==HIGH){
    on=false;
@@ -80,10 +80,10 @@ void setOn(){
 void setAuto(){
   // This function is run every mainloop increment. It makes sure the correct LEDs are on
   // at evey given instant
- if(!on) return;			
+ if(!on) return;            
 
  //This block makes sure that if we're reading high pressure, ledP is lit
-  if(pressureIsHigh() && !ledPIsLit){	//If we read high pressure, but ledP is not lit
+  if(pressureIsHigh() && !ledPIsLit){    //If we read high pressure, but ledP is not lit
 
       //...then turn on ledP
       digitalWrite(ledP,HIGH);           
@@ -124,7 +124,8 @@ void setAuto(){
     digitalWrite(xledA,LOW);
     ledAIsLit=0;
     }else{
-    digitalWrite(xledA,HIGH0u    ledAIsLit=1;
+    digitalWrite(xledA,HIGH);
+    ledAIsLit=1;
     }
     ledAStartTime=millis(); //Either way, reset the clock
     }
@@ -140,36 +141,36 @@ void setAuto(){
  }
 }
 
-void actButtons(){		//this is the function for controlling the machine manually via buttons
- if(!on) return;		//if we ended up here somehow when the on switch is low, go back to where we came from
- if(digitalRead(btnU)==LOW){	//if we read up button on, wait 3ms for debounce
+void actButtons(){        //this is the function for controlling the machine manually via buttons
+ if(!on) return;        //if we ended up here somehow when the on switch is low, go back to where we came from
+ if(digitalRead(btnU)==LOW){    //if we read up button on, wait 3ms for debounce
   delay(3);
-  if(digitalRead(btnU)==LOW){	//if we read it low still, go to switchsol case 0 and set it high
+  if(digitalRead(btnU)==LOW){    //if we read it low still, go to switchsol case 0 and set it high
     digitalWrite(solU,HIGH);
   }
  }else{
     delay(3);
-  if(digitalRead(btnU)==HIGH){	//if after debounce it is high, go to switch case 0 and set it low
-    digitalWrite(solU,LOW);		
+  if(digitalRead(btnU)==HIGH){    //if after debounce it is high, go to switch case 0 and set it low
+    digitalWrite(solU,LOW);        
   }
  }
- if(digitalRead(btnD)==LOW){	//if down button is presssed, debounce dat ish
+ if(digitalRead(btnD)==LOW){    //if down button is presssed, debounce dat ish
   delay(3);
-  if(digitalRead(btnD)==LOW){	//still low? ok, drive dat puppy
+  if(digitalRead(btnD)==LOW){    //still low? ok, drive dat puppy
     digitalWrite(solD,HIGH);
   }
- }else{				//otherwise turn off the solenoid and check the next button
+ }else{                //otherwise turn off the solenoid and check the next button
     delay(3);
   if(digitalRead(btnD)==HIGH){
     digitalWrite(solD,LOW);
   }
  }
- if(digitalRead(btnL)==LOW){	//if left button is low, debounce it
+ if(digitalRead(btnL)==LOW){    //if left button is low, debounce it
   delay(3);
-  if(digitalRead(btnL)==LOW){	//still low? turn on solenoid
+  if(digitalRead(btnL)==LOW){    //still low? turn on solenoid
     digitalWrite(solL,HIGH);
   }
- }else{				//otherwise turn off solenoid and move on to right button
+ }else{                //otherwise turn off solenoid and move on to right button
     delay(3);
   if(digitalRead(btnL)==HIGH){
     digitalWrite(solL,LOW);
@@ -186,9 +187,9 @@ void actButtons(){		//this is the function for controlling the machine manually 
     digitalWrite(solR,LOW);
   }
  }
- if(digitalRead(btnS)==LOW){	//is the shaker motor button pressed?
+ if(digitalRead(btnS)==LOW){    //is the shaker motor button pressed?
   delay(3);
-  if(digitalRead(btnS)==LOW){	//
+  if(digitalRead(btnS)==LOW){    //
     digitalWrite(solS,HIGH);
   }
  }else{
@@ -264,11 +265,15 @@ void drawerTiming(){
   long int timerStart = millis();
   long int timeElapsed; //This will represent the elapsed time since beginning of retraction
 
+  //Debounce
+  delay(300);
+
   // retract until timeElapsed has reached haltTime
   digitalWrite(solL,HIGH);    //Begin retraction pressure
   while(timeElapsed < haltTime && !pressureIsHigh()){ //Continue retracting until we hit our halting time or pressure threshold
     delay(hydraulicTestFreq);
     timeElapsed = millis() - timerStart;
+    Serial.print(timeElapsed,DEC);
   }
   digitalWrite(solL,LOW); // The cylinder should now be in position, stop here
   return;
@@ -327,11 +332,15 @@ void mainTiming(){
   long int timerStart = millis();
   long int timeElapsed; //This will represent the elapsed time since beginning of retraction
 
+  //Debounce
+  delay(300);
+
   // retract until timeElapsed has reached haltTime
   digitalWrite(solU,HIGH);    //Begin retraction pressure
-  while(timeElapsed < haltTime){ //Continue retracting until we hit our halting time
+  while(timeElapsed < haltTime && !pressureIsHigh()){ //Continue retracting until we hit our halting time
     delay(hydraulicTestFreq);
     timeElapsed = millis() - timerStart;
+    Serial.print(timeElapsed,DEC);
   }
   digitalWrite(solU,LOW); // The cylinder should now be in position, stop here
   return;
@@ -391,16 +400,16 @@ void autoSetup(){ //TODO: Account for abrupt termination, function static variab
   //If the drawer is extending, check if we have reached threshold pressure
   if(dExtending) {
     //Check for threshold pressure
-    if digitalRead(pressureIsHigh()){
+    if (digitalRead(pressureIsHigh())){
       //Turn off the drawer cylinder if we've reached full extension
-      digitalWrite(solR, LOW)
+      digitalWrite(solR, LOW);
       dExtending = false;
 
       //Enter main retraction state
       mRetracting = true;
-      digitalWrite(solU, HIGH)
+      digitalWrite(solU, HIGH);
     }
-    else{delay(2)}
+    else{delay(2);}
   }
   //If we do, we are fully extended. Mark thusly, stop drawer extension and begin main retraction.
   else if(mRetracting){
@@ -418,7 +427,7 @@ void autoSetup(){ //TODO: Account for abrupt termination, function static variab
 
     }
     //If we have not yet reached pressure threshold, keep retracting
-    else{delay(2)} 
+    else{delay(2);} 
   }
   //If we have not started drawer extension, start the cylinder and mark in flags
   if(!dExtending && !mRetracting){
