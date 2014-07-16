@@ -215,7 +215,7 @@ void drawerBounce(){
     delay(50);                      //continue to push the drawer
   }
   digitalWrite(solR,LOW);                 //Cut extention pressure pressure
-  delay(5);
+  delay(200);
   digitalWrite(solL,HIGH);                //Begin backwards pressure
   long int retractionStart = millis();   //Record the starttime of our retraction
   while(!pressureIsHigh()){
