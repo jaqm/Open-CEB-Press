@@ -489,8 +489,8 @@ void setup() {
   digitalWrite(switchAUTO, HIGH);
   digitalWrite(pressuresens, HIGH);
 
-  pinMode(potA, INPUT);
-  pinMode(potB, INPUT);
+  pinMode(potM, INPUT);
+  pinMode(potD, INPUT);
 
   Serial.begin(9600);
 }
