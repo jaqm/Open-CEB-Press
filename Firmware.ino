@@ -46,7 +46,7 @@ long int shakeBegin = 0;
 boolean pressureIsHigh(){
   if(digitalRead(pressuresens)==LOW){
     delay(5);
-    if(digitalRead(pressuresens==LOW){
+    if(digitalRead(pressuresens)==LOW){
       return true;
     })
   }
