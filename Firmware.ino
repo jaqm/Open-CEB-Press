@@ -263,7 +263,7 @@ void drawerTiming(){
 
   // start timer
   long int timerStart = millis();
-  long int timeElapsed 0; //This will represent the elapsed time since beginning of retraction
+  long int timeElapsed = 0; //This will represent the elapsed time since beginning of retraction
 
   //Debounce
   delay(300);
@@ -387,6 +387,13 @@ const short PUSH_BRICK = 6;       //Extends the drawer to eject the brick.
 
 //The state we track
 short autoState = SET_UP;
+int lastStateChange = 0; //Marks the last time state was changed
+
+void changeAutoState(int state){
+  autoState = state;
+  stateIsSetup = false; //This is used by every state in the execAuto machine to indicate that 
+  lastStateChange = millis(); //This marks the time at which states were changed
+}
 
 void autoSetup(){ //TODO: Account for abrupt termination, function static variables may need to be reset.
   //When the autoStateMachine is in this state, it will position
@@ -420,10 +427,10 @@ void autoSetup(){ //TODO: Account for abrupt termination, function static variab
       mRetracting = false;
 
       //We should now be in position, change states
-      autoState = DUMP_DIRT;
+      changeAutoState(DUMP_DIRT);
 
       //and make sure to begin the timer now that we are shaking
-      shakeBegin = millis();
+      autoTimer = millis();
 
     }
     //If we have not yet reached pressure threshold, keep retracting
@@ -431,7 +438,7 @@ void autoSetup(){ //TODO: Account for abrupt termination, function static variab
   }
   //If we have not started drawer extension, start the cylinder and mark in flags
   if(!dExtending && !mRetracting){
-    //Start the cylinder
+    //Start the drawer cylinder
     digitalWrite(solR, HIGH);
     dExtending = true;
   }
@@ -453,18 +460,20 @@ void autoExec(){
       //Begin solonoid and trip flag
       digitalWrite(solS,HIGH);
       shaking = true;
+      autoTimer = 0;
     }
-    if(millis() - shakeBegin > desiredShakeTime){
+    if(millis() - autoTimer > desiredShakeTime){
 
       //Terminate solonoid and correct states
-      autoState = OBSTRUCT_PASSAGE;
+      changeAutoState(OBSTRUCT_PASSAGE);
       digitalWrite(solS,LOW);
       shaking = false;
     }
   }
   else if(autoState==OBSTRUCT_PASSAGE){
     //Begin retraction if it has not yet begun
-    
+
+    //Stop retraction and change states after reaching threshold 
 
   }
   else if(autoState==COMPRESS_BLOCK){}
