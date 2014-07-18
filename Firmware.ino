@@ -205,6 +205,8 @@ void actButtons(){        //this is the function for controlling the machine man
 //TODO: Don't do redundant work. Record our retraction time from drawerbounce and call drawerbounce
 //from drawerTiming if the value does not already exist.
 
+///DRAWER CYLINDER TESTS
+
 long int dRetractionTime = -1; //A vanlue of -1 means that we have not yet recorded a value for dRetractionTime
 
 void drawerBounce(){                
@@ -227,23 +229,24 @@ void drawerBounce(){
   return;
 }
 
-// With regards to our drawerTiming test method:
-// We want our cylinders to stop at increments down the shaft in order to coordinate movement between them
-// As our machines only means of sense is testing pressure threshold, we need our press to autonomously generate an
-// interval of time with which to push and pull the cylinders in order to reach the correct distance interval.
-// As it appears to us, there are two ways to calibrate this 'halt time'
-
 //TODO: Do we want to be able to change the vale of potD during automatic operation?
+
+int dHaltTime(){
+//This function calculates the necessary halt time from the value read by our potentiometer potD
+
+  //read in the value of the drawer potentiometer
+  int podDValue = analogRead(potD);
+
+  //Calculate the fraction that the potentiometer has been turned as a number beween 0 and 1.0
+  float fracTurn = potDValue / 1023.0;
+
+   //TODO: There better be a value for dRetractionTime... how to catch if there isnt?
+  return (int)(fracTurn * dRetractionTime);
+}
 
 void drawerTiming(){
   // This test function sets the drawer cylinder to a position configured with a potentiometer
   // It is used to calibrate the appropriate halt time as follows
-  
-  // read in the value of the drawer potentiometer
-  int potDValue = analogRead(potD);
-
-  //Gives us the fraction that the potentiometer has been turned as a float between 0 and 1.0
-  float fracTurn = potDValue / 1023.0; //TODO: Is this the correct voltage?
   
   if(dRetractionTime==-1){ //If we do not yet have a value for retracionTime, call drawerBounce to derive one
     drawerBounce();
@@ -259,7 +262,7 @@ void drawerTiming(){
   digitalWrite(solR,LOW);                 //Cut forward pressure
 
   // calculate haltTime the amount of time it would take to retract perc percent of the way down the shaft
-  float haltTime = fracTurn * dRetractionTime;
+  float haltTime = dHaltTime();
 
   // start timer
   long int timerStart = millis();
@@ -279,6 +282,7 @@ void drawerTiming(){
   return;
 }
 
+///MAIN CYLINDER TESTS
 long int mExtensionTime = -1;
 
 void mainBounce(){                
@@ -302,15 +306,22 @@ void mainBounce(){
   return;
 }
 
+int dHaltTime(){
+//This function calculates the necessary halt time from the value read by our potentiometer potD
+  
+  //read in the value of the drawer potentiometer
+  int podMValue = analogRead(potM);
+
+  //Calculate the fraction that the potentiometer has been turned as a number beween 0 and 1.0
+  float fracTurn = potMValue / 1023.0;
+
+   //TODO: There better be a value for dRetractionTime... how to catch if there isnt?
+  return (int)(fracTurn * mExtensionTime);
+}
+
 void mainTiming(){
   // This test function sets the main cylinder to a position configured with a potentiometer
   // It is used to calibrate the appropriate halt time as follows
-  
-  // read in the value of the main potentiometer
-  int potMValue = analogRead(potM);
-
-  //Gives us the fraction that the potentiometer has been turned as a float between 0 and 1.0
-  float fracTurn = potMValue / 1023.0;
   
   if(mExtensionTime==-1){ //If we do not yet have a value for retracionTime, call drawerBounce to derive one
     mainBounce();
@@ -326,7 +337,7 @@ void mainTiming(){
   digitalWrite(solD,LOW);                 //Cut forward pressure
 
   // calculate haltTime the amount of time it would take to retract perc percent of the way down the shaft
-  float haltTime = fracTurn * mExtensionTime;
+  float haltTime = dHaltTime();
 
   // start timer
   long int timerStart = millis();
@@ -420,24 +431,24 @@ void autoSetup(){ //TODO: Account for abrupt termination, function static variab
   }
   //If we do, we are fully extended. Mark thusly, stop drawer extension and begin main retraction.
   else if(mRetracting){
+
     //test if we have finished retracting
     if(pressureIsHigh()){
+
     //If we're in position, turn off solonoid
       digitalWrite(solD, LOW);
       mRetracting = false;
 
       //We should now be in position, change states
       changeAutoState(DUMP_DIRT);
-
-      //and make sure to begin the timer now that we are shaking
-      autoTimer = millis();
-
     }
+
     //If we have not yet reached pressure threshold, keep retracting
     else{delay(2);} 
   }
   //If we have not started drawer extension, start the cylinder and mark in flags
   if(!dExtending && !mRetracting){
+
     //Start the drawer cylinder
     digitalWrite(solR, HIGH);
     dExtending = true;
@@ -450,30 +461,45 @@ void autoExec(){
 //every loop cycle depending on the state of autoState
 
   const long int desiredShakeTime = 3000;
-  static boolean shaking = false;
 
   //This state machine should not be operating unless the machine is active and on automode
   if(!on || !automode){return;}
+
+
+  //Turn to the autoSetup state machine to make sure cylinders are in proper position
   if(autoState==SET_UP){autoSetup();} 
   else if(autoState==DUMP_DIRT){
-    if(!shaking){
+    if(!stateIsSetup){
       //Begin solonoid and trip flag
       digitalWrite(solS,HIGH);
-      shaking = true;
-      autoTimer = 0;
+      stateIsSetup = true;
     }
-    if(millis() - autoTimer > desiredShakeTime){
+
+    //If we've shaken enough...
+    if(millis() - lastStateChange > desiredShakeTime){
 
       //Terminate solonoid and correct states
       changeAutoState(OBSTRUCT_PASSAGE);
       digitalWrite(solS,LOW);
-      shaking = false;
     }
   }
-  else if(autoState==OBSTRUCT_PASSAGE){
-    //Begin retraction if it has not yet begun
 
-    //Stop retraction and change states after reaching threshold 
+  //
+  else if(autoState==OBSTRUCT_PASSAGE){
+
+    //Begin retraction if it has not yet begun
+    if(!stateIsSetup){
+      digitalWrite(solL,HIGH);
+      stateIsSetup=true;
+    }
+
+    //If we've reached threshold time...
+    else if(millis() - lastStateChange > dHaltTime()){
+
+      //Stop retraction and change states after reaching threshold 
+      digitalWrite(solL,LOW);
+      changeAutoState(COMPRESS_BLOCK);
+    }
 
   }
   else if(autoState==COMPRESS_BLOCK){}
