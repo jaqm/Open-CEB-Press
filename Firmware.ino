@@ -489,7 +489,7 @@ void autoExec(){
 
     //Begin retraction if it has not yet begun
     if(!stateIsSetup){
-      digitalWrite(solL,HIGH);
+      digitalWrite(solR,HIGH);
       stateIsSetup=true;
     }
 
@@ -497,15 +497,69 @@ void autoExec(){
     else if(millis() - lastStateChange > dHaltTime()){
 
       //Stop retraction and change states after reaching threshold 
-      digitalWrite(solL,LOW);
+      digitalWrite(solR,LOW);
       changeAutoState(COMPRESS_BLOCK);
     }
 
   }
-  else if(autoState==COMPRESS_BLOCK){}
-  else if(autoState==OPEN_PASSAGE){}
+
+  //Pushes main cylinder to a compression state against the drawer
+  else if(autoState==COMPRESS_BLOCK){
+    if(!stateIsSetup){
+      digitalWrite(solU,HIGH);
+      stateIsSetup=true;
+    }
+
+    else if(millis() - lastStateChange > mHaltTime()){
+
+      //Turn off the main cylinder
+      digitalWrite(solU,LOW);
+
+      //And pull back slightly to relieve pressure
+      digitalWrite(solD, HIGH);
+      delay(500); //An arbitrary meter
+      digitalWrite(solD,LOW);
+      changeAutoState(OPEN_PASSAGE);
+    }
+  }
+
+
+  else if(autoState==OPEN_PASSAGE){
+    if(!stateIsSetup){
+      digitalWrite(solR,HIGH);
+      stateIsSetup = true;
+    }
+
+    else if(pressureIsHigh()){
+      digitalWrite(solR,LOW);
+      changeAutoState(RAISE_BRICK);
+    }
+  }
+
+
   else if(autoState==RAISE_BRICK){}
-  else if(autoState==PUSH_BRICK){}
+    if(!stateIsSetup){
+      digitalWrite(solU,HIGH);
+      stateIsSetup = true;
+    }
+
+    else if(pressureIsHigh()){
+      digitalWrite(solU,LOW);
+      changeAutoState(PUSH_BRICK);
+    }
+
+  else if(autoState==PUSH_BRICK){
+    if(!stateIsSetup){
+      digitalWrite(solR,HIGH);
+      stateIsSetup = true;
+    }
+
+    else if(pressureIsHigh()){
+      digitalWrite(solR,LOW);
+      changeAutoState(SET_UP);
+    }
+  }
+
 }
 
 
