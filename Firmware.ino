@@ -31,7 +31,7 @@ unsigned long ledAStartTime=0;
 unsigned long prestime=0;
 
 boolean automode=false;        //automode starts at off
-boolean on=false;        //on starts at off
+boolean on=false;
 
 boolean ledPIsLit=false;        //ledPIsLit starts at off
 boolean ledAIsLit=false;        //led starts at off
@@ -42,7 +42,7 @@ int hydraulicTestFreq = 20; //The number of miliseconds between
 //Used within autoExec
 long int shakeBegin = 0;
 
-//reduced on time to 50 instead of 100
+//Encapsulates a debounced read of the pressure sensor
 boolean pressureIsHigh(){
   if(digitalRead(pressuresens)==LOW){
     delay(5);
@@ -579,6 +579,9 @@ void setup() {
 
   pinMode(potM, INPUT);
   pinMode(potD, INPUT);
+  if (digitalRead(switchON)==LOW){
+    on = true; 
+  }
 
   Serial.begin(9600);
 }
