@@ -1,3 +1,5 @@
+#include "Arduino.h"
+
 //pin mapping:
 
 int solU=PIN_B6;    //solenoid for cylinder up
@@ -26,6 +28,8 @@ int xledA=PIN_E1;//either xledA or xledM may be on at the same time
 
 unsigned long delaytime=500; //500ms - half second blink of pressure sensor indicator
 
+int dRetractionTime = -1; //A vanlue of -1 means that we have not yet recorded a value for dRetractionTime
+int mExtensionTime = -1;
 
 unsigned long ledAStartTime=0;
 unsigned long prestime=0;
@@ -107,7 +111,7 @@ void setAuto(){
 
   }
 
- //This block makes sure that if the auto switch is toggled, ledA is blinking
+ ////This block makes sure that if the auto switch is toggled, ledA is blinking
  if(digitalRead(switchAUTO)==HIGH){
   delay(3); //debounce
   if(digitalRead(switchAUTO)==HIGH){
@@ -126,7 +130,7 @@ void setAuto(){
    //If we don't have a value for mExtensionTime,l run mainbounce to derive one
    //INTERUPTS THE MAIN LOOP
    if(mExtensionTime == -1){
-     mainBounce()
+     mainBounce();
    }
 
    automode=true;
@@ -142,13 +146,14 @@ void setAuto(){
     }else{
     digitalWrite(xledA,HIGH);
     ledAIsLit=1;
-    }
     ledAStartTime=millis(); //Either way, reset the clock
     }
 
   }
+
  //If the autoswitch is not on, make sure that ledA and automode flag are off
- }else{
+ }
+ }else if(digitalRead(switchAUTO)==HIGH){
    delay(3);
   if(automode && digitalRead(switchAUTO)==LOW){
    automode=false;
@@ -223,7 +228,6 @@ void actButtons(){        //this is the function for controlling the machine man
 
 ///DRAWER CYLINDER TESTS
 
-long int dRetractionTime = -1; //A vanlue of -1 means that we have not yet recorded a value for dRetractionTime
 
 void drawerBounce(){                
   // This function sends the drawer to its forward-most point, then returns to its back limit. 
@@ -251,7 +255,7 @@ int dHaltTime(){
 //This function calculates the necessary halt time from the value read by our potentiometer potD
 
   //read in the value of the drawer potentiometer
-  int podDValue = analogRead(potD);
+  int potDValue = analogRead(potD);
 
   //Calculate the fraction that the potentiometer has been turned as a number beween 0 and 1.0
   float fracTurn = potDValue / 1023.0;
@@ -299,7 +303,6 @@ void drawerTiming(){
 }
 
 ///MAIN CYLINDER TESTS
-long int mExtensionTime = -1;
 
 void mainBounce(){                
   // This function sends the drawer to its most retracted point, then returns to its upper limit. 
@@ -322,11 +325,11 @@ void mainBounce(){
   return;
 }
 
-int dHaltTime(){
+int mHaltTime(){
 //This function calculates the necessary halt time from the value read by our potentiometer potD
   
   //read in the value of the drawer potentiometer
-  int podMValue = analogRead(potM);
+  int potMValue = analogRead(potM);
 
   //Calculate the fraction that the potentiometer has been turned as a number beween 0 and 1.0
   float fracTurn = potMValue / 1023.0;
@@ -413,8 +416,9 @@ const short OPEN_PASSAGE = 5;     //Retract the drawer to open the passage betwe
 const short RAISE_BRICK = 6;      //Brings the brick to the drawer level
 
 //The state we track
-short autoState = SET_UP;
+short autoState = PUSH_BRICK;
 int lastStateChange = 0; //Marks the last time state was changed
+boolean stateIsSetup = false;
 
 void changeAutoState(int state){
   autoState = state;
@@ -573,8 +577,6 @@ void setup() {
   digitalWrite(btnL, HIGH);
   digitalWrite(btnR, HIGH);
   digitalWrite(btnS, HIGH);
-  digitalWrite(switchON, HIGH);
-  digitalWrite(switchAUTO, HIGH);
   digitalWrite(pressuresens, HIGH);
 
   pinMode(potM, INPUT);
@@ -593,7 +595,7 @@ void loop() {
   setOn();
   setAuto();
   if(automode){
-   //put in auto press state machine here
+   autoExec();
   }else{
     if(on){
       actButtons();
