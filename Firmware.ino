@@ -113,6 +113,22 @@ void setAuto(){
   if(digitalRead(switchAUTO)==HIGH){
 
    //Set the automode global flag. Indicates to the rest of the program that automode is active
+
+   //Because we're turning on auto, we need to make sure that we have values for dRetractionTime and mExtention time
+
+   //If we don't have values for either, we need to call drawer bounce
+   //This is because we need the shaft to be open so as not to cause pre-mature compression
+   //INTERUPTS THE MAIN LOOP
+   if(dRetractionTime==-1 || mExtensionTime==-1){
+     drawerBounce();
+   }
+
+   //If we don't have a value for mExtensionTime,l run mainbounce to derive one
+   //INTERUPTS THE MAIN LOOP
+   if(mExtensionTime == -1){
+     mainBounce()
+   }
+
    automode=true;
 
    //Blink Procedure
@@ -388,13 +404,13 @@ void testButtons(){    //this is the function for controlling the machine manual
 ////////AUTO STATE MACHINE////////
 //The following is a state machine to automate the brick pressing process
 //TODO: Consider revising to enumerated type 
-const short SET_UP = 0;           //Fully extend the drawer and fully retract the main
-const short DUMP_DIRT = 1;        //Shakes dirt into the shaft 
-const short OBSTRUCT_PASSAGE = 2; //Moves the drawer to block shaft and allow a surface for compression
-const short COMPRESS_BLOCK = 3;   //Extends the main cylinder to compress a brick
-const short OPEN_PASSAGE = 4;     //Retract the drawer to open the passage between the hopper and compression chamber
-const short RAISE_BRICK = 5;      //Brings the brick to the drawer level
-const short PUSH_BRICK = 6;       //Extends the drawer to eject the brick.
+const short PUSH_BRICK = 0;       //Extends the drawer to eject the brick.
+const short DROP_PLATFORM = 1;    //Opens up the vertical shaft for dumping
+const short DUMP_DIRT = 2;        //Shakes dirt into the shaft 
+const short OBSTRUCT_PASSAGE = 3; //Moves the drawer to block shaft and allow a surface for compression
+const short COMPRESS_BLOCK = 4;   //Extends the main cylinder to compress a brick
+const short OPEN_PASSAGE = 5;     //Retract the drawer to open the passage between the hopper and compression chamber
+const short RAISE_BRICK = 6;      //Brings the brick to the drawer level
 
 //The state we track
 short autoState = SET_UP;
@@ -406,59 +422,11 @@ void changeAutoState(int state){
   lastStateChange = millis(); //This marks the time at which states were changed
 }
 
-void autoSetup(){ //TODO: Account for abrupt termination, function static variables may need to be reset.
-  //When the autoStateMachine is in this state, it will position
-  // the drawer and main cylinders (in that order) and change state to DUMP_DIRT
-
-
-  static boolean dExtending = false;
-  static boolean mRetracting = false;
-
-
-  //If the drawer is extending, check if we have reached threshold pressure
-  if(dExtending) {
-    //Check for threshold pressure
-    if (digitalRead(pressureIsHigh())){
-      //Turn off the drawer cylinder if we've reached full extension
-      digitalWrite(solR, LOW);
-      dExtending = false;
-
-      //Enter main retraction state
-      mRetracting = true;
-      digitalWrite(solU, HIGH);
-    }
-    else{delay(2);}
-  }
-  //If we do, we are fully extended. Mark thusly, stop drawer extension and begin main retraction.
-  else if(mRetracting){
-
-    //test if we have finished retracting
-    if(pressureIsHigh()){
-
-    //If we're in position, turn off solonoid
-      digitalWrite(solD, LOW);
-      mRetracting = false;
-
-      //We should now be in position, change states
-      changeAutoState(DUMP_DIRT);
-    }
-
-    //If we have not yet reached pressure threshold, keep retracting
-    else{delay(2);} 
-  }
-  //If we have not started drawer extension, start the cylinder and mark in flags
-  if(!dExtending && !mRetracting){
-
-    //Start the drawer cylinder
-    digitalWrite(solR, HIGH);
-    dExtending = true;
-  }
-}
-
-
 void autoExec(){
 //This function is essentially a state machine, performing a single incremental action
 //every loop cycle depending on the state of autoState
+
+  delay(10); //For debouncing and stablization throughout the loop
 
   const long int desiredShakeTime = 3000;
 
@@ -466,8 +434,33 @@ void autoExec(){
   if(!on || !automode){return;}
 
 
-  //Turn to the autoSetup state machine to make sure cylinders are in proper position
-  if(autoState==SET_UP){autoSetup();} 
+  //Clear the drawer and open the chamber
+  if(autoState==PUSH_BRICK){
+    if(!stateIsSetup){
+      digitalWrite(solR,HIGH);
+      stateIsSetup = true;
+    }
+
+    else if(pressureIsHigh()){
+      digitalWrite(solR,LOW);
+      changeAutoState(DROP_PLATFORM);
+    }
+
+  } 
+
+  if(autoState==DROP_PLATFORM){
+    if(!stateIsSetup){
+      digitalWrite(solD,HIGH);
+      stateIsSetup = true;
+    }
+
+    else if(pressureIsHigh()){
+      digitalWrite(solD,LOW);
+      changeAutoState(DUMP_DIRT);
+    }
+  }
+
+
   else if(autoState==DUMP_DIRT){
     if(!stateIsSetup){
       //Begin solonoid and trip flag
@@ -476,7 +469,7 @@ void autoExec(){
     }
 
     //If we've shaken enough...
-    if(millis() - lastStateChange > desiredShakeTime){
+    else if(millis() - lastStateChange > desiredShakeTime){
 
       //Terminate solonoid and correct states
       changeAutoState(OBSTRUCT_PASSAGE);
@@ -489,7 +482,7 @@ void autoExec(){
 
     //Begin retraction if it has not yet begun
     if(!stateIsSetup){
-      digitalWrite(solR,HIGH);
+      digitalWrite(solL,HIGH);
       stateIsSetup=true;
     }
 
@@ -497,11 +490,12 @@ void autoExec(){
     else if(millis() - lastStateChange > dHaltTime()){
 
       //Stop retraction and change states after reaching threshold 
-      digitalWrite(solR,LOW);
+      digitalWrite(solL,LOW);
       changeAutoState(COMPRESS_BLOCK);
     }
 
   }
+
 
   //Pushes main cylinder to a compression state against the drawer
   else if(autoState==COMPRESS_BLOCK){
@@ -526,18 +520,18 @@ void autoExec(){
 
   else if(autoState==OPEN_PASSAGE){
     if(!stateIsSetup){
-      digitalWrite(solR,HIGH);
+      digitalWrite(solL,HIGH);
       stateIsSetup = true;
     }
 
     else if(pressureIsHigh()){
-      digitalWrite(solR,LOW);
+      digitalWrite(solL,LOW);
       changeAutoState(RAISE_BRICK);
     }
   }
 
 
-  else if(autoState==RAISE_BRICK){}
+  else if(autoState==RAISE_BRICK){
     if(!stateIsSetup){
       digitalWrite(solU,HIGH);
       stateIsSetup = true;
@@ -546,17 +540,6 @@ void autoExec(){
     else if(pressureIsHigh()){
       digitalWrite(solU,LOW);
       changeAutoState(PUSH_BRICK);
-    }
-
-  else if(autoState==PUSH_BRICK){
-    if(!stateIsSetup){
-      digitalWrite(solR,HIGH);
-      stateIsSetup = true;
-    }
-
-    else if(pressureIsHigh()){
-      digitalWrite(solR,LOW);
-      changeAutoState(SET_UP);
     }
   }
 
