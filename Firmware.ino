@@ -84,6 +84,8 @@ void setOn(){
 void setAuto(){
   // This function is run every mainloop increment. It makes sure the correct LEDs are on
   // at evey given instant
+  delay(100); //Universal delay for debouncing and smooth operation
+
  if(!on) return;            
 
  //This block makes sure that if we're reading high pressure, ledP is lit
@@ -156,7 +158,12 @@ void setAuto(){
  }else if(digitalRead(switchAUTO)==HIGH){
    delay(3);
   if(automode && digitalRead(switchAUTO)==LOW){
+
+   //Turn off automode and handle variables cleanly
    automode=false;
+   terminateAutoExec();
+
+   //Turn off the LED too
    digitalWrite(xledA,HIGH);
   }
  }
@@ -420,10 +427,27 @@ short autoState = PUSH_BRICK;
 int lastStateChange = 0; //Marks the last time state was changed
 boolean stateIsSetup = false;
 
-void changeAutoState(int state){
-  autoState = state;
-  stateIsSetup = false; //This is used by every state in the execAuto machine to indicate that 
+void changeAutoState(int nextState){
+  autoState = nextState;
+  stateIsSetup = false; //This is used by every state in the execAuto machine 
+                        //to indicate that the next state must run its setup procedure
   lastStateChange = millis(); //This marks the time at which states were changed
+}
+
+void turnAllSolonoidsOff(){
+  digitalWrite(solD, LOW);
+  digitalWrite(solU, LOW);
+  digitalWrite(solR, LOW);
+  digitalWrite(solL, LOW);
+  digitalWrite(solS, LOW);
+}
+
+void terminateAutoExec(){
+  //This function should be run when autoExec is abrubtly ended.
+  //Because we have many state variables 
+  autoState = PUSH_BRICK;
+  lastStateChange = 0;
+  turnAllSolonoidsOff();
 }
 
 void autoExec(){
