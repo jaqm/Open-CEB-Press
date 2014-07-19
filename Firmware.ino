@@ -576,9 +576,7 @@ void autoExec(){
 
 // the setup routine runs once when you press reset:
 void setup() {
-  // initialize the digital pin as an output.
-  pinMode(ledP, OUTPUT);
-  pinMode(xledA, OUTPUT);
+  // Define Inputs/Outputs
   pinMode(solU, OUTPUT);
   pinMode(solD, OUTPUT);
   pinMode(solL, OUTPUT);
@@ -586,6 +584,8 @@ void setup() {
   pinMode(solS, OUTPUT);
 
   pinMode(ledP, OUTPUT);
+  pinMode(ledP, OUTPUT);
+  pinMode(xledA, OUTPUT);
   pinMode(xledA, OUTPUT);
 
   pinMode(btnU, INPUT);
@@ -596,6 +596,10 @@ void setup() {
   pinMode(pressuresens, INPUT);
   pinMode(switchON, INPUT);
   pinMode(switchAUTO, INPUT);
+  pinMode(potM, INPUT);
+  pinMode(potD, INPUT);
+
+  // Set initial status
   digitalWrite(btnU, HIGH);
   digitalWrite(btnD, HIGH);
   digitalWrite(btnL, HIGH);
@@ -603,16 +607,12 @@ void setup() {
   digitalWrite(btnS, HIGH);
   digitalWrite(pressuresens, HIGH);
 
-  pinMode(potM, INPUT);
-  pinMode(potD, INPUT);
   if (digitalRead(switchON)==LOW){
     on = true; 
   }
 
   Serial.begin(9600);
 }
-
-
 
 // the loop routine runs over and over again forever:
 void loop() {
