@@ -57,6 +57,16 @@ boolean pressureIsHigh(){
   return false;
 }
 
+void setSolenoids(uint8_t mode){
+
+  digitalWrite(solU,mode);            //turn all solenoids off
+  digitalWrite(solD,mode);
+  digitalWrite(solL,mode);
+  digitalWrite(solR,mode);
+  digitalWrite(solS,mode);
+
+}
+
 void setOn(){
  if(!on){                //if the switch is off,
   digitalWrite(solU,LOW);            //turn all solenoids off
@@ -64,6 +74,7 @@ void setOn(){
   digitalWrite(solL,LOW);
   digitalWrite(solR,LOW);
   digitalWrite(solS,LOW);
+//  setSolenoids(LOW);
  }
  if(digitalRead(switchON)==LOW){    //if we are reading the ON switch to indeed be on
   delay(5);                // then delay for debounce
@@ -584,8 +595,6 @@ void setup() {
   pinMode(solS, OUTPUT);
 
   pinMode(ledP, OUTPUT);
-  pinMode(ledP, OUTPUT);
-  pinMode(xledA, OUTPUT);
   pinMode(xledA, OUTPUT);
 
   pinMode(btnU, INPUT);
