@@ -46,6 +46,18 @@ int hydraulicTestFreq = 20; //The number of miliseconds between
 //Used within autoExec
 long int shakeBegin = 0;
 
+//*******  
+void setSolenoids(uint8_t mode){
+
+  digitalWrite(solU,mode);            //turn all solenoids off
+  digitalWrite(solD,mode);
+  digitalWrite(solL,mode);
+  digitalWrite(solR,mode);
+  digitalWrite(solS,mode);
+
+}
+
+
 //Encapsulates a debounced read of the pressure sensor
 boolean pressureIsHigh(){
   if(digitalRead(pressuresens)==LOW){
@@ -57,15 +69,6 @@ boolean pressureIsHigh(){
   return false;
 }
 
-void setSolenoids(uint8_t mode){
-
-  digitalWrite(solU,mode);            //turn all solenoids off
-  digitalWrite(solD,mode);
-  digitalWrite(solL,mode);
-  digitalWrite(solR,mode);
-  digitalWrite(solS,mode);
-
-}
 
 void setOn(){
  if(!on){                //if the switch is off,
