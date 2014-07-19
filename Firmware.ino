@@ -46,7 +46,7 @@ int hydraulicTestFreq = 20; //The number of miliseconds between
 //Used within autoExec
 long int shakeBegin = 0;
 
-//*******  
+//*******  GETTERS && SETTERS *****
 // Description: Sets all solenoids into mode.
 // mode: HIGH or LOW values expected.
 void setSolenoids(uint8_t mode){
@@ -80,14 +80,22 @@ uint8_t pressureIs(){
 //  return false;
 //}
 
+// Description: returns the status of the powerSwitch. 
+// TODO: Decide the default/preferred value. 
+// Return: as every switch, LOW==ACTIVE, and HIGH==DISABLED
+uint8_t powerSwitchIs(){
+
+ uint8_t value = digitalRead(switchON);
+ for(int i=0; i<5; i++){
+   if (digitalRead(switchON)==LOW) value = LOW;
+ }
+ return value;
+}
+
+// **** END of GETTERS && SETTERS
 
 void setOn(){
  if(!on){                //if the switch is off,
-//  digitalWrite(solU,LOW);            //turn all solenoids off
-//  digitalWrite(solD,LOW);
-//  digitalWrite(solL,LOW);
-//  digitalWrite(solR,LOW);
-//  digitalWrite(solS,LOW);
   setSolenoids(LOW);
  }
  if(digitalRead(switchON)==LOW){    //if we are reading the ON switch to indeed be on
