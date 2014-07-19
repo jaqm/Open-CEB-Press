@@ -80,16 +80,19 @@ uint8_t pressureIs(){
 //  return false;
 //}
 
-// Description: returns the status of the powerSwitch. 
-// TODO: Decide the default/preferred value. 
-// Return: as every switch, LOW==ACTIVE, and HIGH==DISABLED
+// Description: returns the status and only the status of the powerSwitch. 
+// Return: the status AS-IS. As al of our INPUTS: LOW==ACTIVE, and HIGH==DISABLED
 uint8_t powerSwitchIs(){
 
- uint8_t value = digitalRead(switchON);
- for(int i=0; i<5; i++){
-   if (digitalRead(switchON)==LOW) value = LOW;
- }
- return value;
+ uint8_t value0 = HIGH;
+ uint8_t value1 = LOW;
+ do{
+   value0 = digitalRead(switchON);
+   delay(5);
+   value1 = digitalRead(switchON)
+ }while (value0!=value1)
+ return value0;
+
 }
 
 // **** END of GETTERS && SETTERS
