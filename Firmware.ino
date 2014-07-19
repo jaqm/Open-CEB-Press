@@ -55,10 +55,19 @@ void setSolenoids(uint8_t mode){
   digitalWrite(solL,mode);
   digitalWrite(solR,mode);
   digitalWrite(solS,mode);
-
 }
 
+// Description: reads and return the state of the pressure sensor.
+// Return: The value of the sensor.
+uint8_t pressureIs(){
 
+  uint8_t value=LOW;
+  firstValue=digitalRead(pressuresens);
+  for (int i=0; i < 5; i++){
+    delay(1);
+    if (digitalRead(pressuresens) == HIGH) value = HIGH;
+  } 
+}
 
 //Encapsulates a debounced read of the pressure sensor
 boolean pressureIsHigh(){
