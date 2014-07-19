@@ -96,6 +96,27 @@ uint8_t powerSwitchIs(){
 
 }
 
+// Description: returns the status and only the status of the pin selected. 
+// Input: pin: the value corresponding to the ping selected.
+//        d (delay): amount of seconds between the first and the 2nd digital read to confirm the value.
+// Return: the status AS-IS. As al of our INPUTS: LOW==ACTIVE, and HIGH==DISABLED
+uint8_t inputIs(int pin, int d){
+
+    uint8_t value0 = HIGH;
+    uint8_t value1 = LOW;
+
+    do{
+	value0 = digitalRead(pin);
+	delay(d);
+	value1 = digitalRead(pin);
+    }while (value0!=value1);
+ 
+    return value0;
+
+}
+
+
+
 // **** END of GETTERS && SETTERS
 
 void setOn(){
@@ -119,19 +140,96 @@ void setAuto(){
     // at evey given instant
     delay(100); //Universal delay for debouncing and smooth operation
 
-    if(!on) return;            
-
+//    //-----------
+//    if(on){
+//
+//        //This block makes sure that if we're reading high pressure, ledP is lit
+//      if(pressureIs()==HIGH && !ledPIsLit){   //If we read high pressure, but ledP is not lit
+//  	digitalWrite(ledP,HIGH);              //...then turn on ledP
+//  	ledPIsLit=true;     	              //set ledPIsLit flag so as not to run this block redundently
+//  	//Record the time we lit up ledP
+//  	prestime=millis();
+//  
+//      }else{
+//  	//If we're no longer reading high pressure and enough time has passed for the user to see the LED
+//  	if(pressureIs()==LOW && ((millis()-prestime)>delaytime)){  
+//  	    //Update flags and led accordingly
+//  	    ledPIsLit=false;
+//  	    digitalWrite(ledP,LOW);
+//  	}
+//  
+//      }
+// 
+//      ////This block makes sure that if the auto switch is toggled, ledA is blinking
+//      if(digitalRead(switchAUTO)==HIGH){
+//  	delay(3); //debounce
+//  	if(digitalRead(switchAUTO)==HIGH){
+//  
+//  	    //Set the automode global flag. Indicates to the rest of the program that automode is active
+//  
+//  	    //Because we're turning on auto, we need to make sure that we have values for dRetractionTime and mExtention time
+//  
+//  	    //If we don't have values for either, we need to call drawer bounce
+//  	    //This is because we need the shaft to be open so as not to cause pre-mature compression
+//  	    //INTERUPTS THE MAIN LOOP
+//  	    if(dRetractionTime==-1 || mExtensionTime==-1){
+//  		drawerBounce();
+//  	    }
+//  
+//  	    //If we don't have a value for mExtensionTime,l run mainbounce to derive one
+//  	    //INTERUPTS THE MAIN LOOP
+//  	    if(mExtensionTime == -1){
+//  		mainBounce();
+//  	    }
+//    
+//  	    automode=true;
+//    
+//  	    //Blink Procedure
+//  	    //If we have waited an entire blink cycle...
+//  	    if((millis()-ledAStartTime)>delaytime){
+//    
+//  		//Turn ledA on if it is off, off if it's on
+//  		if(ledAIsLit){
+//  		    digitalWrite(xledA,LOW);
+//  		    ledAIsLit=0;
+//  		}else{
+//  		    digitalWrite(xledA,HIGH);
+//  		    ledAIsLit=1;
+//  		    ledAStartTime=millis(); //Either way, reset the clock
+//  		}
+//    
+//  	    }
+//  	    //If the autoswitch is not on, make sure that ledA and automode flag are off
+//  	}
+//      }else if(digitalRead(switchAUTO)==HIGH){
+//  	delay(3);
+//  	if(automode && digitalRead(switchAUTO)==LOW){
+//  
+//  	    //Turn off automode and handle variables cleanly
+//  	    automode=false;
+//  	    terminateAutoExec();
+//  
+//  	    //Turn off the LED too
+//  	    digitalWrite(xledA,HIGH);
+//  	}
+//      }
+//    }else return;
+//
+//
+//  //-------------
+    
+    if(!on) return;
+    
     //This block makes sure that if we're reading high pressure, ledP is lit
     if(pressureIs()==HIGH && !ledPIsLit){    //If we read high pressure, but ledP is not lit
 
 	//...then turn on ledP
 	digitalWrite(ledP,HIGH);           
-
 	//set ledPIsLit flag so as not to run this block redundently
 	ledPIsLit=true;   
-
 	//Record the time we lit up ledP
 	prestime=millis(); 
+
     }else{
 	//If we're no longer reading high pressure and enough time has passed for the user to see the LED
 	if(pressureIs()==LOW && ((millis()-prestime)>delaytime)){  
