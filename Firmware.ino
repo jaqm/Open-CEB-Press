@@ -445,20 +445,12 @@ void changeAutoState(int nextState){
   lastStateChange = millis(); //This marks the time at which states were changed
 }
 
-void turnAllSolonoidsOff(){
-  digitalWrite(solD, LOW);
-  digitalWrite(solU, LOW);
-  digitalWrite(solR, LOW);
-  digitalWrite(solL, LOW);
-  digitalWrite(solS, LOW);
-}
-
 void terminateAutoExec(){
   //This function should be run when autoExec is abrubtly ended.
   //Because we have many state variables 
   autoState = PUSH_BRICK;
   lastStateChange = 0;
-  turnAllSolonoidsOff();
+  setSolenoids(LOW);
 }
 
 void autoExec(){
