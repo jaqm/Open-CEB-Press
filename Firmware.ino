@@ -127,7 +127,7 @@ void setAuto(){
     }
   else{
     //If we're no longer reading high pressure and enough time has passed for the user to see the LED
-    if(!pressureIs()==HIGH && ((millis()-prestime)>delaytime)){  
+    if(pressureIs()==LOW && ((millis()-prestime)>delaytime)){  
 
       //Then change flag accordingly
       ledPIsLit=false;
@@ -266,14 +266,14 @@ void drawerBounce(){
   // We will change direction and halt whenever we reach a threshold of pressure indicated by our
   // 'pressuresens' register going LOW. 
   digitalWrite(solR,HIGH);                //Begin extension pressure
-  while(!pressureIs()==HIGH){ //While we have not reached threshold pressure we have not reached 
+  while(pressureIs()==LOW){ //While we have not reached threshold pressure we have not reached 
     delay(50);                      //continue to push the drawer
   }
   digitalWrite(solR,LOW);                 //Cut extention pressure pressure
   delay(200);
   digitalWrite(solL,HIGH);                //Begin backwards pressure
   long int retractionStart = millis();   //Record the starttime of our retraction
-  while(!pressureIs()==HIGH){
+  while(pressureIs()==LOW){
     delay(50);
   }
   dRetractionTime = millis() - retractionStart;
@@ -308,7 +308,7 @@ void drawerTiming(){
 
   // extend the cylinder until we reach threshold pressure
   digitalWrite(solR,HIGH);                //Begin fowards pressure
-  while(!pressureIs()==HIGH){ //While we are not at threshold pressure... 
+  while(pressureIs()==LOW){ //While we are not at threshold pressure... 
     delay(hydraulicTestFreq);                      //continue to push the drawer
   }
   digitalWrite(solR,LOW);                 //Cut forward pressure
@@ -325,7 +325,7 @@ void drawerTiming(){
 
   // retract until timeElapsed has reached haltTime
   digitalWrite(solL,HIGH);    //Begin retraction pressure
-  while(timeElapsed < haltTime && !pressureIs()==HIGH){ //Continue retracting until we hit our halting time or pressure threshold
+  while(timeElapsed < haltTime && pressureIs()==LOW){ //Continue retracting until we hit our halting time or pressure threshold
     delay(hydraulicTestFreq);
     timeElapsed = millis() - timerStart;
     Serial.print(timeElapsed,DEC);
@@ -342,14 +342,14 @@ void mainBounce(){
   // 'pressuresens' register going LOW.
 
   digitalWrite(solD,HIGH);                //Begin retraction pressure
-  while(!pressureIs()==HIGH){ //While we have not reached threshold pressure we have not reached 
+  while(pressureIs()==LOW){ //While we have not reached threshold pressure we have not reached 
     delay(hydraulicTestFreq);                      //continue to push the drawer
   }
   digitalWrite(solD,LOW);                 //Cut retraction pressure
   delay(500);
   digitalWrite(solU,HIGH);                //Begin backwards pressure
   long int extensionStart = millis();   //Record the starttime of our extension
-  while(!pressureIs()==HIGH){
+  while(pressureIs()==LOW){
     delay(hydraulicTestFreq);
   }
   mExtensionTime = millis() - extensionStart;
@@ -382,7 +382,7 @@ void mainTiming(){
 
   // retract the cylinder until we reach threshold pressure
   digitalWrite(solD,HIGH);                //Begin fowards pressure
-  while(!pressureIs()==HIGH){ //While we are not at threshold pressure... 
+  while(pressureIs()==LOW){ //While we are not at threshold pressure... 
     delay(hydraulicTestFreq);                      //continue to push the drawer
   }
   digitalWrite(solD,LOW);                 //Cut forward pressure
@@ -399,7 +399,7 @@ void mainTiming(){
 
   // retract until timeElapsed has reached haltTime
   digitalWrite(solU,HIGH);    //Begin retraction pressure
-  while(timeElapsed < haltTime && !pressureIs()==HIGH){ //Continue retracting until we hit our halting time
+  while(timeElapsed < haltTime && pressureIs()==LOW){ //Continue retracting until we hit our halting time
     delay(hydraulicTestFreq);
     timeElapsed = millis() - timerStart;
     Serial.print(timeElapsed,DEC);
