@@ -47,15 +47,17 @@ int hydraulicTestFreq = 20; //The number of miliseconds between
 long int shakeBegin = 0;
 
 //*******  
+// Description: Sets all solenoids into mode.
+// mode: HIGH or LOW values expected.
 void setSolenoids(uint8_t mode){
-
-  digitalWrite(solU,mode);            //turn all solenoids off
+  digitalWrite(solU,mode);            //turn all solenoids into mode
   digitalWrite(solD,mode);
   digitalWrite(solL,mode);
   digitalWrite(solR,mode);
   digitalWrite(solS,mode);
 
 }
+
 
 
 //Encapsulates a debounced read of the pressure sensor
