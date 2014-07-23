@@ -176,10 +176,8 @@ void actButtons(){        //this is the function for controlling the machine man
 }
 
 // Reads all the values of the panel, adding a check protection against rebounce, with a delay.
-void readPanel(int &btnU, int &btnD,int &btnR,int &btnL,int &btnS,
-          int &pressureSens,int &swOn,int &swAuto,int &potM,
-          int &potD, int d){
-
+void readPanel(uint8_t panelArray[], const int d){  
+  
   uint8_t vU0 = digitalRead(PIN_BUTTON_UP);
   uint8_t vD0 = digitalRead(PIN_BUTTON_DOWN);
   uint8_t vL0 = digitalRead(PIN_BUTTON_LEFT);
@@ -204,18 +202,16 @@ void readPanel(int &btnU, int &btnD,int &btnR,int &btnL,int &btnS,
   uint8_t vPotM1 = digitalRead(PIN_POTM);
   uint8_t vPotD1 = digitalRead(PIN_POTD);
 
-  
-
-  btnU = checkIfEquals(vU0,vU1);
-  btnD = checkIfEquals(vD0,vD1);
-  btnL = checkIfEquals(vL0,vL1);
-  btnR = checkIfEquals(vR0,vR1);
-  btnS = checkIfEquals(vS0,vS1);
-  pressureSens = checkIfEquals(vP0,vP1);
-  swOn = checkIfEquals(vSwOn0,vSwOn1);
-  swAuto = checkIfEquals(vSwAuto0,vSwAuto1);
-  potM = checkIfEquals(vPotM0,vPotM1);
-  potD = checkIfEquals(vPotD0,vPotD1);
+  panelArray[ID_BUTTON_UP] = checkIfEquals(vU0,vU1);
+  panelArray[ID_BUTTON_DOWN] = checkIfEquals(vD0,vD1);
+  panelArray[ID_BUTTON_LEFT] = (uint8_t) checkIfEquals(vL0,vL1);
+  panelArray[ID_BUTTON_RIGHT] = checkIfEquals(vR0,vR1);
+  panelArray[ID_BUTTON_SHAKER] = checkIfEquals(vS0,vS1);
+  panelArray[ID_PRESSURE] = checkIfEquals(vP0,vP1);
+  panelArray[ID_SWON] = checkIfEquals(vSwOn0,vSwOn1);
+  panelArray[ID_SWAUTO] = checkIfEquals(vSwAuto0,vSwAuto1);
+  panelArray[ID_POTM] = checkIfEquals(vPotM0,vPotM1);
+  panelArray[ID_POTD] = checkIfEquals(vPotD0,vPotD1);
 
 }
 
