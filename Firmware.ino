@@ -208,69 +208,47 @@ void setAuto(){
       }
     }
   
-  return;
+//  return;
 
+}
+
+
+// This function is supposed to invert a digital value readed from a pin like HIGH or LOW.
+// e: HIGH or LOW
+// return: if c=HGH then return LOW, if c=LOW then return HIGH. DEFAULT:   
+uint8_t revertDigitalSignalValue(uint8_t val){
+
+  uint8_t oppositeValue=B00001111;
+  
+  if (val==HIGH){
+    oppositeValue=LOW;
+  }else if (val==LOW){
+    oppositeValue=HIGH;
+  }
+
+  return oppositeValue;
+  
 }
 
 void actButtons(){        //this is the function for controlling the machine manually via buttons
-    if(!on) return;        //if we ended up here somehow when the on switch is low, go back to where we came from
-    if(digitalRead(btnU)==LOW){    //if we read up button on, wait 3ms for debounce
-	delay(3);
-	if(digitalRead(btnU)==LOW){    //if we read it low still, go to switchsol case 0 and set it high
-	    digitalWrite(solU,HIGH);
-	}
-    }else{
-	delay(3);
-	if(digitalRead(btnU)==HIGH){    //if after debounce it is high, go to switch case 0 and set it low
-	    digitalWrite(solU,LOW);        
-	}
-    }
-    if(digitalRead(btnD)==LOW){    //if down button is presssed, debounce dat ish
-	delay(3);
-	if(digitalRead(btnD)==LOW){    //still low? ok, drive dat puppy
-	    digitalWrite(solD,HIGH);
-	}
-    }else{                //otherwise turn off the solenoid and check the next button
-	delay(3);
-	if(digitalRead(btnD)==HIGH){
-	    digitalWrite(solD,LOW);
-	}
-    }
-    if(digitalRead(btnL)==LOW){    //if left button is low, debounce it
-	delay(3);
-	if(digitalRead(btnL)==LOW){    //still low? turn on solenoid
-	    digitalWrite(solL,HIGH);
-	}
-    }else{                //otherwise turn off solenoid and move on to right button
-	delay(3);
-	if(digitalRead(btnL)==HIGH){
-	    digitalWrite(solL,LOW);
-	}
-    }
-    if(digitalRead(btnR)==LOW){
-	delay(3);
-	if(digitalRead(btnR)==LOW){
-	    digitalWrite(solR,HIGH);
-	}
-    }else{
-	delay(3);
-	if(digitalRead(btnR)==HIGH){
-	    digitalWrite(solR,LOW);
-	}
-    }
-    if(digitalRead(btnS)==LOW){    //is the shaker motor button pressed?
-	delay(3);
-	if(digitalRead(btnS)==LOW){    //
-	    digitalWrite(solS,HIGH);
-	}
-    }else{
-	delay(3);
-	if(digitalRead(btnS)==HIGH){
-	    digitalWrite(solS,LOW);
-	}
-    }
-}
+     
+  if (on){
 
+    int d=3;		// Delay applied while reading each pin.
+
+    uint8_t up=inputIs(btnU,d);  // Get all movement values in a row
+    uint8_t down=inputIs(btnD,d);
+    uint8_t right=inputIs(btnR,d);
+    uint8_t left=inputIs(btnL,d);
+  
+    digitalWrite(solU,revertDigitalSignalValue(up));  // Assign all movements in a row.
+    digitalWrite(solU,revertDigitalSignalValue(down));
+    digitalWrite(solU,revertDigitalSignalValue(right));
+    digitalWrite(solU,revertDigitalSignalValue(left));
+  
+  }
+  //return;
+}
 /////////TEST FUNCTIONS/////////////
 
 //TODO: Don't do redundant work. Record our retraction time from drawerbounce and call drawerbounce
