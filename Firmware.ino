@@ -149,7 +149,7 @@ void setAuto(){
   	//Record the time we lit up ledP
   	prestime=millis();
   
-      }else if(inputIs(pressuresens,5)()==LOW && ((millis()-prestime)>delaytime)){  
+      }else if(inputIs(pressuresens,5)==LOW && ((millis()-prestime)>delaytime)){  
   	    //If we're no longer reading high pressure and enough time has passed for the user to see the LED
   	  	    //Update flags and led accordingly
   	    ledPIsLit=false;
