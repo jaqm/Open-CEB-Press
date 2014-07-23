@@ -700,15 +700,20 @@ void setup() {
 
 // the loop routine runs over and over again forever:
 void loop() {
-    setOn();
-    setAuto();
-    if(automode){
-	autoExec();
-    }else{
-	if(on){
-	    actButtons();
-	}else{
-	    testButtons();
-	}
-    }
+//    setOn();
+//    setAuto();
+//    if(automode){
+//	autoExec();
+//    }else{
+//	if(on){
+//	    actButtons();
+//	}else{
+//	    testButtons();
+//	}
+//    }
+
+
+  
+  
+
 }
