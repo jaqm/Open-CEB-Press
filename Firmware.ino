@@ -93,6 +93,30 @@ uint8_t inputIs(int pin, int d){
 
 }
 
+void read4inARow(uint8_t &buttonUp, uint8_t &buttonDown, uint8_t &buttonLeft, uint8_t &buttonRight){
+
+  const int d = 3;
+
+  uint8_t vU0 = digitalRead(btnU);
+  uint8_t vD0 = digitalRead(btnD);
+  uint8_t vL0 = digitalRead(btnL);
+  uint8_t vR0 = digitalRead(btnR);
+  
+  delay(d);
+  
+  uint8_t vU1 = digitalRead(btnU);
+  uint8_t vD1 = digitalRead(btnD);
+  uint8_t vR1 = digitalRead(btnR);
+  uint8_t vL1 = digitalRead(btnL);
+
+  buttonUp = checkIfEquals(vU0,vU1);
+  buttonDown = checkIfEquals(vD0,vD1);
+  buttonLeft = checkIfEquals(vL0,vL1);
+  buttonRight = checkIfEquals(vR0,vR1);
+
+}
+
+
 // **** END of GETTERS && SETTERS
 
 // **** DATA HANDLING
@@ -114,6 +138,18 @@ uint8_t revertDigitalSignalValue(uint8_t val){
   
 }
 
+// Checks if the values received are equal.
+// If equal returns the value of the first value,
+// if not equals returns LOW.
+uint8_t checkIfEquals(uint8_t a, uint8_t b){
+  uint8_t value=LOW;
+  if (a==b){
+    value=a;
+  }
+  return value;
+}
+
+
 // **** END of DATA HANDLING
 
 void actButtons(){        //this is the function for controlling the machine manually via buttons
@@ -122,20 +158,26 @@ void actButtons(){        //this is the function for controlling the machine man
 
     int d=3;		// Delay applied while reading each pin.
 
-    uint8_t up=inputIs(btnU,d);  // Get all movement values in a row
-    uint8_t down=inputIs(btnD,d);
-    uint8_t right=inputIs(btnR,d);
-    uint8_t left=inputIs(btnL,d);
+    uint8_t up=LOW;;  // Get all movement values in a row
+    uint8_t down=LOW;
+    uint8_t right=LOW;
+    uint8_t left=LOW;
   
+    read4inARow(up,down,left,right);
+    
     digitalWrite(solU,revertDigitalSignalValue(up));  // Assign all movements in a row.
-    digitalWrite(solU,revertDigitalSignalValue(down));
-    digitalWrite(solU,revertDigitalSignalValue(right));
-    digitalWrite(solU,revertDigitalSignalValue(left));
+    digitalWrite(solD,revertDigitalSignalValue(down));
+    digitalWrite(solL,revertDigitalSignalValue(left));
+    digitalWrite(solR,revertDigitalSignalValue(right));
   
   }
   //return;
 }
 
+
+// ** UP FROM HERE -- ALREADY REVIEWED
+// ** DOWN FROM HERE -- PENDING.
+// ---------------------------
 
 void setOn(){
 
