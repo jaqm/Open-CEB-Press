@@ -284,14 +284,14 @@ void drawerBounce(){
     // We will change direction and halt whenever we reach a threshold of pressure indicated by our
     // 'pressuresens' register going LOW. 
     digitalWrite(solR,HIGH);                //Begin extension pressure
-    while(inputIs(pressuresens,5)()==LOW){ //While we have not reached threshold pressure we have not reached 
+    while(inputIs(pressuresens,5)==LOW){ //While we have not reached threshold pressure we have not reached 
 	delay(50);                      //continue to push the drawer
     }
     digitalWrite(solR,LOW);                 //Cut extention pressure pressure
     delay(200);
     digitalWrite(solL,HIGH);                //Begin backwards pressure
     long int retractionStart = millis();   //Record the starttime of our retraction
-    while(inputIs(pressuresens,5)()==LOW){
+    while(inputIs(pressuresens,5)==LOW){
 	delay(50);
     }
     dRetractionTime = millis() - retractionStart;
@@ -326,7 +326,7 @@ void drawerTiming(){
 
     // extend the cylinder until we reach threshold pressure
     digitalWrite(solR,HIGH);                //Begin fowards pressure
-    while(inputIs(pressuresens,5)()==LOW){ //While we are not at threshold pressure... 
+    while(inputIs(pressuresens,5)==LOW){ //While we are not at threshold pressure... 
 	delay(hydraulicTestFreq);                      //continue to push the drawer
     }
     digitalWrite(solR,LOW);                 //Cut forward pressure
@@ -343,7 +343,7 @@ void drawerTiming(){
 
     // retract until timeElapsed has reached haltTime
     digitalWrite(solL,HIGH);    //Begin retraction pressure
-    while(timeElapsed < haltTime && inputIs(pressuresens,5)()==LOW){ //Continue retracting until we hit our halting time or pressure threshold
+    while(timeElapsed < haltTime && inputIs(pressuresens,5)==LOW){ //Continue retracting until we hit our halting time or pressure threshold
 	delay(hydraulicTestFreq);
 	timeElapsed = millis() - timerStart;
 	Serial.print(timeElapsed,DEC);
@@ -360,14 +360,14 @@ void mainBounce(){
     // 'pressuresens' register going LOW.
 
     digitalWrite(solD,HIGH);                //Begin retraction pressure
-    while(inputIs(pressuresens,5)()==LOW){ //While we have not reached threshold pressure we have not reached 
+    while(inputIs(pressuresens,5)==LOW){ //While we have not reached threshold pressure we have not reached 
 	delay(hydraulicTestFreq);                      //continue to push the drawer
     }
     digitalWrite(solD,LOW);                 //Cut retraction pressure
     delay(500);
     digitalWrite(solU,HIGH);                //Begin backwards pressure
     long int extensionStart = millis();   //Record the starttime of our extension
-    while(inputIs(pressuresens,5)()==LOW){
+    while(inputIs(pressuresens,5)==LOW){
 	delay(hydraulicTestFreq);
     }
     mExtensionTime = millis() - extensionStart;
@@ -400,7 +400,7 @@ void mainTiming(){
 
     // retract the cylinder until we reach threshold pressure
     digitalWrite(solD,HIGH);                //Begin fowards pressure
-    while(inputIs(pressuresens,5)()==LOW){ //While we are not at threshold pressure... 
+    while(inputIs(pressuresens,5)==LOW){ //While we are not at threshold pressure... 
 	delay(hydraulicTestFreq);                      //continue to push the drawer
     }
     digitalWrite(solD,LOW);                 //Cut forward pressure
@@ -417,7 +417,7 @@ void mainTiming(){
 
     // retract until timeElapsed has reached haltTime
     digitalWrite(solU,HIGH);    //Begin retraction pressure
-    while(timeElapsed < haltTime && inputIs(pressuresens,5)()==LOW){ //Continue retracting until we hit our halting time
+    while(timeElapsed < haltTime && inputIs(pressuresens,5)==LOW){ //Continue retracting until we hit our halting time
 	delay(hydraulicTestFreq);
 	timeElapsed = millis() - timerStart;
 	Serial.print(timeElapsed,DEC);
@@ -504,7 +504,7 @@ void autoExec(){
 	    stateIsSetup = true;
 	}
 
-	else if(inputIs(pressuresens,5)()==HIGH){
+	else if(inputIs(pressuresens,5)==HIGH){
 	    digitalWrite(solR,LOW);
 	    changeAutoState(DROP_PLATFORM);
 	}
@@ -517,7 +517,7 @@ void autoExec(){
 	    stateIsSetup = true;
 	}
 
-	else if(inputIs(pressuresens,5)()==HIGH){
+	else if(inputIs(pressuresens,5)==HIGH){
 	    digitalWrite(solD,LOW);
 	    changeAutoState(DUMP_DIRT);
 	}
@@ -587,7 +587,7 @@ void autoExec(){
 	    stateIsSetup = true;
 	}
 
-	else if(inputIs(pressuresens,5)()==HIGH){
+	else if(inputIs(pressuresens,5)==HIGH){
 	    digitalWrite(solL,LOW);
 	    changeAutoState(RAISE_BRICK);
 	}
@@ -600,7 +600,7 @@ void autoExec(){
 	    stateIsSetup = true;
 	}
 
-	else if(inputIs(pressuresens,5)()==HIGH){
+	else if(inputIs(pressuresens,5)==HIGH){
 	    digitalWrite(solU,LOW);
 	    changeAutoState(PUSH_BRICK);
 	}
