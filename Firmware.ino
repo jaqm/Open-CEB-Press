@@ -57,29 +57,6 @@ void setSolenoids(uint8_t mode){
     digitalWrite(solS,mode);
 }
 
-// Description: reads and return the state of the pressure sensor.
-// Return: The value of the sensor.
-//uint8_t pressureIs(){
-//
-//    uint8_t value=LOW;
-//    value=digitalRead(pressuresens);
-//    for (int i=0; i < 5; i++){
-//	delay(1);
-//	if (digitalRead(pressuresens) == HIGH) value = HIGH;
-//    } 
-//}
-
-////Encapsulates a debounced read of the pressure sensor
-//boolean pressureIsHigh(){
-//  if(digitalRead(pressuresens)==LOW){
-//    delay(5);
-//    if(digitalRead(pressuresens)==LOW){
-//      return true;
-//    }
-//  }
-//  return false;
-//}
-
 // Description: returns the status and only the status of the powerSwitch. 
 // Return: the status AS-IS. As al of our INPUTS: LOW==ACTIVE, and HIGH==DISABLED
 // DEPRECATED
