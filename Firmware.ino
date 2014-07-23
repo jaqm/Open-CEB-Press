@@ -48,7 +48,7 @@ unsigned long delaytime=500; //500ms - half second blink of pressure sensor indi
 int dRetractionTime = -1; //A vanlue of -1 means that we have not yet recorded a value for dRetractionTime
 int mExtensionTime = -1;
 
-unsigned long ledAStarledPIsLittTime=0;
+unsigned long ledAStartTime=0;
 unsigned long prestime=0;
 
 boolean automode=false;        //automode starts at off
@@ -268,14 +268,14 @@ void setAuto(){
         //This block makes sure that if we're reading high pressure, PIN_LEDP is lit
       if(inputIs(PIN_PRESSURE,5)==HIGH && !ledPIsLit){   //If we read high pressure, but PIN_LEDP is not lit
   	digitalWrite(PIN_LEDP,HIGH);              //...then turn on PIN_LEDP
-  	PIN_LEDPIsLit=true;     	              //set PIN_LEDPIsLit flag so as not to run this block redundently
+  	ledAIsLit=true;     	              //set PIN_LEDPIsLit flag so as not to run this block redundently
   	//Record the time we lit up PIN_LEDP
   	prestime=millis();
   
       }else if(inputIs(PIN_PRESSURE,5)==LOW && ((millis()-prestime)>delaytime)){  
   	    //If we're no longer reading high pressure and enough time has passed for the user to see the LED
   	  	    //Update flags and led accordingly
-  	    PIN_LEDPIsLit=false;
+  	    ledAIsLit=false;
   	    digitalWrite(PIN_LEDP,LOW);
       }
  
