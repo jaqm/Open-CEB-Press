@@ -118,6 +118,48 @@ uint8_t inputIs(int pin, int d){
 
 // **** END of GETTERS && SETTERS
 
+// **** DATA HANDLING
+
+// This function is supposed to invert a digital value readed from a pin like HIGH or LOW.
+// e: HIGH or LOW
+// return: if c=HGH then return LOW, if c=LOW then return HIGH. DEFAULT:   
+uint8_t revertDigitalSignalValue(uint8_t val){
+
+  uint8_t oppositeValue=B00001111;
+  
+  if (val==HIGH){
+    oppositeValue=LOW;
+  }else if (val==LOW){
+    oppositeValue=HIGH;
+  }
+
+  return oppositeValue;
+  
+}
+
+// **** END of DATA HANDLING
+
+void actButtons(){        //this is the function for controlling the machine manually via buttons
+     
+  if (on){
+
+    int d=3;		// Delay applied while reading each pin.
+
+    uint8_t up=inputIs(btnU,d);  // Get all movement values in a row
+    uint8_t down=inputIs(btnD,d);
+    uint8_t right=inputIs(btnR,d);
+    uint8_t left=inputIs(btnL,d);
+  
+    digitalWrite(solU,revertDigitalSignalValue(up));  // Assign all movements in a row.
+    digitalWrite(solU,revertDigitalSignalValue(down));
+    digitalWrite(solU,revertDigitalSignalValue(right));
+    digitalWrite(solU,revertDigitalSignalValue(left));
+  
+  }
+  //return;
+}
+
+
 void setOn(){
 
     if(!on){                //if the switch is off,
@@ -213,42 +255,6 @@ void setAuto(){
 }
 
 
-// This function is supposed to invert a digital value readed from a pin like HIGH or LOW.
-// e: HIGH or LOW
-// return: if c=HGH then return LOW, if c=LOW then return HIGH. DEFAULT:   
-uint8_t revertDigitalSignalValue(uint8_t val){
-
-  uint8_t oppositeValue=B00001111;
-  
-  if (val==HIGH){
-    oppositeValue=LOW;
-  }else if (val==LOW){
-    oppositeValue=HIGH;
-  }
-
-  return oppositeValue;
-  
-}
-
-void actButtons(){        //this is the function for controlling the machine manually via buttons
-     
-  if (on){
-
-    int d=3;		// Delay applied while reading each pin.
-
-    uint8_t up=inputIs(btnU,d);  // Get all movement values in a row
-    uint8_t down=inputIs(btnD,d);
-    uint8_t right=inputIs(btnR,d);
-    uint8_t left=inputIs(btnL,d);
-  
-    digitalWrite(solU,revertDigitalSignalValue(up));  // Assign all movements in a row.
-    digitalWrite(solU,revertDigitalSignalValue(down));
-    digitalWrite(solU,revertDigitalSignalValue(right));
-    digitalWrite(solU,revertDigitalSignalValue(left));
-  
-  }
-  //return;
-}
 /////////TEST FUNCTIONS/////////////
 
 //TODO: Don't do redundant work. Record our retraction time from drawerbounce and call drawerbounce
