@@ -78,19 +78,19 @@ void setSolenoids(uint8_t mode){
 // Description: returns the status and only the status of the powerSwitch. 
 // Return: the status AS-IS. As al of our INPUTS: LOW==ACTIVE, and HIGH==DISABLED
 // DEPRECATED
-uint8_t powerSwitchIs(){
-
-    uint8_t value0 = HIGH;
-    uint8_t value1 = LOW;
-    do{
-	value0 = digitalRead(PIN_SWON);
-	delay(5);
-	value1 = digitalRead(PIN_SWON);
-    }while (value0!=value1);
- 
-    return value0;
-
-}
+//uint8_t powerSwitchIs(){
+//
+//    uint8_t value0 = HIGH;
+//    uint8_t value1 = LOW;
+//    do{
+//	value0 = digitalRead(PIN_SWON);
+//	delay(5);
+//	value1 = digitalRead(PIN_SWON);
+//    }while (value0!=value1);
+// 
+//    return value0;
+//
+//}
 
 // Description: returns the status and only the status of the pin selected. 
 // Input: pin: the value corresponding to the ping selected.
@@ -243,11 +243,12 @@ void readPanel(int &btnU, int &btnD,int &btnR,int &btnL,int &btnS,
 
 void setOn(){
 
+    int d=5;  // delay while reading inputs
     if(!on){                //if the switch is off,
 	setSolenoids(LOW);
     }
 
-    if (powerSwitchIs()==LOW) {
+    if (inputIs(PIN_SWON,d)==LOW) {
 	on=true;
 	digitalWrite(xledA,HIGH);
     }else{
