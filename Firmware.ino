@@ -163,7 +163,7 @@ uint8_t checkIfEquals(uint8_t a, uint8_t b){
 
 // **** MACHINE MOVEMENTS
 
-void moveCilinder(int cilinderPin){
+void moveCilinderToEnd(int cilinderPin){
 
     digitalWrite(cilinderPin,HIGH);                // Move down
     while(inputIs(PIN_PRESSURE,1)==LOW){}
