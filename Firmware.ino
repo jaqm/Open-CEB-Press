@@ -1,6 +1,7 @@
 #include "Arduino.h"
 
-//pin mapping:
+// OUTPUTS are considered active when LOW
+// INPUTS are considered active when HIGH
 
 // OUTPUTS - Solenoids
 int PIN_SOLU=PIN_B6;    //solenoid for cylinder up
@@ -11,8 +12,7 @@ int PIN_SOLS=PIN_B2;    //solenoid for shaker motor
 
 // OUTPUTS - leds
 int PIN_LEDP=PIN_E0;
-int xledA=PIN_E1;//either xledA or xledM may be on at the same time
-
+int PIN_LED_A=PIN_E1;//either PIN_LED_A or xledM may be on at the same time
 
 // INPUTS
 int PIN_SWON=PIN_C7;    //on/off switch
@@ -38,7 +38,10 @@ const int ID_POTD=7;
 const int ID_POTM=8;
 const int ID_PRESSURE=9;
 const int SENSORS_AMOUNT=10;
-uint8_t panelButtons[SENSORS_AMOUNT];  // The array which contains all the input panel variables.
+uint8_t panelArray[SENSORS_AMOUNT];  // The array which contains all the input panel variables.
+
+const int panelDelay = 1;
+
 
 // UP FROM HERE - VARUABLES ALREADY REVIEWED
 // DOWN FROM HERE - VARIABLES REVIEW PENDING
@@ -229,10 +232,10 @@ void setOn(){
 
     if (inputIs(PIN_SWON,d)==LOW) {
 	on=true;
-	digitalWrite(xledA,HIGH);
+	digitalWrite(PIN_LED_A,HIGH);
     }else{
 	on=false;
-	digitalWrite(xledA,LOW);
+	digitalWrite(PIN_LED_A,LOW);
     }
 
 }
@@ -285,10 +288,10 @@ void setAuto(){
 
 	    //Turn ledA on if it is off, off if it's on
 	    if(ledAIsLit){
-	      digitalWrite(xledA,LOW);
+	      digitalWrite(PIN_LED_A,LOW);
 	      ledAIsLit=0;
 	    }else{
-              digitalWrite(xledA,HIGH);
+              digitalWrite(PIN_LED_A,HIGH);
 	      ledAIsLit=1;
 	      ledAStartTime=millis(); //Either way, reset the clock
 	    }
@@ -306,7 +309,7 @@ void setAuto(){
   	    terminateAutoExec();
   
   	    //Turn off the LED too
-  	    digitalWrite(xledA,HIGH);
+  	    digitalWrite(PIN_LED_A,HIGH);
   	}
       }
     }
@@ -666,7 +669,7 @@ void setup() {
     pinMode(PIN_SOLS, OUTPUT);
 
     pinMode(PIN_LEDP, OUTPUT);
-    pinMode(xledA, OUTPUT);
+    pinMode(PIN_LED_A, OUTPUT);
 
     pinMode(PIN_BUTTON_UP, INPUT);
     pinMode(PIN_BUTTON_DOWN, INPUT);
@@ -708,7 +711,23 @@ void loop() {
 //	}
 //    }
 
+  readPanel(panelArray,panelDelay);
 
+  if (panelArray[ID_SWON]==LOW){  // Power ON
+
+    if (panelArray[ID_SWAUTO]==HIGH){ // Manual mode
+
+    }else{                            // Auto mode
+
+    }  
+  
+  
+  }else{                              // Power OFF
+    setSolenoids(HIGH);
+    //digitalWrite(PIN_LED_A,HIGH);
+    
+
+  }
   
   
 
