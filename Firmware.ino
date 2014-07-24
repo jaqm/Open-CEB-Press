@@ -156,42 +156,20 @@ uint8_t checkIfEquals(uint8_t a, uint8_t b){
 
 // **** END of DATA HANDLING
 
-// MACHINE MODES
+// **** MACHINE MODES
 
 void applyManualMode(uint8_t array[]){
 
-  digitalWrite(revertDigitalSignalValue(array[PIN_BUTTON_UP]));
-  digitalWrite(revertDigitalSignalValue(array[PIN_BUTTON_DOWN]));
-  digitalWrite(revertDigitalSignalValue(array[PIN_BUTTON_LEFT]));
-  digitalWrite(revertDigitalSignalValue(array[PIN_BUTTON_RIGHT]));
-  digitalWrite(revertDigitalSignalValue(array[PIN_BUTTON_SHAKER]));
+  digitalWrite(PIN_BUTTON_UP, revertDigitalSignalValue(array[ID_BUTTON_UP]));
+  digitalWrite(PIN_BUTTON_DOWN, revertDigitalSignalValue(array[ID_BUTTON_DOWN]));
+  digitalWrite(PIN_BUTTON_LEFT, revertDigitalSignalValue(array[ID_BUTTON_LEFT]));
+  digitalWrite(PIN_BUTTON_RIGHT, revertDigitalSignalValue(array[ID_BUTTON_RIGHT]));
+  digitalWrite(PIN_BUTTON_SHAKER, revertDigitalSignalValue(array[ID_BUTTON_SHAKER]));
   
 }
 
-// END OF MACHINE MODES
+// **** END OF MACHINE MODES
 
-
-void actButtons(){        //this is the function for controlling the machine manually via buttons
-     
-  if (on){
-
-    int d=3;		// Delay applied while reading each pin.
-
-    uint8_t up=LOW;;  // Get all movement values in a row
-    uint8_t down=LOW;
-    uint8_t right=LOW;
-    uint8_t left=LOW;
-  
-    read4inARow(up,down,left,right);
-    
-    digitalWrite(PIN_SOLU,revertDigitalSignalValue(up));  // Assign all movements in a row.
-    digitalWrite(PIN_SOLD,revertDigitalSignalValue(down));
-    digitalWrite(PIN_SOLL,revertDigitalSignalValue(left));
-    digitalWrite(PIN_SOLR,revertDigitalSignalValue(right));
-  
-  }
-  //return;
-}
 
 // Reads all the values of the panel, adding a check protection against rebounce, with a delay.
 void readPanel(uint8_t panelArray[], const int d){  
@@ -237,6 +215,32 @@ void readPanel(uint8_t panelArray[], const int d){
 
 
 // ** UP FROM HERE -- ALREADY REVIEWED
+// ** DOWN FROM HERE -- REVIEWED AND PROBABLY BEING REPLACED 
+
+void actButtons(){        //this is the function for controlling the machine manually via buttons
+     
+  if (on){
+
+    int d=3;		// Delay applied while reading each pin.
+
+    uint8_t up=LOW;;  // Get all movement values in a row
+    uint8_t down=LOW;
+    uint8_t right=LOW;
+    uint8_t left=LOW;
+  
+    read4inARow(up,down,left,right);
+    
+    digitalWrite(PIN_SOLU,revertDigitalSignalValue(up));  // Assign all movements in a row.
+    digitalWrite(PIN_SOLD,revertDigitalSignalValue(down));
+    digitalWrite(PIN_SOLL,revertDigitalSignalValue(left));
+    digitalWrite(PIN_SOLR,revertDigitalSignalValue(right));
+  
+  }
+  //return;
+}
+
+
+// ** UP FROM HERE -- REVIEWED AND PROBABLY BEING REPLACED 
 // ** DOWN FROM HERE -- PENDING.
 // ---------------------------
 
