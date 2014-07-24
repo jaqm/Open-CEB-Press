@@ -3,6 +3,11 @@
 // OUTPUTS are considered active when LOW
 // INPUTS are considered active when HIGH
 
+// TODO: REVIEW ACTIVATION VALUES!!
+// By the way using: LEDs <- active when LOW
+// solenoids: active when HIGH
+// 
+
 // OUTPUTS - Solenoids
 int PIN_SOLU=PIN_B6;    //solenoid for cylinder up
 int PIN_SOLD=PIN_B5;    //solenoid for cylinder down
@@ -155,6 +160,18 @@ uint8_t checkIfEquals(uint8_t a, uint8_t b){
 
 
 // **** END of DATA HANDLING
+
+// **** MACHINE MOVEMENTS
+
+void moveCilinder(int cilinderPin){
+
+    digitalWrite(cilinderPin,HIGH);                // Move down
+    while(inputIs(PIN_PRESSURE,1)==LOW){}
+    digitalWrite(cilinderPin,LOW);
+
+}
+
+// **** END OF MACHINE MOVEMENTS
 
 // **** MACHINE MODES
 
@@ -412,12 +429,11 @@ void mainBounce(){
     // We will change direction and halt whenever we reach a threshold of pressure indicated by our
     // 'PIN_PRESSURE' register going LOW.
 
-    digitalWrite(PIN_SOLD,HIGH);                //Begin retraction pressure
-    while(inputIs(PIN_PRESSURE,5)==LOW){ //While we have not reached threshold pressure we have not reached 
-	delay(hydraulicTestFreq);                      //continue to push the drawer
-    }
+
+    digitalWrite(PIN_SOLD,HIGH);                // Move down
+    while(inputIs(PIN_PRESSURE,1)==LOW){}
     digitalWrite(PIN_SOLD,LOW);                 //Cut retraction pressure
-    delay(500);
+
     digitalWrite(PIN_SOLU,HIGH);                //Begin backwards pressure
     long int extensionStart = millis();   //Record the starttime of our extension
     while(inputIs(PIN_PRESSURE,5)==LOW){
@@ -695,11 +711,15 @@ void setup() {
     digitalWrite(PIN_BUTTON_SHAKER, HIGH);
     digitalWrite(PIN_PRESSURE, HIGH);
 
-    if (digitalRead(PIN_SWON)==LOW){
-	on = true; 
-    }
-
     Serial.begin(9600);
+}
+
+void goToTheInitialPosition(){
+  
+  setSolenoids(HIGH);
+  
+  while digitalWrite(PIN_SOLD,LOW);
+  
 }
 
 // the loop routine runs over and over again forever:
@@ -711,16 +731,20 @@ void loop() {
     digitalWrite(PIN_LED_ON,LOW);
     
     if (panelArray[ID_SWAUTO]==HIGH){ // Manual mode
-
+      digitalWrite(PIN_LED_AUTO,LOW);
       applyManualMode(panelArray);
 
 
 
     }else{                            // Auto mode
         // Set the proper leds
+      digitalWrite(PIN_LED_AUTO,HIGH);
         
         // Checks, if needed.
+
         // Go to initial position
+        goToTheInitialPosition();
+        
         // Start movement algorithm.
       
 
@@ -729,7 +753,8 @@ void loop() {
   
   }else{                              // Power OFF
     setSolenoids(HIGH);
-    //digitalWrite(PIN_LED_AUTO,HIGH);
+    digitalWrite(PIN_LED_ON,HIGH);
+    digitalWrite(PIN_LED_AUTO,HIGH);
     
 
   }
