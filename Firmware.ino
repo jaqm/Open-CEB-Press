@@ -156,6 +156,21 @@ uint8_t checkIfEquals(uint8_t a, uint8_t b){
 
 // **** END of DATA HANDLING
 
+// MACHINE MODES
+
+void applyManualMode(uint8_t array[]){
+
+  digitalWrite(revertDigitalSignalValue(array[PIN_BUTTON_UP]));
+  digitalWrite(revertDigitalSignalValue(array[PIN_BUTTON_DOWN]));
+  digitalWrite(revertDigitalSignalValue(array[PIN_BUTTON_LEFT]));
+  digitalWrite(revertDigitalSignalValue(array[PIN_BUTTON_RIGHT]));
+  digitalWrite(revertDigitalSignalValue(array[PIN_BUTTON_SHAKER]));
+  
+}
+
+// END OF MACHINE MODES
+
+
 void actButtons(){        //this is the function for controlling the machine manually via buttons
      
   if (on){
@@ -217,6 +232,8 @@ void readPanel(uint8_t panelArray[], const int d){
   panelArray[ID_POTD] = checkIfEquals(vPotD0,vPotD1);
 
 }
+
+
 
 
 // ** UP FROM HERE -- ALREADY REVIEWED
@@ -706,6 +723,9 @@ void loop() {
     digitalWrite(PIN_LED_ON,LOW);
     
     if (panelArray[ID_SWAUTO]==HIGH){ // Manual mode
+
+      applyManualMode(panelArray);
+
 
 
     }else{                            // Auto mode
