@@ -714,8 +714,13 @@ void loop() {
   readPanel(panelArray,panelDelay);
 
   if (panelArray[ID_SWON]==LOW){  // Power ON
+    digitalWrite(PIN_LEDP,LOW);
+    
 
     if (panelArray[ID_SWAUTO]==HIGH){ // Manual mode
+
+      
+
 
     }else{                            // Auto mode
 
