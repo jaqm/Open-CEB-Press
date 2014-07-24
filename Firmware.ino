@@ -281,7 +281,7 @@ void setAuto(){
         //This is because we need the shaft to be open so as not to cause pre-mature compression
         //INTERUPTS THE MAIN LOOP
         if(dRetractionTime==-1 || mExtensionTime==-1){
-           drawerBounce();
+//           drawerBounce();
 	}
 
           //If we don't have a value for mExtensionTime,l run mainbounce to derive one
@@ -331,32 +331,6 @@ void setAuto(){
 
 /////////TEST FUNCTIONS/////////////
 
-//TODO: Don't do redundant work. Record our retraction time from drawerbounce and call drawerbounce
-//from drawerTiming if the value does not already exist.
-
-///DRAWER CYLINDER TESTS
-
-
-void drawerBounce(){                
-    // This function sends the drawer to its forward-most point, then returns to its back limit. 
-    // We will change direction and halt whenever we reach a threshold of pressure indicated by our
-    // 'PIN_PRESSURE' register going LOW. 
-    digitalWrite(PIN_SOLR,HIGH);                //Begin extension pressure
-    while(inputIs(PIN_PRESSURE,5)==LOW){ //While we have not reached threshold pressure we have not reached 
-	delay(50);                      //continue to push the drawer
-    }
-    digitalWrite(PIN_SOLR,LOW);                 //Cut extention pressure pressure
-    delay(200);
-    digitalWrite(PIN_SOLL,HIGH);                //Begin backwards pressure
-    long int retractionStart = millis();   //Record the starttime of our retraction
-    while(inputIs(PIN_PRESSURE,5)==LOW){
-	delay(50);
-    }
-    dRetractionTime = millis() - retractionStart;
-    digitalWrite(PIN_SOLL,LOW);
-    return;
-}
-
 //TODO: Do we want to be able to change the vale of PIN_POTD during automatic operation?
 
 int dHaltTime(){
@@ -377,7 +351,7 @@ void drawerTiming(){
     // It is used to calibrate the appropriate halt time as follows
   
     if(dRetractionTime==-1){ //If we do not yet have a value for retracionTime, call drawerBounce to derive one
-	drawerBounce();
+//	drawerBounce();
     }
 
     delay(300); //Debounce 
@@ -468,7 +442,7 @@ void testButtons(){    //this is the function for controlling the machine manual
     if(digitalRead(PIN_BUTTON_UP)==LOW){  //if we read up button on, wait 3ms for debounce
 	delay(3);
 	if(digitalRead(PIN_BUTTON_UP)==LOW){ //if we read it low still, then button is pressed, run drawer bounce routine
-	    drawerBounce();
+	    //drawerBounce();
 	}
     }
     if(digitalRead(PIN_BUTTON_DOWN)==LOW){ 
