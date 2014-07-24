@@ -705,13 +705,15 @@ void loop() {
   if (panelArray[ID_SWON]==LOW){  // Power ON
     digitalWrite(PIN_LED_ON,LOW);
     
-
     if (panelArray[ID_SWAUTO]==HIGH){ // Manual mode
-
-      
 
 
     }else{                            // Auto mode
+        // Set the proper leds
+        // Checks, if needed.
+        // Go to initial position
+        // Start movement algorithm.
+      
 
     }  
   
