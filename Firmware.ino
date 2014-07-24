@@ -171,6 +171,15 @@ void moveCilinder(int cilinderPin){
 
 }
 
+void goToTheInitialPosition(){
+  
+  setSolenoids(HIGH);
+  
+  moveCilinder(PIN_SOLD);
+  moveCilinder(PIN_SOLL);
+  
+}
+
 // **** END OF MACHINE MOVEMENTS
 
 // **** MACHINE MODES
@@ -667,16 +676,6 @@ void setup() {
 
     Serial.begin(9600);
 }
-
-void goToTheInitialPosition(){
-  
-  setSolenoids(HIGH);
-  
-  moveCilinder(PIN_SOLD);
-  moveCilinder(PIN_SOLL);
-  
-}
-
 // the loop routine runs over and over again forever:
 void loop() {
 
