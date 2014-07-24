@@ -228,34 +228,8 @@ void readPanel(uint8_t panelArray[], const int d){
 
 }
 
-
-
-
 // ** UP FROM HERE -- ALREADY REVIEWED
-// ** DOWN FROM HERE --  
-
-void actButtons(){        //this is the function for controlling the machine manually via buttons
-     
-  if (on){
-
-    int d=3;		// Delay applied while reading each pin.
-
-    uint8_t up=LOW;;  // Get all movement values in a row
-    uint8_t down=LOW;
-    uint8_t right=LOW;
-    uint8_t left=LOW;
-  
-    read4inARow(up,down,left,right);
-    
-    digitalWrite(PIN_SOLU,revertDigitalSignalValue(up));  // Assign all movements in a row.
-    digitalWrite(PIN_SOLD,revertDigitalSignalValue(down));
-    digitalWrite(PIN_SOLL,revertDigitalSignalValue(left));
-    digitalWrite(PIN_SOLR,revertDigitalSignalValue(right));
-  
-  }
-  //return;
-}
-
+// ** DOWN FROM HERE --  REVIWED but.. WAITTING
 
 
 // ** DOWN FROM HERE -- PENDING.
@@ -714,8 +688,6 @@ void loop() {
     if (panelArray[ID_SWAUTO]==HIGH){ // Manual mode
       digitalWrite(PIN_LED_AUTO,LOW);
       applyManualMode(panelArray);
-
-
 
     }else{                            // Auto mode
         // Set the proper leds
