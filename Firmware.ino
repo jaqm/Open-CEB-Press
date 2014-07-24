@@ -47,7 +47,6 @@ uint8_t panelArray[SENSORS_AMOUNT];  // The array which contains all the input p
 
 const int panelDelay = 1;
 
-
 // UP FROM HERE - VARUABLES ALREADY REVIEWED
 // DOWN FROM HERE - VARIABLES REVIEW PENDING
 
@@ -163,11 +162,17 @@ uint8_t checkIfEquals(uint8_t a, uint8_t b){
 
 // **** MACHINE MOVEMENTS
 
-void moveCilinderToEnd(int cilinderPin){
+// Moves the cilinder to the top position and returns the time it gets to reach that place.
+unsigned long moveCilinderToEnd(int cilinderPin){
 
-    digitalWrite(cilinderPin,HIGH);                // Move down
-    while(inputIs(PIN_PRESSURE,1)==LOW){}
-    digitalWrite(cilinderPin,LOW);
+  // Variable used to compare 
+  unsigned long timestamp=millis();
+
+  digitalWrite(cilinderPin,HIGH);                // Cilinder movement.
+  while(inputIs(PIN_PRESSURE,1)==LOW){}          //
+  digitalWrite(cilinderPin,LOW);
+
+  return (millis()-timestamp);
 
 }
 
@@ -175,8 +180,8 @@ void goToTheInitialPosition(){
   
   setSolenoids(HIGH);
   
-  moveCilinder(PIN_SOLD);
-  moveCilinder(PIN_SOLL);
+  moveCilinderToEnd(PIN_SOLD);
+  moveCilinderToEnd(PIN_SOLL);
   
 }
 
