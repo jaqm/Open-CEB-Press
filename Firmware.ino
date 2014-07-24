@@ -11,7 +11,7 @@ int PIN_SOLR=PIN_B3;    //solenoid for drawer right
 int PIN_SOLS=PIN_B2;    //solenoid for shaker motor 
 
 // OUTPUTS - leds
-int PIN_LEDP=PIN_E0;
+int PIN_LED_ON=PIN_E0;
 int PIN_LED_A=PIN_E1;//either PIN_LED_A or xledM may be on at the same time
 
 // INPUTS
@@ -248,18 +248,18 @@ void setAuto(){
     //-----------
     if(on){
 
-        //This block makes sure that if we're reading high pressure, PIN_LEDP is lit
-      if(inputIs(PIN_PRESSURE,5)==HIGH && !ledPIsLit){   //If we read high pressure, but PIN_LEDP is not lit
-  	digitalWrite(PIN_LEDP,HIGH);              //...then turn on PIN_LEDP
-  	ledAIsLit=true;     	              //set PIN_LEDPIsLit flag so as not to run this block redundently
-  	//Record the time we lit up PIN_LEDP
+        //This block makes sure that if we're reading high pressure, PIN_LED_ON is lit
+      if(inputIs(PIN_PRESSURE,5)==HIGH && !ledPIsLit){   //If we read high pressure, but PIN_LED_ON is not lit
+  	digitalWrite(PIN_LED_ON,HIGH);              //...then turn on PIN_LED_ON
+  	ledAIsLit=true;     	              //set PIN_LED_ONIsLit flag so as not to run this block redundently
+  	//Record the time we lit up PIN_LED_ON
   	prestime=millis();
   
       }else if(inputIs(PIN_PRESSURE,5)==LOW && ((millis()-prestime)>delaytime)){  
   	    //If we're no longer reading high pressure and enough time has passed for the user to see the LED
   	  	    //Update flags and led accordingly
   	    ledAIsLit=false;
-  	    digitalWrite(PIN_LEDP,LOW);
+  	    digitalWrite(PIN_LED_ON,LOW);
       }
  
       if (inputIs(PIN_SWAUTO,3)==HIGH){
@@ -668,7 +668,7 @@ void setup() {
     pinMode(PIN_SOLR, OUTPUT);
     pinMode(PIN_SOLS, OUTPUT);
 
-    pinMode(PIN_LEDP, OUTPUT);
+    pinMode(PIN_LED_ON, OUTPUT);
     pinMode(PIN_LED_A, OUTPUT);
 
     pinMode(PIN_BUTTON_UP, INPUT);
@@ -714,7 +714,7 @@ void loop() {
   readPanel(panelArray,panelDelay);
 
   if (panelArray[ID_SWON]==LOW){  // Power ON
-    digitalWrite(PIN_LEDP,LOW);
+    digitalWrite(PIN_LED_ON,LOW);
     
 
     if (panelArray[ID_SWAUTO]==HIGH){ // Manual mode
