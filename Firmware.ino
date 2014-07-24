@@ -718,7 +718,8 @@ void goToTheInitialPosition(){
   
   setSolenoids(HIGH);
   
-  while digitalWrite(PIN_SOLD,LOW);
+  moveCilinder(PIN_SOLD);
+  moveCilinder(PIN_SOLL);
   
 }
 
