@@ -299,7 +299,7 @@ void setAuto(){
           //If we don't have a value for mExtensionTime,l run mainbounce to derive one
 	  //INTERUPTS THE MAIN LOOP
 	if(mExtensionTime == -1){
-	    mainBounce();
+	    //mainBounce();
 	}
 
 	automode=true;
@@ -424,26 +424,6 @@ void drawerTiming(){
 
 ///MAIN CYLINDER TESTS
 
-void mainBounce(){                
-    // This function sends the drawer to its most retracted point, then returns to its upper limit. 
-    // We will change direction and halt whenever we reach a threshold of pressure indicated by our
-    // 'PIN_PRESSURE' register going LOW.
-
-
-    digitalWrite(PIN_SOLD,HIGH);                // Move down
-    while(inputIs(PIN_PRESSURE,1)==LOW){}
-    digitalWrite(PIN_SOLD,LOW);                 //Cut retraction pressure
-
-    digitalWrite(PIN_SOLU,HIGH);                //Begin backwards pressure
-    long int extensionStart = millis();   //Record the starttime of our extension
-    while(inputIs(PIN_PRESSURE,5)==LOW){
-	delay(hydraulicTestFreq);
-    }
-    mExtensionTime = millis() - extensionStart;
-    digitalWrite(PIN_SOLU,LOW);
-    return;
-}
-
 int mHaltTime(){
 //This function calculates the necessary halt time from the value read by our potentiometer PIN_POTD
   
@@ -462,7 +442,7 @@ void mainTiming(){
     // It is used to calibrate the appropriate halt time as follows
   
     if(mExtensionTime==-1){ //If we do not yet have a value for retracionTime, call drawerBounce to derive one
-	mainBounce();
+	//mainBounce();
     }
 
     delay(300); //Debounce, don't want to read pressureIsHigh twice in one strike!
@@ -512,7 +492,7 @@ void testButtons(){    //this is the function for controlling the machine manual
     if(digitalRead(PIN_BUTTON_LEFT)==LOW){  //if left button is low, debounce it
 	delay(3);
 	if(digitalRead(PIN_BUTTON_LEFT)==LOW){ //still low? turn on solenoid
-	    mainBounce();
+	    //mainBounce();
 	}
     }
     if(digitalRead(PIN_BUTTON_RIGHT)==LOW){
@@ -763,3 +743,4 @@ void loop() {
   
 
 }
+
