@@ -162,28 +162,52 @@ uint8_t checkIfEquals(uint8_t a, uint8_t b){
 
 // **** MACHINE MOVEMENTS
 
-// Moves the cilinder to the top position and returns the time it gets to reach that place.
-unsigned long moveCilinderToEnd(int cilinderPin){
+// Moves the cylinder to the top position and returns the time it gets to reach that place.
+unsigned long moveCylinderToEnd(int cylinderPin){
 
   // Variable used to compare 
   unsigned long timestamp=millis();
 
-  digitalWrite(cilinderPin,HIGH);                // Cilinder movement.
+  digitalWrite(cylinderPin,HIGH);                // Cilinder movement.
   while(inputIs(PIN_PRESSURE,1)==LOW){}          //
-  digitalWrite(cilinderPin,LOW);
+  digitalWrite(cylinderPin,LOW);
 
   return (millis()-timestamp);
 
+}
+
+void moveCylinderDuring(uint8_t cylinderPin,unsigned long time){
+
+  unsigned long timestamp=millis();
+  
+  digitalWrite(cylinderPin,HIGH);                // Cylinder movement.
+  while ( (inputIs(PIN_PRESSURE,1)==LOW)  && (timestamp+time < millis()) ){}          //
+  digitalWrite(cylinderPin,LOW);
+  
+  
 }
 
 void goToTheInitialPosition(){
   
   setSolenoids(HIGH);
   
-  moveCilinderToEnd(PIN_SOLD);
-  moveCilinderToEnd(PIN_SOLL);
+  moveCylinderToEnd(PIN_SOLD);
+  moveCylinderToEnd(PIN_SOLL);
   
 }
+
+// Activates the shaker during some time
+// secs: the time we will be shaking in seconds.
+void shakeTheSand(int secs){
+  
+  unsigned long thisTime=millis();
+  while( (thisTime+(secs*1000) > millis())){
+    digitalWrite(PIN_SOLS,LOW);
+  }
+  digitalWrite(PIN_SOLS,HIGH);
+}
+
+
 
 // **** END OF MACHINE MOVEMENTS
 
@@ -265,7 +289,7 @@ void setAuto(){
   	//Record the time we lit up PIN_LED_ON
   	prestime=millis();
   
-      }else if(inputIs(PIN_PRESSURE,5)==LOW && ((millis()-prestime)>delaytime)){  
+      }else if(inputIs(PIN_PRESSURE,5)==LOW && ((millis()-prestime)>delaytime)){
   	    //If we're no longer reading high pressure and enough time has passed for the user to see the LED
   	  	    //Update flags and led accordingly
   	    ledAIsLit=false;
@@ -618,8 +642,7 @@ void autoExec(){
     }
 
 }
-
-
+            
 
 
 // the setup routine runs once when you press reset:
@@ -668,16 +691,55 @@ void loop() {
       applyManualMode(panelArray);
 
     }else{                            // Auto mode
-        // Set the proper leds
+        // Set the proper initial values
       digitalWrite(PIN_LED_AUTO,HIGH);
-        
-        // Checks, if needed.
 
-        // Go to initial position
-        goToTheInitialPosition();
-        
-        // Start movement algorithm.
+      // Checks, if needed.
+      int stage=0;
+      unsigned long verticalAxisTime = 0;
+      unsigned long horizontalAxisTime = 0;
+      int timeShaking=3;     //   <----
       
+      switch(stage){
+      
+        case 0:    // Initial case: Measure the time it takes to do a complete travel for the cylinders.
+            goToTheInitialPosition();
+            verticalAxisTime = moveCylinderToEnd(PIN_SOLU);
+            horizontalAxisTime = moveCylinderToEnd(PIN_SOLD);
+            stage++;
+          break;
+
+        case 1: 
+            goToTheInitialPosition();
+            stage++;
+          break;
+
+        case 2:    // Shakes the sand.
+            shakeTheSand(timeShaking);
+            stage++;
+          break;
+
+        case 3:
+            moveCylinderDuring(PIN_SOLU,verticalAxisTime);
+            moveCylinderDuring(PIN_SOLR,horizontalAxisTime);
+            stage++;
+          break;
+          
+        case 4:
+            
+          break;
+        case 5:
+          break;
+        case 6:
+          break;
+        default:
+          break;
+          
+      
+      }
+      // Go to initial position
+      goToTheInitialPosition();
+
 
     }  
   
