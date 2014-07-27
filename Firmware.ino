@@ -109,30 +109,6 @@ uint8_t inputIs(int pin, int d){
 
 }
 
-//void read4inARow(uint8_t &buttonUp, uint8_t &buttonDown, uint8_t &buttonLeft, uint8_t &buttonRight){
-//
-//  const int d = 3;
-//
-//  uint8_t vU0 = digitalRead(PIN_BUTTON_UP);
-//  uint8_t vD0 = digitalRead(PIN_BUTTON_DOWN);
-//  uint8_t vL0 = digitalRead(PIN_BUTTON_LEFT);
-//  uint8_t vR0 = digitalRead(PIN_BUTTON_RIGHT);
-//  
-//  delay(d);
-//  
-//  uint8_t vU1 = digitalRead(PIN_BUTTON_UP);
-//  uint8_t vD1 = digitalRead(PIN_BUTTON_DOWN);
-//  uint8_t vR1 = digitalRead(PIN_BUTTON_RIGHT);
-//  uint8_t vL1 = digitalRead(PIN_BUTTON_LEFT);
-//
-//  buttonUp = checkIfEquals(vU0,vU1);
-//  buttonDown = checkIfEquals(vD0,vD1);
-//  buttonLeft = checkIfEquals(vL0,vL1);
-//  buttonRight = checkIfEquals(vR0,vR1);
-//
-//}
-
-
 // **** END of GETTERS && SETTERS
 
 // **** DATA HANDLING
