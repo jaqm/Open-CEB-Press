@@ -1,4 +1,4 @@
-#include "Arduino.h"
+//#include "Arduino.h"
 
 // OUTPUTS are considered active when LOW
 // INPUTS are considered active when HIGH
@@ -730,6 +730,8 @@ void loop() {
     
     if (panelArray[ID_SWAUTO]==HIGH){ // Manual mode
       if (DEBUG_MODE) Serial.println("I'm on MANUAL MODE!");
+
+        stage=0;
       
 //      digitalWrite(PIN_LED_AUTO,LOW);
       applyManualMode(panelArray);
@@ -775,7 +777,7 @@ void loop() {
             stage++;
           break;
         case 6:
-            stage++;
+            stage=1;
           break;
         default:
             stage=0;
