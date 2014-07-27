@@ -11,6 +11,12 @@
 // Debug mode
 const boolean DEBUG_MODE=true;
 
+// STANDARD VALUES
+const uint8_t VALUE_ENABLED_LED = LOW;
+const uint8_t VALUE_DISABLED_LED = HIGH;
+
+
+
 // OUTPUTS - Solenoids
 int PIN_SOLU=PIN_B6;    //solenoid for cylinder up
 int PIN_SOLD=PIN_B5;    //solenoid for cylinder down
@@ -285,6 +291,15 @@ void printPanel(uint8_t panel[]){
 
   
 }
+
+void updateLeds(uint8_t panel[]){
+
+  digitalWrite(PIN_LED_ON,revertDigitalSignalValue(panel[ID_SWON]));
+  digitalWrite(PIN_LED_AUTO,revertDigitalSignalValue(panel[ID_SWAUTO]));
+  
+
+}
+
 
 // ** UP FROM HERE -- ALREADY REVIEWED
 // ** DOWN FROM HERE --  REVIWED but.. WAITTING
@@ -717,6 +732,7 @@ void setup() {
 void loop() {
 
   readPanel(panelArray,panelDelay);
+  updateLeds(panelArray);
   if (DEBUG_MODE) printPanel(panelArray);
 //  if (DEBUG_MODE) Serial.println("I'm working!");
 
@@ -726,7 +742,7 @@ void loop() {
     
     if (panelArray[ID_SWAUTO]==HIGH){ // Manual mode
       if (DEBUG_MODE) Serial.println("I'm on MANUAL MODE!");
-  
+      
       digitalWrite(PIN_LED_AUTO,LOW);
       applyManualMode(panelArray);
 
