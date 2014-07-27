@@ -8,6 +8,9 @@
 // solenoids: active when HIGH
 // 
 
+// Debug mode
+const boolean DEBUG_MODE=true;
+
 // OUTPUTS - Solenoids
 int PIN_SOLU=PIN_B6;    //solenoid for cylinder up
 int PIN_SOLD=PIN_B5;    //solenoid for cylinder down
@@ -69,7 +72,6 @@ int hydraulicTestFreq = 20; //The number of miliseconds between
 
 //Used within autoExec
 long int shakeBegin = 0;
-
 
 //*******  GETTERS && SETTERS *****
 // Description: Sets all solenoids into mode.
@@ -255,7 +257,7 @@ void readPanel(uint8_t panelArray[], const int d){
 
   panelArray[ID_BUTTON_UP] = checkIfEquals(vU0,vU1);
   panelArray[ID_BUTTON_DOWN] = checkIfEquals(vD0,vD1);
-  panelArray[ID_BUTTON_LEFT] = (uint8_t) checkIfEquals(vL0,vL1);
+  panelArray[ID_BUTTON_LEFT] = checkIfEquals(vL0,vL1);
   panelArray[ID_BUTTON_RIGHT] = checkIfEquals(vR0,vR1);
   panelArray[ID_BUTTON_SHAKER] = checkIfEquals(vS0,vS1);
   panelArray[ID_PRESSURE] = checkIfEquals(vP0,vP1);
@@ -264,6 +266,24 @@ void readPanel(uint8_t panelArray[], const int d){
   panelArray[ID_POTM] = checkIfEquals(vPotM0,vPotM1);
   panelArray[ID_POTD] = checkIfEquals(vPotD0,vPotD1);
 
+}
+
+void printPanel(uint8_t panel[]){
+
+  Serial.println("********************************************");  
+  Serial.print("Switch ON: "); Serial.println(panel[ID_SWON],DEC);
+  Serial.print("Switch AUTO: "); Serial.println(panel[ID_SWAUTO],DEC);
+  Serial.print("Button UP: "); Serial.println(panel[ID_BUTTON_UP],DEC);
+  Serial.print("Button DOWN: "); Serial.println(panel[ID_BUTTON_DOWN],DEC);
+  Serial.print("Button LEFT: "); Serial.println(panel[ID_BUTTON_LEFT],DEC);
+  Serial.print("Button RIGHT: "); Serial.println(panel[ID_BUTTON_RIGHT],DEC);
+  Serial.print("Button SHAKER: "); Serial.println(panel[ID_BUTTON_SHAKER],DEC);
+  Serial.print("High PRESSURE: "); Serial.println(panel[ID_PRESSURE],DEC);
+  Serial.print("Main Potentiometer: "); Serial.println(panel[ID_POTM],BIN);
+  Serial.print("Drawer potentiometer: "); Serial.println(panel[ID_POTD],BIN);
+  Serial.println("********************************************"); 
+
+  
 }
 
 // ** UP FROM HERE -- ALREADY REVIEWED
@@ -668,29 +688,50 @@ void setup() {
     pinMode(PIN_POTM, INPUT);
     pinMode(PIN_POTD, INPUT);
 
-    // Set initial status
+    // Set initial status - OUTPUTS
     digitalWrite(PIN_BUTTON_UP, HIGH);
     digitalWrite(PIN_BUTTON_DOWN, HIGH);
     digitalWrite(PIN_BUTTON_LEFT, HIGH);
     digitalWrite(PIN_BUTTON_RIGHT, HIGH);
     digitalWrite(PIN_BUTTON_SHAKER, HIGH);
     digitalWrite(PIN_PRESSURE, HIGH);
+    digitalWrite(PIN_SWON, HIGH);
+
+    // Set initial status - Wake up INPUTS
+    digitalWrite(PIN_BUTTON_UP, HIGH);
+    digitalWrite(PIN_BUTTON_DOWN, HIGH);
+    digitalWrite(PIN_BUTTON_LEFT, HIGH);
+    digitalWrite(PIN_BUTTON_RIGHT, HIGH);
+    digitalWrite(PIN_BUTTON_SHAKER, HIGH);
+    digitalWrite(PIN_PRESSURE, HIGH);
+    digitalWrite(PIN_SWON, HIGH);
+    digitalWrite(PIN_SWAUTO, HIGH);
+    digitalWrite(PIN_POTM, HIGH);
+    digitalWrite(PIN_POTD, HIGH);
+
 
     Serial.begin(9600);
+
 }
 // the loop routine runs over and over again forever:
 void loop() {
 
   readPanel(panelArray,panelDelay);
+  if (DEBUG_MODE) printPanel(panelArray);
+//  if (DEBUG_MODE) Serial.println("I'm working!");
 
   if (panelArray[ID_SWON]==LOW){  // Power ON
+    if (DEBUG_MODE) Serial.println("I'm ON!");
     digitalWrite(PIN_LED_ON,LOW);
     
     if (panelArray[ID_SWAUTO]==HIGH){ // Manual mode
+      if (DEBUG_MODE) Serial.println("I'm on MANUAL MODE!");
+  
       digitalWrite(PIN_LED_AUTO,LOW);
       applyManualMode(panelArray);
 
     }else{                            // Auto mode
+      if (DEBUG_MODE) Serial.println("I'm on AUTO MODE!");
         // Set the proper initial values
       digitalWrite(PIN_LED_AUTO,HIGH);
 
@@ -745,14 +786,14 @@ void loop() {
   
   
   }else{                              // Power OFF
+    if (DEBUG_MODE) Serial.println("I'm OFF!");
     setSolenoids(HIGH);
     digitalWrite(PIN_LED_ON,HIGH);
     digitalWrite(PIN_LED_AUTO,HIGH);
     
 
   }
-  
-  
+  if (DEBUG_MODE) delay(1000);  
 
 }
 
