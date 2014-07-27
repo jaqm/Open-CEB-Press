@@ -12,10 +12,10 @@
 const boolean DEBUG_MODE=true;
 
 // STANDARD VALUES
-const uint8_t VALUE_ENABLED_LED = LOW;
-const uint8_t VALUE_DISABLED_LED = HIGH;
+const uint8_t VALUE_LED_ENABLED = LOW;
+//const uint8_t VALUE_LED_DISABLED = HIGH;
 
-
+const uint8_t VALUE_INPUT_ENABLED = LOW;
 
 // OUTPUTS - Solenoids
 int PIN_SOLU=PIN_B6;    //solenoid for cylinder up
@@ -165,6 +165,11 @@ uint8_t checkIfEquals(uint8_t a, uint8_t b){
   return value;
 }
 
+boolean inputIsActive(uint8_t value){
+
+  return (value==VALUE_INPUT_ENABLED);
+  
+}
 
 // **** END of DATA HANDLING
 
