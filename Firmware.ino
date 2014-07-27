@@ -8,6 +8,13 @@
 // solenoids: active when HIGH
 // 
 
+
+// Main variables
+int stage=0;       // Defines the stage for the auto-mode
+unsigned long verticalAxisTime = 0;   // The time it takes to do a complete travel for the vertical/main cylinder.
+unsigned long horizontalAxisTime = 0;   // The time it takes to do a complete travel for the horizontal/drawer cylinder.
+int timeShaking=3;     //   <---- the defult time we shake the sand each time.
+
 // Debug mode
 const boolean DEBUG_MODE=true;
 
@@ -724,20 +731,17 @@ void loop() {
     if (panelArray[ID_SWAUTO]==HIGH){ // Manual mode
       if (DEBUG_MODE) Serial.println("I'm on MANUAL MODE!");
       
-      digitalWrite(PIN_LED_AUTO,LOW);
+//      digitalWrite(PIN_LED_AUTO,LOW);
       applyManualMode(panelArray);
 
     }else{                            // Auto mode
       if (DEBUG_MODE) Serial.println("I'm on AUTO MODE!");
         // Set the proper initial values
-      digitalWrite(PIN_LED_AUTO,HIGH);
+//      digitalWrite(PIN_LED_AUTO,VALUE_LED_ENABLED);
 
       // Checks, if needed.
-      int stage=0;
-      unsigned long verticalAxisTime = 0;
-      unsigned long horizontalAxisTime = 0;
-      int timeShaking=3;     //   <----
-      
+
+      if (DEBUG_MODE){ Serial.print("I'm on stage");Serial.println(stage,DEC);}      
       switch(stage){
       
         case 0:    // Initial case: Measure the time it takes to do a complete travel for the cylinders.
@@ -764,13 +768,17 @@ void loop() {
           break;
           
         case 4:
+            stage++;
             
           break;
         case 5:
+            stage++;
           break;
         case 6:
+            stage++;
           break;
         default:
+            stage=0;
           break;
           
       
