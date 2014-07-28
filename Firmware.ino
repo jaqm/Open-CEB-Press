@@ -21,11 +21,16 @@ const boolean DEBUG_MODE=true;
 // STANDARD VALUES
 // for inputs
 const uint8_t VALUE_INPUT_ENABLED = LOW;
+const uint8_t VALUE_INPUT_DISABLED = HIGH;
 // for Solenoids
+const uint8_t VALUE_SOLENOIDS_ENABLED=LOW;
 const uint8_t VALUE_SOLENOIDS_DISABLED=HIGH;
 // for leds
 const uint8_t VALUE_LED_ENABLED = LOW;
 //const uint8_t VALUE_LED_DISABLED = HIGH;
+
+// VALUE_MAX_POTM=2^8 ; because a int is compound by 8 bits.
+const int VALUE_MAX_POTM=255;
 
 // OUTPUTS - Solenoids
 int PIN_SOLU=PIN_B6;    //solenoid for cylinder up
@@ -187,7 +192,7 @@ void moveCylinderDuring(uint8_t cylinderPin,unsigned long time){
   unsigned long timestamp=millis();
   
   digitalWrite(cylinderPin,HIGH);                // Cylinder movement.
-  while ( (inputIs(PIN_PRESSURE,1)==LOW)  && (timestamp+time < millis()) ){}          //
+  while ( (inputIs(PIN_PRESSURE,1)==LOW)  && (timestamp+time > millis()) ){}          //
   digitalWrite(cylinderPin,LOW);
   
   
@@ -232,6 +237,23 @@ void applyManualMode(uint8_t array[]){
   
 }
 
+// Moves both cylinders during the specified time or until HIGH PRESSURE.
+void moveBothCylinderDuring(uint8_t cylinderPin1, uint8_t cylinderPin2, unsigned long timeMoving){
+
+  unsigned long timestamp=millis();
+  
+  digitalWrite(cylinderPin1,VALUE_SOLENOIDS_ENABLED);                // Cylinder movement.
+  digitalWrite(cylinderPin2,VALUE_SOLENOIDS_ENABLED);
+
+  while ( (inputIs(PIN_PRESSURE,1)==VALUE_INPUT_DISABLED)  &&
+        (timestamp+timeMoving > millis())
+      ){}          //
+
+  digitalWrite(cylinderPin1,VALUE_SOLENOIDS_DISABLED);
+  digitalWrite(cylinderPin2,VALUE_SOLENOIDS_DISABLED);
+
+}
+
 // Applies the auto-mode.
 // panel[]: the information readed from the machine.
 // stage: which stage of the auto-mode do we want to run.
@@ -252,9 +274,10 @@ void applyAutoMode(uint8_t panel[], int times[], int stage){
         stage++;
       break;
 
-    case 2:    // Shakes the sand.
-        goToTheInitialPosition();
-        shakeTheSand(timeShaking);
+    // BRICK SEQUENCE
+    case 2:    // Push down the main cilinder and fulfill the room with sand.
+//        int timeSolS=(timesArray[ID_TIME_SOLD])*(panelArray[ID_POTM]/VALUE_MAX_POTM);
+        moveBothCylinderDuring(PIN_SOLD, PIN_SOLS, (timesArray[ID_TIME_SOLD])*(panelArray[ID_POTM]/VALUE_MAX_POTM));
         stage++;
       break;
 
