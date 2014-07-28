@@ -119,9 +119,9 @@ uint8_t inputIs(int pin, int d){
 
 // **** DATA HANDLING
 
-// This function is supposed to invert a digital value readed from a pin like HIGH or LOW.
-// e: HIGH or LOW
-// return: if c=HGH then return LOW, if c=LOW then return HIGH. DEFAULT:   
+// This function inverts a digital value read from a pin like HIGH or LOW.
+// val: HIGH or LOW
+// return: if val=HGH then return LOW, if val=LOW then return HIGH. Default: B00001111.
 uint8_t revertDigitalSignalValue(uint8_t val){
 
   uint8_t oppositeValue=B00001111;
@@ -131,7 +131,6 @@ uint8_t revertDigitalSignalValue(uint8_t val){
   }else if (val==LOW){
     oppositeValue=HIGH;
   }
-
   return oppositeValue;
   
 }
