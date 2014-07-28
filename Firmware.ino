@@ -153,9 +153,9 @@ void moveCylinderDuring(uint8_t cylinderPin,unsigned long time){
 
   unsigned long timestamp=millis();
   
-  digitalWrite(cylinderPin,HIGH);                // Cylinder movement.
-  while ( (inputIs(PIN_PRESSURE,1)==LOW)  && (timestamp+time > millis()) ){}          //
-  digitalWrite(cylinderPin,LOW);
+  digitalWrite(cylinderPin,VALUE_SOLENOIDS_ENABLED);                // Cylinder movement.
+  while ( (inputIs(PIN_PRESSURE,1)==VALUE_INPUT_DISABLED)  && (timestamp+time > millis()) ){}          //
+  digitalWrite(cylinderPin,VALUE_SOLENOIDS_DISABLED);
 }
 
 // Initial point is considered for both cylinders as near as possible to the high-pressure point of SOLU and SOLD.
