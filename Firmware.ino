@@ -376,36 +376,6 @@ void updateLeds(uint8_t panel[]){
 // ** DOWN FROM HERE -- PENDING.
 // ---------------------------
 
-/////////TEST FUNCTIONS/////////////
-
-void testButtons(){    //this is the function for controlling the machine manually via buttons
-    if(on) return;    //if we ended up here somehow when the on switch is low, go back to where we came from
-    if(digitalRead(PIN_BUTTON_UP)==LOW){  //if we read up button on, wait 3ms for debounce
-	delay(3);
-	if(digitalRead(PIN_BUTTON_UP)==LOW){ //if we read it low still, then button is pressed, run drawer bounce routine
-	    //drawerBounce();
-	}
-    }
-    if(digitalRead(PIN_BUTTON_DOWN)==LOW){ 
-	delay(3);
-	if(digitalRead(PIN_BUTTON_DOWN)==LOW){ 
-	    drawerTiming();
-	}
-    }
-    if(digitalRead(PIN_BUTTON_LEFT)==LOW){  //if left button is low, debounce it
-	delay(3);
-	if(digitalRead(PIN_BUTTON_LEFT)==LOW){ //still low? turn on solenoid
-	    //mainBounce();
-	}
-    }
-    if(digitalRead(PIN_BUTTON_RIGHT)==LOW){
-	delay(3);
-	if(digitalRead(PIN_BUTTON_RIGHT)==LOW){
-	    mainTiming();
-	}
-    }
-}
-
 ////////AUTO STATE MACHINE////////
 //The following is a state machine to automate the brick pressing process
 //TODO: Consider revising to enumerated type 
