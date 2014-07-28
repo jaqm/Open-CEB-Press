@@ -19,10 +19,13 @@ int timeShaking=3;     //   <---- the defult time we shake the sand each time.
 const boolean DEBUG_MODE=true;
 
 // STANDARD VALUES
+// for inputs
+const uint8_t VALUE_INPUT_ENABLED = LOW;
+// for Solenoids
+const uint8_t VALUE_SOLENOIDS_DISABLED=HIGH;
+// for leds
 const uint8_t VALUE_LED_ENABLED = LOW;
 //const uint8_t VALUE_LED_DISABLED = HIGH;
-
-const uint8_t VALUE_INPUT_ENABLED = LOW;
 
 // OUTPUTS - Solenoids
 int PIN_SOLU=PIN_B6;    //solenoid for cylinder up
@@ -185,7 +188,7 @@ void moveCylinderDuring(uint8_t cylinderPin,unsigned long time){
 
 void goToTheInitialPosition(){
   
-  setSolenoids(HIGH);
+  setSolenoids(VALUE_SOLENOIDS_DISABLED);
   
   moveCylinderToEnd(PIN_SOLD);
   moveCylinderToEnd(PIN_SOLL);
@@ -209,13 +212,15 @@ void shakeTheSand(int secs){
 
 // **** MACHINE MODES
 
+// Applies the actions expected in manual mode following the data stored in array.
 void applyManualMode(uint8_t array[]){
 
-  digitalWrite(PIN_BUTTON_UP, revertDigitalSignalValue(array[ID_BUTTON_UP]));
-  digitalWrite(PIN_BUTTON_DOWN, revertDigitalSignalValue(array[ID_BUTTON_DOWN]));
-  digitalWrite(PIN_BUTTON_LEFT, revertDigitalSignalValue(array[ID_BUTTON_LEFT]));
-  digitalWrite(PIN_BUTTON_RIGHT, revertDigitalSignalValue(array[ID_BUTTON_RIGHT]));
-  digitalWrite(PIN_BUTTON_SHAKER, revertDigitalSignalValue(array[ID_BUTTON_SHAKER]));
+  // We directly revert the input value as we know this values are opposite.
+  digitalWrite(PIN_SOLU, revertDigitalSignalValue(array[ID_BUTTON_UP]));
+  digitalWrite(PIN_SOLD, revertDigitalSignalValue(array[ID_BUTTON_DOWN]));
+  digitalWrite(PIN_SOLL, revertDigitalSignalValue(array[ID_BUTTON_LEFT]));
+  digitalWrite(PIN_SOLR, revertDigitalSignalValue(array[ID_BUTTON_RIGHT]));
+  digitalWrite(PIN_SOLS, revertDigitalSignalValue(array[ID_BUTTON_SHAKER]));
   
 }
 
@@ -731,9 +736,10 @@ void loop() {
     if (panelArray[ID_SWAUTO]==HIGH){ // Manual mode
       if (DEBUG_MODE) Serial.println("I'm on MANUAL MODE!");
 
-        stage=0;
-      
-//      digitalWrite(PIN_LED_AUTO,LOW);
+      // Set auto-mode values to the default
+      stage=0;
+
+      // Apply manual-mode.
       applyManualMode(panelArray);
 
     }else{                            // Auto mode
