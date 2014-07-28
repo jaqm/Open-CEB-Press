@@ -160,17 +160,6 @@ void goToTheInitialPosition(){
   moveCylinderUntilHighPressure(PIN_SOLU);
 }
 
-// Activates the shaker during some time
-// secs: the time we will be shaking in seconds.
-void shakeTheSand(int secs){
-  
-  unsigned long thisTime=millis();
-  while( (thisTime+(secs*1000) > millis())){
-    digitalWrite(PIN_SOLS,LOW);
-  }
-  digitalWrite(PIN_SOLS,HIGH);
-}
-
 // **** END OF MACHINE MOVEMENTS
 
 // **** MACHINE MODES
