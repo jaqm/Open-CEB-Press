@@ -121,17 +121,17 @@ uint8_t inputIs(int pin, int d){
 // This function inverts a digital value read from a pin like HIGH or LOW.
 // val: HIGH or LOW
 // return: if val=HGH then return LOW, if val=LOW then return HIGH. Default: B00001111.
-uint8_t revertDigitalSignalValue(uint8_t val){
-
-  uint8_t oppositeValue=B00001111;
-  
-  if (val==HIGH){
-    oppositeValue=LOW;
-  }else if (val==LOW){
-    oppositeValue=HIGH;
-  }
-  return oppositeValue;
-}
+//uint8_t revertDigitalSignalValue(uint8_t val){
+//
+//  uint8_t oppositeValue=B00001111;
+//  
+//  if (val==HIGH){
+//    oppositeValue=LOW;
+//  }else if (val==LOW){
+//    oppositeValue=HIGH;
+//  }
+//  return oppositeValue;
+//}
 
 // **** END of DATA HANDLING
 // **** MACHINE MOVEMENTS
@@ -320,8 +320,17 @@ void printTimesArray(unsigned long ta[]){
 // CONSIDER: reimplement this function using constant values defined in the begining of this code. 
 void updateLeds(uint8_t panel[]){
 
-  digitalWrite(PIN_LED_ON,revertDigitalSignalValue(panel[ID_SWON]));
-  digitalWrite(PIN_LED_AUTO,revertDigitalSignalValue(panel[ID_SWAUTO]));
+// Old implementation
+//  digitalWrite(PIN_LED_ON,revertDigitalSignalValue(panel[ID_SWON]));
+//  digitalWrite(PIN_LED_AUTO,revertDigitalSignalValue(panel[ID_SWAUTO]));
+
+  // New implementation
+  digitalWrite(PIN_LED_ON,(panel[ID_SWON]==VALUE_INPUT_ENABLED)?VALUE_LED_ENABLED:VALUE_LED_DISABLED);
+  digitalWrite(PIN_LED_AUTO,(panel[ID_SWAUTO]==VALUE_INPUT_ENABLED)?VALUE_LED_ENABLED:VALUE_LED_DISABLED);
+//  digitalWrite(PIN_LED_ON,revertDigitalSignalValue(panel[ID_SWON]));
+//  digitalWrite(PIN_LED_AUTO,revertDigitalSignalValue(panel[ID_SWAUTO]));
+//  digitalWrite(PIN_LED_ON,revertDigitalSignalValue(panel[ID_SWON]));
+//  digitalWrite(PIN_LED_AUTO,revertDigitalSignalValue(panel[ID_SWAUTO]));
 
 }
 
@@ -380,7 +389,6 @@ void setup() {
     Serial.begin(9600);
 }
 
-// the loop routine runs over and over again forever:
 void loop() {
 
   readPanel(panelArray,VALUE_INPUT_READ_DELAY);
