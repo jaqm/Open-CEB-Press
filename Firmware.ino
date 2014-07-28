@@ -186,6 +186,7 @@ void moveCylinderDuring(uint8_t cylinderPin,unsigned long time){
   
 }
 
+// Initial point is considered for both cylinders as near as possible to the high-pressure point of SOLU and SOLD.
 void goToTheInitialPosition(){
 
   setSolenoids(VALUE_SOLENOIDS_DISABLED);
