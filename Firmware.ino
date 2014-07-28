@@ -4,6 +4,7 @@
 // loop() variables
 int stage=0;       // Defines the stage for the auto-mode
 const unsigned long VALUE_INPUT_READ_DELAY = 5;  // Delay (milliseconds) used to consider a stable input read.
+const unsigned long VALUE_TIME_RELEASE_PRESSURE_STAGE = 500;
 
 // Debug mode
 const boolean DEBUG_MODE=true;
@@ -69,7 +70,9 @@ const int ID_TIME_SOLL=2;
 const int ID_TIME_SOLR=3;
 const int ID_TIME_SOLS=4;
 
+//**********************************
 // *** END OF CONSTANTS && VARIABLES
+//**********************************
 
 // ******* GETTERS && SETTERS *****
 // Description: Sets all solenoids into mode.
@@ -228,7 +231,11 @@ void applyAutoMode(uint8_t panel[], unsigned long times[], int &stage){
         moveCylinderUntilHighPressure(PIN_SOLU);
         stage++;
       break;
-    case 5: // Take out the brick
+    case 5: // Release pressure stage. 
+        moveCylinderDuring(PIN_SOLD,VALUE_TIME_RELEASE_PRESSURE_STAGE);
+        stage++;
+        break;
+    case 6: // Take out the brick
         moveCylinderUntilHighPressure(PIN_SOLL);
         moveCylinderUntilHighPressure(PIN_SOLU);
         moveCylinderUntilHighPressure(PIN_SOLR);
