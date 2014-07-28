@@ -1,16 +1,8 @@
-// OUTPUTS are considered active when LOW
-// INPUTS are considered active when HIGH
 
-// TODO: REVIEW ACTIVATION VALUES!!
-// By the way using: LEDs <- active when LOW
-// solenoids: active when HIGH
 // 
-
 
 // loop() variables
 int stage=0;       // Defines the stage for the auto-mode
-//int timeShaking=3;     //   <---- the defult time we shake the sand each time.
-//const int panelDelay = 1;
 const unsigned long VALUE_INPUT_READ_DELAY = 5;  // Delay (milliseconds) used to consider a stable input read.
 
 // Debug mode
@@ -111,7 +103,6 @@ uint8_t inputIs(int pin, int d){
     }while (value0!=value1);
  
     return value0;
-
 }
 
 // **** END of GETTERS && SETTERS
@@ -131,16 +122,9 @@ uint8_t revertDigitalSignalValue(uint8_t val){
     oppositeValue=HIGH;
   }
   return oppositeValue;
-  
 }
-//boolean inputIsActive(uint8_t value){
-//
-//  return (value==VALUE_INPUT_ENABLED);
-//  
-//}
 
 // **** END of DATA HANDLING
-
 // **** MACHINE MOVEMENTS
 
 // Moves the cylinder to the top position and returns the time it gets to reach that place.
@@ -154,7 +138,6 @@ unsigned long moveCylinderUntilHighPressure(int cylinderPin){
   digitalWrite(cylinderPin,LOW);
 
   return (millis()-timestamp);
-
 }
 
 void moveCylinderDuring(uint8_t cylinderPin,unsigned long time){
@@ -164,18 +147,14 @@ void moveCylinderDuring(uint8_t cylinderPin,unsigned long time){
   digitalWrite(cylinderPin,HIGH);                // Cylinder movement.
   while ( (inputIs(PIN_PRESSURE,1)==LOW)  && (timestamp+time > millis()) ){}          //
   digitalWrite(cylinderPin,LOW);
-  
-  
 }
 
 // Initial point is considered for both cylinders as near as possible to the high-pressure point of SOLU and SOLD.
 void goToTheInitialPosition(){
 
   setSolenoids(VALUE_SOLENOIDS_DISABLED);
-
   moveCylinderUntilHighPressure(PIN_SOLR);
   moveCylinderUntilHighPressure(PIN_SOLU);
-  
 }
 
 // Activates the shaker during some time
@@ -188,8 +167,6 @@ void shakeTheSand(int secs){
   }
   digitalWrite(PIN_SOLS,HIGH);
 }
-
-
 
 // **** END OF MACHINE MOVEMENTS
 
@@ -264,7 +241,6 @@ void applyAutoMode(uint8_t panel[], unsigned long times[], int &stage){
 }
 
 // **** END OF MACHINE MODES
-
 // **** READ && SHOW FUNCTIONS
 
 // Reads all the values of the panel, adding a check protection against rebounce, with a delay.
@@ -362,20 +338,7 @@ void updateLeds(uint8_t panel[]){
 // **** END OF - READ && SHOW FUNCTIONS
 
 // *** DOWN FROM HERE - FUNCTIONS UNDER REVIEW
-
-//// Checks if the values received are equal.
-//// If equal returns the value of the first value,
-//// if not equals returns LOW.
-//uint8_t checkIfEquals(uint8_t a, uint8_t b){
-//  uint8_t value=LOW;
-//  if (a==b){
-//    value=a;
-//  }
-//  return value;
-//}
-
 // *** UP FROM HERE - FUNCTIONS UNDER REVIEW
-
 
 // *****************************
 
@@ -422,8 +385,9 @@ void setup() {
     digitalWrite(PIN_POTM, HIGH);
     digitalWrite(PIN_POTD, HIGH);
 
-    Serial.begin(9600);
+    stage=0;
 
+    Serial.begin(9600);
 }
 
 // the loop routine runs over and over again forever:
@@ -432,7 +396,6 @@ void loop() {
   readPanel(panelArray,VALUE_INPUT_READ_DELAY);
   updateLeds(panelArray);
   if (DEBUG_MODE){ printPanel(panelArray); printTimesArray(timesArray);};
-//  if (DEBUG_MODE) Serial.println("I'm working!");
 
   if (panelArray[ID_SWON]==LOW){  // Power ON
     if (DEBUG_MODE) Serial.println("I'm ON!");
@@ -462,6 +425,7 @@ void loop() {
   }else{                              // Power OFF
     if (DEBUG_MODE) Serial.println("I'm OFF!");
     setSolenoids(VALUE_SOLENOIDS_DISABLED);
+    stage=0;
 
   }
   if (DEBUG_MODE) delay(1000);  
