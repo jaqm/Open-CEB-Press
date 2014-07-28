@@ -162,7 +162,7 @@ boolean inputIsActive(uint8_t value){
 // **** MACHINE MOVEMENTS
 
 // Moves the cylinder to the top position and returns the time it gets to reach that place.
-unsigned long moveCylinderToEnd(int cylinderPin){
+unsigned long moveCylinderUntilHighPressure(int cylinderPin){
 
   // Variable used to compare 
   unsigned long timestamp=millis();
@@ -190,8 +190,8 @@ void goToTheInitialPosition(){
   
   setSolenoids(VALUE_SOLENOIDS_DISABLED);
   
-  moveCylinderToEnd(PIN_SOLD);
-  moveCylinderToEnd(PIN_SOLL);
+  moveCylinderUntilHighPressure(PIN_SOLD);
+  moveCylinderUntilHighPressure(PIN_SOLL);
   
 }
 
@@ -233,8 +233,8 @@ void applyAutoMode(uint8_t panel[], int stage){
   
     case 0:    // Initial case: Measure the time it takes to do a complete travel for the cylinders.
         goToTheInitialPosition();
-        verticalAxisTime = moveCylinderToEnd(PIN_SOLU);
-        horizontalAxisTime = moveCylinderToEnd(PIN_SOLD);
+        verticalAxisTime = moveCylinderUntilHighPressure(PIN_SOLU);
+        horizontalAxisTime = moveCylinderUntilHighPressure(PIN_SOLD);
         stage++;
       break;
 
