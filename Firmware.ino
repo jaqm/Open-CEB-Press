@@ -272,13 +272,11 @@ void applyAutoMode(uint8_t panel[], int times[], int stage){
         times[ID_TIME_SOLR] = moveCylinderUntilHighPressure(PIN_SOLR);
         stage++;
       break;
-
     // BRICK SEQUENCE
     case 2:    // Push down the main cilinder and fulfill the room with sand.
         moveBothCylinderDuring(PIN_SOLD, PIN_SOLS, (timesArray[ID_TIME_SOLD])*(panelArray[ID_POTM]/VALUE_MAX_POTM));
         stage++;
       break;
-
     case 3: // Moves the drawer on the main cylinder
         moveCylinderDuring(PIN_SOLL, (timesArray[ID_TIME_SOLL])*(panelArray[ID_POTD]/VALUE_MAX_POTD));
         stage++;
@@ -357,7 +355,6 @@ void printPanel(uint8_t panel[]){
   Serial.print("Drawer potentiometer: "); Serial.println(panel[ID_POTD],BIN);
   Serial.println("********************************************"); 
 
-  
 }
 
 // Updates the leds according to the information from the panel.
@@ -378,86 +375,6 @@ void updateLeds(uint8_t panel[]){
 
 // ** DOWN FROM HERE -- PENDING.
 // ---------------------------
-
-
-void setAuto(){
-    // This function is run every mainloop increment. It makes sure the correct LEDs are on
-    // at evey given instant
-    delay(100); //Universal delay for debouncing and smooth operation
-
-    //-----------
-    if(on){
-
-        //This block makes sure that if we're reading high pressure, PIN_LED_ON is lit
-      if(inputIs(PIN_PRESSURE,5)==HIGH && !ledPIsLit){   //If we read high pressure, but PIN_LED_ON is not lit
-  	digitalWrite(PIN_LED_ON,HIGH);              //...then turn on PIN_LED_ON
-  	ledAIsLit=true;     	              //set PIN_LED_ONIsLit flag so as not to run this block redundently
-  	//Record the time we lit up PIN_LED_ON
-  	prestime=millis();
-  
-      }else if(inputIs(PIN_PRESSURE,5)==LOW && ((millis()-prestime)>delaytime)){
-  	    //If we're no longer reading high pressure and enough time has passed for the user to see the LED
-  	  	    //Update flags and led accordingly
-  	    ledAIsLit=false;
-  	    digitalWrite(PIN_LED_ON,LOW);
-      }
- 
-      if (inputIs(PIN_SWAUTO,3)==HIGH){
-        //Set the automode global flag. Indicates to the rest of the program that automode is active
-
-        //Because we're turning on auto, we need to make sure that we have values for dRetractionTime and mExtention time
-
-        //If we don't have values for either, we need to call drawer bounce
-        //This is because we need the shaft to be open so as not to cause pre-mature compression
-        //INTERUPTS THE MAIN LOOP
-        if(dRetractionTime==-1 || mExtensionTime==-1){
-//           drawerBounce();
-	}
-
-          //If we don't have a value for mExtensionTime,l run mainbounce to derive one
-	  //INTERUPTS THE MAIN LOOP
-	if(mExtensionTime == -1){
-	    //mainBounce();
-	}
-
-	automode=true;
-
-	  //Blink Procedure
-	  //If we have waited an entire blink cycle...
-	if((millis()-ledAStartTime)>delaytime){
-
-	    //Turn ledA on if it is off, off if it's on
-	    if(ledAIsLit){
-	      digitalWrite(PIN_LED_AUTO,LOW);
-	      ledAIsLit=0;
-	    }else{
-              digitalWrite(PIN_LED_AUTO,HIGH);
-	      ledAIsLit=1;
-	      ledAStartTime=millis(); //Either way, reset the clock
-	    }
-
-	}
-	    //If the autoswitch is not on, make sure that ledA and automode flag are off
-
-      ////This block makes sure that if the auto switch is toggled, ledA is blinking
-      }else if(digitalRead(PIN_SWAUTO)==HIGH){
-  	delay(3);
-  	if(automode && digitalRead(PIN_SWAUTO)==LOW){
-  
-  	    //Turn off automode and handle variables cleanly
-  	    automode=false;
-  	    terminateAutoExec();
-  
-  	    //Turn off the LED too
-  	    digitalWrite(PIN_LED_AUTO,HIGH);
-  	}
-      }
-    }
-  
-//  return;
-
-}
-
 
 /////////TEST FUNCTIONS/////////////
 
