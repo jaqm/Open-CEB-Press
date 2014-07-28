@@ -261,12 +261,10 @@ void moveBothCylinderDuring(uint8_t cylinderPin1, uint8_t cylinderPin2, unsigned
 void applyAutoMode(uint8_t panel[], int times[], int stage){
 
   switch(stage){
-  
     case 0:    // Initial position
         goToTheInitialPosition();
         stage++;
       break;
-
     case 1:       // Fulfill the times array.
         times[ID_TIME_SOLL] = moveCylinderUntilHighPressure(PIN_SOLL);
         times[ID_TIME_SOLD] = moveCylinderUntilHighPressure(PIN_SOLD);
@@ -277,22 +275,17 @@ void applyAutoMode(uint8_t panel[], int times[], int stage){
 
     // BRICK SEQUENCE
     case 2:    // Push down the main cilinder and fulfill the room with sand.
-//        int timeSolS=(timesArray[ID_TIME_SOLD])*(panelArray[ID_POTM]/VALUE_MAX_POTM);
         moveBothCylinderDuring(PIN_SOLD, PIN_SOLS, (timesArray[ID_TIME_SOLD])*(panelArray[ID_POTM]/VALUE_MAX_POTM));
         stage++;
       break;
 
     case 3: // Moves the drawer on the main cylinder
         moveCylinderDuring(PIN_SOLL, (timesArray[ID_TIME_SOLL])*(panelArray[ID_POTD]/VALUE_MAX_POTD));
-//        moveCylinderDuring(PIN_SOLU,timesArray[ID_TIME_SOLU]);
-//        moveCylinderDuring(PIN_SOLR,timesArray[ID_TIME_SOLR]);
         stage++;
       break;
-      
     case 4:  // Compression stage
         moveCylinderUntilHighPressure(PIN_SOLU);
         stage++;
-        
       break;
     case 5: // Take out the brick
         moveCylinderUntilHighPressure(PIN_SOLL);
@@ -300,18 +293,11 @@ void applyAutoMode(uint8_t panel[], int times[], int stage){
         moveCylinderUntilHighPressure(PIN_SOLR);
         stage=2;
       break;
-//    case 6:
-//        stage=1;
-//      break;
     default:
         stage=0;
       break;
   }
-  // Go to initial position
-  goToTheInitialPosition();
-
 }
-
 
 // **** END OF MACHINE MODES
 
