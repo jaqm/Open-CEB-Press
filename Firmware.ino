@@ -234,17 +234,17 @@ void applyAutoMode(uint8_t panel[], int stage){
   
     case 0:    // Initial case: Measure the time it takes to do a complete travel for the cylinders.
         goToTheInitialPosition();
+        stage++;
+      break;
+
+    case 1: 
         verticalAxisTime = moveCylinderUntilHighPressure(PIN_SOLU);
         horizontalAxisTime = moveCylinderUntilHighPressure(PIN_SOLD);
         stage++;
       break;
 
-    case 1: 
-        goToTheInitialPosition();
-        stage++;
-      break;
-
     case 2:    // Shakes the sand.
+        goToTheInitialPosition();
         shakeTheSand(timeShaking);
         stage++;
       break;
