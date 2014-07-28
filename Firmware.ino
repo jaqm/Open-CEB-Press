@@ -47,6 +47,12 @@ int PIN_SOLS=PIN_B2;    //solenoid for shaker motor
 // OUTPUTS - leds
 int PIN_LED_ON=PIN_E0;
 int PIN_LED_AUTO=PIN_E1;
+//int PIN_LED_GND=?
+//int PIN_LED_BUTTON_UP=?
+//int PIN_LED_BUTTON_DOWN=?
+//int PIN_LED_BUTTON_LEFT=?
+//int PIN_LED_BUTTON_RIGHT=?
+//int PIN_LED_BUTTON_SHAKER=?
 
 // PANEL ARRAY - it contains all the input panel values.
 const int ID_SWON=0;
@@ -63,7 +69,7 @@ const int SENSORS_AMOUNT=10;
 uint8_t panelArray[SENSORS_AMOUNT];  // The array which contains all the input panel variables.
 
 // TIMESARRAY
-unsigned long timesArray[]={-1,-1,-1,-1,-1};
+unsigned long timesArray[]={0,0,0,0,0};
 const int ID_TIME_SOLU=0;
 const int ID_TIME_SOLD=1;
 const int ID_TIME_SOLL=2;
