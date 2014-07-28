@@ -31,6 +31,7 @@ const uint8_t VALUE_LED_ENABLED = LOW;
 
 // VALUE_MAX_POTM=2^8 ; because a int is compound by 8 bits.
 const int VALUE_MAX_POTM=255;
+const int VALUE_MAX_POTD=VALUE_MAX_POTM;
 
 // OUTPUTS - Solenoids
 int PIN_SOLU=PIN_B6;    //solenoid for cylinder up
@@ -281,9 +282,10 @@ void applyAutoMode(uint8_t panel[], int times[], int stage){
         stage++;
       break;
 
-    case 3:
-        moveCylinderDuring(PIN_SOLU,timesArray[ID_TIME_SOLU]);
-        moveCylinderDuring(PIN_SOLR,timesArray[ID_TIME_SOLR]);
+    case 3: // Moves the drawer on the main cylinder
+        moveCylinderDuring(PIN_SOLL, (timesArray[ID_TIME_SOLL])*(panelArray[ID_POTD]/VALUE_MAX_POTD));
+//        moveCylinderDuring(PIN_SOLU,timesArray[ID_TIME_SOLU]);
+//        moveCylinderDuring(PIN_SOLR,timesArray[ID_TIME_SOLR]);
         stage++;
       break;
       
