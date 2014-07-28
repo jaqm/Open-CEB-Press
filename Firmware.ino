@@ -9,14 +9,15 @@
 // 
 
 
-// Main variables
+// loop() variables
 int stage=0;       // Defines the stage for the auto-mode
-//unsigned long verticalAxisTime = 0;   // The time it takes to do a complete travel for the vertical/main cylinder.
-//unsigned long horizontalAxisTime = 0;   // The time it takes to do a complete travel for the horizontal/drawer cylinder.
-int timeShaking=3;     //   <---- the defult time we shake the sand each time.
+//int timeShaking=3;     //   <---- the defult time we shake the sand each time.
+const int panelDelay = 1;
+
 
 // Debug mode
 const boolean DEBUG_MODE=true;
+const boolean DEBUG_VERBOSE_MODE=false;
 
 // STANDARD VALUES
 // for inputs
@@ -27,22 +28,11 @@ const uint8_t VALUE_SOLENOIDS_ENABLED=LOW;
 const uint8_t VALUE_SOLENOIDS_DISABLED=HIGH;
 // for leds
 const uint8_t VALUE_LED_ENABLED = LOW;
-//const uint8_t VALUE_LED_DISABLED = HIGH;
+const uint8_t VALUE_LED_DISABLED = HIGH;
 
 // VALUE_MAX_POTM=2^8 ; because a int is compound by 8 bits.
 const int VALUE_MAX_POTM=255;
 const int VALUE_MAX_POTD=VALUE_MAX_POTM;
-
-// OUTPUTS - Solenoids
-int PIN_SOLU=PIN_B6;    //solenoid for cylinder up
-int PIN_SOLD=PIN_B5;    //solenoid for cylinder down
-int PIN_SOLL=PIN_B4;    //solenoid for drawer left
-int PIN_SOLR=PIN_B3;    //solenoid for drawer right
-int PIN_SOLS=PIN_B2;    //solenoid for shaker motor 
-
-// OUTPUTS - leds
-int PIN_LED_ON=PIN_E0;
-int PIN_LED_AUTO=PIN_E1;
 
 // INPUTS
 int PIN_SWON=PIN_C7;    //on/off switch
@@ -55,6 +45,17 @@ int PIN_BUTTON_SHAKER=PIN_C1;    //button for shaker
 int PIN_POTD=PIN_F2;    //potentiometer for the drawer
 int PIN_POTM=PIN_F1;    //potentiometer for the main cylinder
 int PIN_PRESSURE=PIN_F0;
+
+// OUTPUTS - Solenoids
+int PIN_SOLU=PIN_B6;    //solenoid for cylinder up
+int PIN_SOLD=PIN_B5;    //solenoid for cylinder down
+int PIN_SOLL=PIN_B4;    //solenoid for drawer left
+int PIN_SOLR=PIN_B3;    //solenoid for drawer right
+int PIN_SOLS=PIN_B2;    //solenoid for shaker motor 
+
+// OUTPUTS - leds
+int PIN_LED_ON=PIN_E0;
+int PIN_LED_AUTO=PIN_E1;
 
 // PANEL ARRAY - it contains all the input panel values.
 const int ID_SWON=0;
@@ -70,8 +71,6 @@ const int ID_PRESSURE=9;
 const int SENSORS_AMOUNT=10;
 uint8_t panelArray[SENSORS_AMOUNT];  // The array which contains all the input panel variables.
 
-const int panelDelay = 1;
-
 // TIMESARRAY
 int timesArray[]={0,0,0,0};
 const int ID_TIME_SOLU=0;
@@ -79,30 +78,9 @@ const int ID_TIME_SOLD=1;
 const int ID_TIME_SOLL=2;
 const int ID_TIME_SOLR=3;
 
-// UP FROM HERE - VARUABLES ALREADY REVIEWED
-// DOWN FROM HERE - VARIABLES REVIEW PENDING
+// *** END OF CONSTANTS && VARIABLES
 
-unsigned long delaytime=500; //500ms - half second blink of pressure sensor indicator
-
-int dRetractionTime = -1; //A vanlue of -1 means that we have not yet recorded a value for dRetractionTime
-int mExtensionTime = -1;
-
-unsigned long ledAStartTime=0;
-unsigned long prestime=0;
-
-boolean automode=false;        //automode starts at off
-boolean on=false;
-
-boolean ledPIsLit=false;        //ledPIsLit starts at off
-boolean ledAIsLit=false;        //led starts at off
-
-int hydraulicTestFreq = 20; //The number of miliseconds between 
-                            //tests of hydraulic pressure sensors
-
-//Used within autoExec
-long int shakeBegin = 0;
-
-//*******  GETTERS && SETTERS *****
+// ******* GETTERS && SETTERS *****
 // Description: Sets all solenoids into mode.
 // mode: HIGH or LOW values expected.
 void setSolenoids(uint8_t mode){
@@ -115,8 +93,8 @@ void setSolenoids(uint8_t mode){
 
 // Description: returns the status and only the status of the pin selected. 
 // Input: pin: the value corresponding to the ping selected.
-//        d (delay): amount of seconds between the first and the 2nd digital read to confirm the value.
-// Return: the status AS-IS. As al of our INPUTS: LOW==ACTIVE, and HIGH==DISABLED
+//        d (delay): amount of milliseconds between the first and the 2nd digital read to confirm the value.
+// Return: the status as it is.
 uint8_t inputIs(int pin, int d){
 
     uint8_t value0 = HIGH;
@@ -126,6 +104,11 @@ uint8_t inputIs(int pin, int d){
 	value0 = digitalRead(pin);
 	delay(d);
 	value1 = digitalRead(pin);
+        if (DEBUG_VERBOSE_MODE){
+          Serial.print("InputIs value0: ");Serial.println(value1);
+          Serial.print("InputIs value1: ");Serial.println(value1);
+          if (value0!=value1){Serial.print("WARNING!! Different values were read. It could be a debounce. Too short delay?");}
+        }
     }while (value0!=value1);
  
     return value0;
