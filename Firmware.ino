@@ -265,6 +265,7 @@ void applyAutoMode(uint8_t panel[], unsigned long times[], int &stage){
 
 // **** END OF MACHINE MODES
 
+// **** READ && SHOW FUNCTIONS
 
 // Reads all the values of the panel, adding a check protection against rebounce, with a delay.
 void readPanel(uint8_t panelArray[], const int d){  
@@ -293,16 +294,28 @@ void readPanel(uint8_t panelArray[], const int d){
   uint8_t vPotM1 = digitalRead(PIN_POTM);
   uint8_t vPotD1 = digitalRead(PIN_POTD);
 
-  panelArray[ID_BUTTON_UP] = checkIfEquals(vU0,vU1);
-  panelArray[ID_BUTTON_DOWN] = checkIfEquals(vD0,vD1);
-  panelArray[ID_BUTTON_LEFT] = checkIfEquals(vL0,vL1);
-  panelArray[ID_BUTTON_RIGHT] = checkIfEquals(vR0,vR1);
-  panelArray[ID_BUTTON_SHAKER] = checkIfEquals(vS0,vS1);
-  panelArray[ID_PRESSURE] = checkIfEquals(vP0,vP1);
-  panelArray[ID_SWON] = checkIfEquals(vSwOn0,vSwOn1);
-  panelArray[ID_SWAUTO] = checkIfEquals(vSwAuto0,vSwAuto1);
-  panelArray[ID_POTM] = checkIfEquals(vPotM0,vPotM1);
-  panelArray[ID_POTD] = checkIfEquals(vPotD0,vPotD1);
+  panelArray[ID_BUTTON_UP] = (vU0==vU1?vU0:VALUE_INPUT_DISABLED);
+  panelArray[ID_BUTTON_DOWN] = (vD0==vD1?vD0:VALUE_INPUT_DISABLED);
+  panelArray[ID_BUTTON_LEFT] = (vL0==vL1?vL0:VALUE_INPUT_DISABLED);
+  panelArray[ID_BUTTON_RIGHT] = (vR0==vR1?vR0:VALUE_INPUT_DISABLED);
+  panelArray[ID_BUTTON_SHAKER] = (vS0==vS1?vS0:VALUE_INPUT_DISABLED);
+  panelArray[ID_PRESSURE] = (vP0==vP1?vP0:VALUE_INPUT_DISABLED);
+  panelArray[ID_SWON] = (vSwOn0==vSwOn1?vSwOn0:VALUE_INPUT_DISABLED);
+  panelArray[ID_SWAUTO] = (vSwAuto0==vSwOn1?vSwOn0:VALUE_INPUT_DISABLED);
+  panelArray[ID_POTM] = (vPotM0==vPotM1?vPotM0:VALUE_INPUT_DISABLED);
+  panelArray[ID_POTD] = (vPotD0==vPotD1?vPotD0:VALUE_INPUT_DISABLED);
+
+// OLD IMPLEMENTATION
+//  panelArray[ID_BUTTON_UP] = checkIfEquals(vU0,vU1);
+//  panelArray[ID_BUTTON_DOWN] = checkIfEquals(vD0,vD1);
+//  panelArray[ID_BUTTON_LEFT] = checkIfEquals(vL0,vL1);
+//  panelArray[ID_BUTTON_RIGHT] = checkIfEquals(vR0,vR1);
+//  panelArray[ID_BUTTON_SHAKER] = checkIfEquals(vS0,vS1);
+//  panelArray[ID_PRESSURE] = checkIfEquals(vP0,vP1);
+//  panelArray[ID_SWON] = checkIfEquals(vSwOn0,vSwOn1);
+//  panelArray[ID_SWAUTO] = checkIfEquals(vSwAuto0,vSwAuto1);
+//  panelArray[ID_POTM] = checkIfEquals(vPotM0,vPotM1);
+//  panelArray[ID_POTD] = checkIfEquals(vPotD0,vPotD1);
 
 }
 
@@ -335,7 +348,6 @@ void printTimesArray(unsigned long ta[]){
 
 }
 
-
 // Updates the leds according to the information from the panel.
 // NOTE: we are directly reverting the digital signal as we are using the opposite value
 // to activate outputs and inputs. !!
@@ -347,19 +359,20 @@ void updateLeds(uint8_t panel[]){
 
 }
 
+// **** END OF - READ && SHOW FUNCTIONS
 
 // *** DOWN FROM HERE - FUNCTIONS UNDER REVIEW
 
-// Checks if the values received are equal.
-// If equal returns the value of the first value,
-// if not equals returns LOW.
-uint8_t checkIfEquals(uint8_t a, uint8_t b){
-  uint8_t value=LOW;
-  if (a==b){
-    value=a;
-  }
-  return value;
-}
+//// Checks if the values received are equal.
+//// If equal returns the value of the first value,
+//// if not equals returns LOW.
+//uint8_t checkIfEquals(uint8_t a, uint8_t b){
+//  uint8_t value=LOW;
+//  if (a==b){
+//    value=a;
+//  }
+//  return value;
+//}
 
 // *** UP FROM HERE - FUNCTIONS UNDER REVIEW
 
