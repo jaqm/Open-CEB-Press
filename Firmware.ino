@@ -281,18 +281,6 @@ void readPanel(uint8_t panelArray[], const int d){
   panelArray[ID_POTM] = (vPotM0==vPotM1?vPotM0:VALUE_INPUT_DISABLED);
   panelArray[ID_POTD] = (vPotD0==vPotD1?vPotD0:VALUE_INPUT_DISABLED);
 
-// OLD IMPLEMENTATION
-//  panelArray[ID_BUTTON_UP] = checkIfEquals(vU0,vU1);
-//  panelArray[ID_BUTTON_DOWN] = checkIfEquals(vD0,vD1);
-//  panelArray[ID_BUTTON_LEFT] = checkIfEquals(vL0,vL1);
-//  panelArray[ID_BUTTON_RIGHT] = checkIfEquals(vR0,vR1);
-//  panelArray[ID_BUTTON_SHAKER] = checkIfEquals(vS0,vS1);
-//  panelArray[ID_PRESSURE] = checkIfEquals(vP0,vP1);
-//  panelArray[ID_SWON] = checkIfEquals(vSwOn0,vSwOn1);
-//  panelArray[ID_SWAUTO] = checkIfEquals(vSwAuto0,vSwAuto1);
-//  panelArray[ID_POTM] = checkIfEquals(vPotM0,vPotM1);
-//  panelArray[ID_POTD] = checkIfEquals(vPotD0,vPotD1);
-
 }
 
 void printPanel(uint8_t panel[]){
