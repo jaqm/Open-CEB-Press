@@ -10,7 +10,8 @@
 // loop() variables
 int stage=0;       // Defines the stage for the auto-mode
 //int timeShaking=3;     //   <---- the defult time we shake the sand each time.
-const int panelDelay = 1;
+//const int panelDelay = 1;
+const unsigned long VALUE_INPUT_READ_DELAY = 5;  // Delay (milliseconds) used to consider a stable input read.
 
 // Debug mode
 const boolean DEBUG_MODE=true;
@@ -211,11 +212,7 @@ void moveBothCylinderDuring(uint8_t cylinderPin1, uint8_t cylinderPin2, unsigned
   
   digitalWrite(cylinderPin1,VALUE_SOLENOIDS_ENABLED);                // Cylinder movement.
   digitalWrite(cylinderPin2,VALUE_SOLENOIDS_ENABLED);
-
-  while ( (inputIs(PIN_PRESSURE,1)==VALUE_INPUT_DISABLED)  &&
-        (timestamp+timeMoving > millis())
-      ){}          //
-
+  while ( (inputIs(PIN_PRESSURE,VALUE_INPUT_READ_DELAY)==VALUE_INPUT_DISABLED) && (timestamp+timeMoving > millis())){}
   digitalWrite(cylinderPin1,VALUE_SOLENOIDS_DISABLED);
   digitalWrite(cylinderPin2,VALUE_SOLENOIDS_DISABLED);
 
@@ -403,7 +400,7 @@ void setup() {
 // the loop routine runs over and over again forever:
 void loop() {
 
-  readPanel(panelArray,panelDelay);
+  readPanel(panelArray,VALUE_INPUT_READ_DELAY);
   updateLeds(panelArray);
   if (DEBUG_MODE) printPanel(panelArray);
 //  if (DEBUG_MODE) Serial.println("I'm working!");
