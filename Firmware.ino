@@ -290,6 +290,7 @@ void applyAutoMode(uint8_t panel[], int times[], int stage){
       break;
       
     case 4:
+        moveCylinderUntilHighPressure(PIN_SOLU);
         stage++;
         
       break;
