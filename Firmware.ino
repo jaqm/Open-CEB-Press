@@ -225,9 +225,9 @@ void applyManualMode(uint8_t array[]){
 }
 
 // Applies the auto-mode.
-void applyAutoMode(uint8_t panel[]){
-
-  int stage = 0;
+// panel[]: the information readed from the machine.
+// stage: which stage of the auto-mode do we want to run.
+void applyAutoMode(uint8_t panel[], int stage){
 
   switch(stage){
   
@@ -792,14 +792,12 @@ void loop() {
 
     }else{                            // Auto mode
       if (DEBUG_MODE) Serial.println("I'm on AUTO MODE!");
+      if (DEBUG_MODE){ Serial.print("I'm on stage");Serial.println(stage,DEC);}      
         // Set the proper initial values
-//      digitalWrite(PIN_LED_AUTO,VALUE_LED_ENABLED);
 
       // Checks, if needed.
 
-      if (DEBUG_MODE){ Serial.print("I'm on stage");Serial.println(stage,DEC);}      
-
-      applyAutoMode(panelArray);
+      applyAutoMode(panelArray,stage);
 
     }  
   
@@ -809,7 +807,6 @@ void loop() {
     setSolenoids(HIGH);
     digitalWrite(PIN_LED_ON,HIGH);
     digitalWrite(PIN_LED_AUTO,HIGH);
-    
 
   }
   if (DEBUG_MODE) delay(1000);  
