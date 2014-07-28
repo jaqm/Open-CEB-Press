@@ -335,11 +335,14 @@ void printPanel(uint8_t panel[]){
   
 }
 
+// Updates the leds according to the information from the panel.
+// NOTE: we are directly reverting the digital signal as we are using the opposite value
+// to activate outputs and inputs. !!
+// CONSIDER: reimplement this function using constant values defined in the begining of this code. 
 void updateLeds(uint8_t panel[]){
 
   digitalWrite(PIN_LED_ON,revertDigitalSignalValue(panel[ID_SWON]));
   digitalWrite(PIN_LED_AUTO,revertDigitalSignalValue(panel[ID_SWAUTO]));
-  
 
 }
 
@@ -804,9 +807,7 @@ void loop() {
   
   }else{                              // Power OFF
     if (DEBUG_MODE) Serial.println("I'm OFF!");
-    setSolenoids(HIGH);
-    digitalWrite(PIN_LED_ON,HIGH);
-    digitalWrite(PIN_LED_AUTO,HIGH);
+    setSolenoids(VALUE_SOLENOIDS_DISABLED);
 
   }
   if (DEBUG_MODE) delay(1000);  
