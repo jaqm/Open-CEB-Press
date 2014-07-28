@@ -277,7 +277,7 @@ void readPanel(uint8_t panelArray[], const int d){
   panelArray[ID_BUTTON_SHAKER] = (vS0==vS1?vS0:VALUE_INPUT_DISABLED);
   panelArray[ID_PRESSURE] = (vP0==vP1?vP0:VALUE_INPUT_DISABLED);
   panelArray[ID_SWON] = (vSwOn0==vSwOn1?vSwOn0:VALUE_INPUT_DISABLED);
-  panelArray[ID_SWAUTO] = (vSwAuto0==vSwOn1?vSwOn0:VALUE_INPUT_DISABLED);
+  panelArray[ID_SWAUTO] = (vSwAuto0==vSwAuto0?vSwAuto0:VALUE_INPUT_DISABLED);
   panelArray[ID_POTM] = (vPotM0==vPotM1?vPotM0:VALUE_INPUT_DISABLED);
   panelArray[ID_POTD] = (vPotD0==vPotD1?vPotD0:VALUE_INPUT_DISABLED);
 
@@ -413,14 +413,11 @@ void loop() {
     }else{                            // Auto mode
       if (DEBUG_MODE) Serial.println("I'm on AUTO MODE!");
       if (DEBUG_MODE){ Serial.print("I'm on stage");Serial.println(stage,DEC);}      
-        // Set the proper initial values
-
+      // Set the proper initial values
       // Checks, if needed.
 
       applyAutoMode(panelArray, timesArray, stage);
-
     }
-  
   
   }else{                              // Power OFF
     if (DEBUG_MODE) Serial.println("I'm OFF!");
