@@ -210,7 +210,7 @@ void moveBothCylinderDuring(uint8_t cylinderPin1, uint8_t cylinderPin2, unsigned
 
   unsigned long timestamp=millis();
   
-  digitalWrite(cylinderPin1,VALUE_SOLENOIDS_ENABLED);                // Cylinder movement.
+  digitalWrite(cylinderPin1,VALUE_SOLENOIDS_ENABLED);
   digitalWrite(cylinderPin2,VALUE_SOLENOIDS_ENABLED);
   while ( (inputIs(PIN_PRESSURE,VALUE_INPUT_READ_DELAY)==VALUE_INPUT_DISABLED) && (timestamp+timeMoving > millis())){}
   digitalWrite(cylinderPin1,VALUE_SOLENOIDS_DISABLED);
@@ -221,7 +221,7 @@ void moveBothCylinderDuring(uint8_t cylinderPin1, uint8_t cylinderPin2, unsigned
 // Applies the auto-mode.
 // panel[]: the information readed from the machine.
 // stage: which stage of the auto-mode do we want to run.
-void applyAutoMode(uint8_t panel[], int times[], int stage){
+void applyAutoMode(uint8_t panel[], int times[], int &stage){
 
   switch(stage){
     case 0:    // Initial position
@@ -393,10 +393,10 @@ void setup() {
     digitalWrite(PIN_POTM, HIGH);
     digitalWrite(PIN_POTD, HIGH);
 
-
     Serial.begin(9600);
 
 }
+
 // the loop routine runs over and over again forever:
 void loop() {
 
