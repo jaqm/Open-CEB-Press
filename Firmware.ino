@@ -11,8 +11,8 @@
 
 // Main variables
 int stage=0;       // Defines the stage for the auto-mode
-unsigned long verticalAxisTime = 0;   // The time it takes to do a complete travel for the vertical/main cylinder.
-unsigned long horizontalAxisTime = 0;   // The time it takes to do a complete travel for the horizontal/drawer cylinder.
+//unsigned long verticalAxisTime = 0;   // The time it takes to do a complete travel for the vertical/main cylinder.
+//unsigned long horizontalAxisTime = 0;   // The time it takes to do a complete travel for the horizontal/drawer cylinder.
 int timeShaking=3;     //   <---- the defult time we shake the sand each time.
 
 // Debug mode
@@ -65,6 +65,13 @@ const int SENSORS_AMOUNT=10;
 uint8_t panelArray[SENSORS_AMOUNT];  // The array which contains all the input panel variables.
 
 const int panelDelay = 1;
+
+// TIMESARRAY
+int timesArray[]={0,0,0,0};
+const int ID_TIME_SOLU=0;
+const int ID_TIME_SOLD=1;
+const int ID_TIME_SOLL=2;
+const int ID_TIME_SOLR=3;
 
 // UP FROM HERE - VARUABLES ALREADY REVIEWED
 // DOWN FROM HERE - VARIABLES REVIEW PENDING
@@ -228,7 +235,7 @@ void applyManualMode(uint8_t array[]){
 // Applies the auto-mode.
 // panel[]: the information readed from the machine.
 // stage: which stage of the auto-mode do we want to run.
-void applyAutoMode(uint8_t panel[], int stage){
+void applyAutoMode(uint8_t panel[], int times[], int stage){
 
   switch(stage){
   
@@ -237,9 +244,11 @@ void applyAutoMode(uint8_t panel[], int stage){
         stage++;
       break;
 
-    case 1: 
-        verticalAxisTime = moveCylinderUntilHighPressure(PIN_SOLU);
-        horizontalAxisTime = moveCylinderUntilHighPressure(PIN_SOLD);
+    case 1:       // Fulfill the times array.
+        times[ID_TIME_SOLL] = moveCylinderUntilHighPressure(PIN_SOLL);
+        times[ID_TIME_SOLD] = moveCylinderUntilHighPressure(PIN_SOLD);
+        times[ID_TIME_SOLU] = moveCylinderUntilHighPressure(PIN_SOLU);
+        times[ID_TIME_SOLR] = moveCylinderUntilHighPressure(PIN_SOLR);
         stage++;
       break;
 
@@ -250,8 +259,8 @@ void applyAutoMode(uint8_t panel[], int stage){
       break;
 
     case 3:
-        moveCylinderDuring(PIN_SOLU,verticalAxisTime);
-        moveCylinderDuring(PIN_SOLR,horizontalAxisTime);
+        moveCylinderDuring(PIN_SOLU,timesArray[ID_TIME_SOLU]);
+        moveCylinderDuring(PIN_SOLR,timesArray[ID_TIME_SOLR]);
         stage++;
       break;
       
@@ -801,7 +810,7 @@ void loop() {
 
       // Checks, if needed.
 
-      applyAutoMode(panelArray,stage);
+      applyAutoMode(panelArray, timesArray, stage);
 
     }  
   
