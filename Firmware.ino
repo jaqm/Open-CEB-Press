@@ -239,7 +239,7 @@ void applyAutoMode(uint8_t panel[], int times[], int stage){
 
   switch(stage){
   
-    case 0:    // Initial case: Measure the time it takes to do a complete travel for the cylinders.
+    case 0:    // Initial position
         goToTheInitialPosition();
         stage++;
       break;
