@@ -289,17 +289,20 @@ void applyAutoMode(uint8_t panel[], int times[], int stage){
         stage++;
       break;
       
-    case 4:
+    case 4:  // Compression stage
         moveCylinderUntilHighPressure(PIN_SOLU);
         stage++;
         
       break;
-    case 5:
-        stage++;
+    case 5: // Take out the brick
+        moveCylinderUntilHighPressure(PIN_SOLL);
+        moveCylinderUntilHighPressure(PIN_SOLU);
+        moveCylinderUntilHighPressure(PIN_SOLR);
+        stage=2;
       break;
-    case 6:
-        stage=1;
-      break;
+//    case 6:
+//        stage=1;
+//      break;
     default:
         stage=0;
       break;
