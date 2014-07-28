@@ -224,6 +224,56 @@ void applyManualMode(uint8_t array[]){
   
 }
 
+// Applies the auto-mode.
+void applyAutoMode(uint8_t panel[]){
+
+  int stage = 0;
+
+  switch(stage){
+  
+    case 0:    // Initial case: Measure the time it takes to do a complete travel for the cylinders.
+        goToTheInitialPosition();
+        verticalAxisTime = moveCylinderToEnd(PIN_SOLU);
+        horizontalAxisTime = moveCylinderToEnd(PIN_SOLD);
+        stage++;
+      break;
+
+    case 1: 
+        goToTheInitialPosition();
+        stage++;
+      break;
+
+    case 2:    // Shakes the sand.
+        shakeTheSand(timeShaking);
+        stage++;
+      break;
+
+    case 3:
+        moveCylinderDuring(PIN_SOLU,verticalAxisTime);
+        moveCylinderDuring(PIN_SOLR,horizontalAxisTime);
+        stage++;
+      break;
+      
+    case 4:
+        stage++;
+        
+      break;
+    case 5:
+        stage++;
+      break;
+    case 6:
+        stage=1;
+      break;
+    default:
+        stage=0;
+      break;
+  }
+  // Go to initial position
+  goToTheInitialPosition();
+
+}
+
+
 // **** END OF MACHINE MODES
 
 
@@ -670,8 +720,6 @@ void autoExec(){
     }
 
 }
-            
-
 
 // the setup routine runs once when you press reset:
 void setup() {
@@ -750,50 +798,8 @@ void loop() {
       // Checks, if needed.
 
       if (DEBUG_MODE){ Serial.print("I'm on stage");Serial.println(stage,DEC);}      
-      switch(stage){
-      
-        case 0:    // Initial case: Measure the time it takes to do a complete travel for the cylinders.
-            goToTheInitialPosition();
-            verticalAxisTime = moveCylinderToEnd(PIN_SOLU);
-            horizontalAxisTime = moveCylinderToEnd(PIN_SOLD);
-            stage++;
-          break;
 
-        case 1: 
-            goToTheInitialPosition();
-            stage++;
-          break;
-
-        case 2:    // Shakes the sand.
-            shakeTheSand(timeShaking);
-            stage++;
-          break;
-
-        case 3:
-            moveCylinderDuring(PIN_SOLU,verticalAxisTime);
-            moveCylinderDuring(PIN_SOLR,horizontalAxisTime);
-            stage++;
-          break;
-          
-        case 4:
-            stage++;
-            
-          break;
-        case 5:
-            stage++;
-          break;
-        case 6:
-            stage=1;
-          break;
-        default:
-            stage=0;
-          break;
-          
-      
-      }
-      // Go to initial position
-      goToTheInitialPosition();
-
+      applyAutoMode(panelArray);
 
     }  
   
