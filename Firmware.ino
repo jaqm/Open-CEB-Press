@@ -142,9 +142,9 @@ unsigned long moveCylinderUntilHighPressure(int cylinderPin){
   // Variable used to compare 
   unsigned long timestamp=millis();
 
-  digitalWrite(cylinderPin,HIGH);                // Cilinder movement.
-  while(inputIs(PIN_PRESSURE,1)==LOW){}          //
-  digitalWrite(cylinderPin,LOW);
+  digitalWrite(cylinderPin,VALUE_SOLENOIDS_ENABLED);                // Cilinder movement.
+  while(inputIs(PIN_PRESSURE,3)==VALUE_INPUT_DISABLED){}          //
+  digitalWrite(cylinderPin,VALUE_SOLENOIDS_DISABLED);
 
   return (millis()-timestamp);
 }
