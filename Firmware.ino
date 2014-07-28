@@ -1,5 +1,3 @@
-//#include "Arduino.h"
-
 // OUTPUTS are considered active when LOW
 // INPUTS are considered active when HIGH
 
@@ -13,7 +11,6 @@
 int stage=0;       // Defines the stage for the auto-mode
 //int timeShaking=3;     //   <---- the defult time we shake the sand each time.
 const int panelDelay = 1;
-
 
 // Debug mode
 const boolean DEBUG_MODE=true;
@@ -134,23 +131,11 @@ uint8_t revertDigitalSignalValue(uint8_t val){
   return oppositeValue;
   
 }
-
-// Checks if the values received are equal.
-// If equal returns the value of the first value,
-// if not equals returns LOW.
-uint8_t checkIfEquals(uint8_t a, uint8_t b){
-  uint8_t value=LOW;
-  if (a==b){
-    value=a;
-  }
-  return value;
-}
-
-boolean inputIsActive(uint8_t value){
-
-  return (value==VALUE_INPUT_ENABLED);
-  
-}
+//boolean inputIsActive(uint8_t value){
+//
+//  return (value==VALUE_INPUT_ENABLED);
+//  
+//}
 
 // **** END of DATA HANDLING
 
@@ -211,13 +196,12 @@ void shakeTheSand(int secs){
 // Applies the actions expected in manual mode following the data stored in array.
 void applyManualMode(uint8_t array[]){
 
-  // We directly revert the input value as we know this values are opposite.
-  digitalWrite(PIN_SOLU, revertDigitalSignalValue(array[ID_BUTTON_UP]));
-  digitalWrite(PIN_SOLD, revertDigitalSignalValue(array[ID_BUTTON_DOWN]));
-  digitalWrite(PIN_SOLL, revertDigitalSignalValue(array[ID_BUTTON_LEFT]));
-  digitalWrite(PIN_SOLR, revertDigitalSignalValue(array[ID_BUTTON_RIGHT]));
-  digitalWrite(PIN_SOLS, revertDigitalSignalValue(array[ID_BUTTON_SHAKER]));
-  
+  digitalWrite(PIN_SOLU,(array[ID_BUTTON_UP]==VALUE_INPUT_ENABLED ? VALUE_SOLENOIDS_ENABLED:VALUE_SOLENOIDS_DISABLED));
+  digitalWrite(PIN_SOLD,(array[ID_BUTTON_DOWN]==VALUE_INPUT_ENABLED ? VALUE_SOLENOIDS_ENABLED:VALUE_SOLENOIDS_DISABLED));
+  digitalWrite(PIN_SOLL,(array[ID_BUTTON_LEFT]==VALUE_INPUT_ENABLED ? VALUE_SOLENOIDS_ENABLED:VALUE_SOLENOIDS_DISABLED));
+  digitalWrite(PIN_SOLR,(array[ID_BUTTON_RIGHT]==VALUE_INPUT_ENABLED ? VALUE_SOLENOIDS_ENABLED:VALUE_SOLENOIDS_DISABLED));
+  digitalWrite(PIN_SOLS,(array[ID_BUTTON_SHAKER]==VALUE_INPUT_ENABLED ? VALUE_SOLENOIDS_ENABLED:VALUE_SOLENOIDS_DISABLED));
+
 }
 
 // Moves both cylinders during the specified time or until HIGH PRESSURE.
@@ -349,6 +333,23 @@ void updateLeds(uint8_t panel[]){
   digitalWrite(PIN_LED_AUTO,revertDigitalSignalValue(panel[ID_SWAUTO]));
 
 }
+
+
+// *** DOWN FROM HERE - FUNCTIONS UNDER REVIEW
+
+// Checks if the values received are equal.
+// If equal returns the value of the first value,
+// if not equals returns LOW.
+uint8_t checkIfEquals(uint8_t a, uint8_t b){
+  uint8_t value=LOW;
+  if (a==b){
+    value=a;
+  }
+  return value;
+}
+
+// *** UP FROM HERE - FUNCTIONS UNDER REVIEW
+
 
 // *****************************
 
