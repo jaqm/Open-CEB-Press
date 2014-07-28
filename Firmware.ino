@@ -187,11 +187,11 @@ void moveCylinderDuring(uint8_t cylinderPin,unsigned long time){
 }
 
 void goToTheInitialPosition(){
-  
+
   setSolenoids(VALUE_SOLENOIDS_DISABLED);
-  
-  moveCylinderUntilHighPressure(PIN_SOLD);
-  moveCylinderUntilHighPressure(PIN_SOLL);
+
+  moveCylinderUntilHighPressure(PIN_SOLR);
+  moveCylinderUntilHighPressure(PIN_SOLU);
   
 }
 
