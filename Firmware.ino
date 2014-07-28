@@ -70,11 +70,12 @@ const int SENSORS_AMOUNT=10;
 uint8_t panelArray[SENSORS_AMOUNT];  // The array which contains all the input panel variables.
 
 // TIMESARRAY
-int timesArray[]={0,0,0,0};
+unsigned long timesArray[]={-1,-1,-1,-1,-1};
 const int ID_TIME_SOLU=0;
 const int ID_TIME_SOLD=1;
 const int ID_TIME_SOLL=2;
 const int ID_TIME_SOLR=3;
+const int ID_TIME_SOLS=4;
 
 // *** END OF CONSTANTS && VARIABLES
 
@@ -221,10 +222,10 @@ void moveBothCylinderDuring(uint8_t cylinderPin1, uint8_t cylinderPin2, unsigned
 // Applies the auto-mode.
 // panel[]: the information readed from the machine.
 // stage: which stage of the auto-mode do we want to run.
-void applyAutoMode(uint8_t panel[], int times[], int &stage){
+void applyAutoMode(uint8_t panel[], unsigned long times[], int &stage){
 
   switch(stage){
-    case 0:    // Initial position
+    case 0:    // INITIAL STAGE: Initial position
         goToTheInitialPosition();
         stage++;
       break;
@@ -237,6 +238,8 @@ void applyAutoMode(uint8_t panel[], int times[], int &stage){
       break;
     // BRICK SEQUENCE
     case 2:    // Push down the main cilinder and fulfill the room with sand.
+        if (DEBUG_MODE){Serial.print("Time applied to SOLD: ");Serial.println(timesArray[ID_TIME_SOLD]*(panelArray[ID_POTM]/VALUE_MAX_POTM) ) ;}
+        //
         moveBothCylinderDuring(PIN_SOLD, PIN_SOLS, (timesArray[ID_TIME_SOLD])*(panelArray[ID_POTM]/VALUE_MAX_POTM));
         stage++;
       break;
@@ -320,6 +323,19 @@ void printPanel(uint8_t panel[]){
 
 }
 
+void printTimesArray(unsigned long ta[]){
+
+  Serial.println("********************************************");
+  Serial.print("Time SOLU: "); Serial.println(ta[ID_TIME_SOLU],DEC);
+  Serial.print("Time SOLD: "); Serial.println(ta[ID_TIME_SOLD],DEC);
+  Serial.print("Time SOLL: "); Serial.println(ta[ID_TIME_SOLL],DEC);
+  Serial.print("Time SOLR: "); Serial.println(ta[ID_TIME_SOLR],DEC);
+  Serial.print("Time SOLS: "); Serial.println(ta[ID_TIME_SOLS],DEC);
+  Serial.println("********************************************"); 
+
+}
+
+
 // Updates the leds according to the information from the panel.
 // NOTE: we are directly reverting the digital signal as we are using the opposite value
 // to activate outputs and inputs. !!
@@ -402,7 +418,7 @@ void loop() {
 
   readPanel(panelArray,VALUE_INPUT_READ_DELAY);
   updateLeds(panelArray);
-  if (DEBUG_MODE) printPanel(panelArray);
+  if (DEBUG_MODE){ printPanel(panelArray); printTimesArray(timesArray);};
 //  if (DEBUG_MODE) Serial.println("I'm working!");
 
   if (panelArray[ID_SWON]==LOW){  // Power ON
@@ -427,7 +443,7 @@ void loop() {
 
       applyAutoMode(panelArray, timesArray, stage);
 
-    }  
+    }
   
   
   }else{                              // Power OFF
