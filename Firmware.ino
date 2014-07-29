@@ -502,8 +502,9 @@ void loop() {
       applyManualMode(panelArray,flagHighPressure);
 
     }else{                            // Auto mode
-      if (DEBUG_MODE) Serial.println("I'm on AUTO MODE!");
-      if (DEBUG_MODE){ Serial.print("I'm on stage");Serial.println(stage,DEC);}      
+      if (DEBUG_MODE){
+        Serial.print("I'm on AUTO MODE!"); Serial.print("Stage: ");Serial.println(stage,DEC);
+      }
       // Set the proper initial values
       // Checks, if needed.
 
