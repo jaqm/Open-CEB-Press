@@ -233,6 +233,7 @@ void applyAutoMode(uint8_t panel[], unsigned long times[], int &stage, boolean &
 
   switch(stage){
     case 0:    // INITIAL STAGE: Go to the Initial position
+        setSolenoids(VALUE_SOLENOIDS_DISABLED);                                   // switch off the solenoids - as described in the documentation.
         moveCylinderDuring(PIN_SOLD,VALUE_TIME_RELEASE_PRESSURE_STAGE, hpf);	  // Release pressure
         goToTheInitialPosition();
         stage++;
