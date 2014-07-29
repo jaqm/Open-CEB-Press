@@ -307,8 +307,8 @@ void readPanel(uint8_t panelArray[], const int d){
   uint8_t vP0 = digitalRead(PIN_PRESSURE);
   uint8_t vSwOn0 = digitalRead(PIN_SWON);
   uint8_t vSwAuto0 = digitalRead(PIN_SWAUTO);
-  uint8_t vPotM0 = digitalRead(PIN_POTM);
-  uint8_t vPotD0 = digitalRead(PIN_POTD);
+  uint8_t vPotM0 = analogRead(PIN_POTM);
+  uint8_t vPotD0 = analogRead(PIN_POTD);
   
   delay(d);
   
@@ -320,8 +320,8 @@ void readPanel(uint8_t panelArray[], const int d){
   uint8_t vP1 = digitalRead(PIN_PRESSURE);
   uint8_t vSwOn1 = digitalRead(PIN_SWON);
   uint8_t vSwAuto1 = digitalRead(PIN_SWAUTO);
-  uint8_t vPotM1 = digitalRead(PIN_POTM);
-  uint8_t vPotD1 = digitalRead(PIN_POTD);
+  uint8_t vPotM1 = analogRead(PIN_POTM);
+  uint8_t vPotD1 = analogRead(PIN_POTD);
 
   panelArray[ID_BUTTON_UP] = (vU0==vU1?vU0:VALUE_INPUT_DISABLED);
   panelArray[ID_BUTTON_DOWN] = (vD0==vD1?vD0:VALUE_INPUT_DISABLED);
