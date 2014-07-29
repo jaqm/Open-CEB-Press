@@ -13,13 +13,16 @@ const boolean DEBUG_MODE=true;
 const boolean DEBUG_VERBOSE_MODE=false;
 
 // STANDARD VALUES
-// for inputs
+// inputs
 const uint8_t VALUE_INPUT_ENABLED = LOW;
 const uint8_t VALUE_INPUT_DISABLED = HIGH;
-// for Solenoids
+// inputs - high pressure sensor
+const uint8_t VALUE_HIGH_PRESSURE_ENABLED = HIGH;
+const uint8_t VALUE_HIGH_PRESSURE_DISABLED = LOW;
+// outputs - Solenoids
 const uint8_t VALUE_SOLENOIDS_ENABLED=LOW;
 const uint8_t VALUE_SOLENOIDS_DISABLED=HIGH;
-// for leds
+// outputs - leds
 const uint8_t VALUE_LED_ENABLED = LOW;
 const uint8_t VALUE_LED_DISABLED = HIGH;
 
@@ -160,7 +163,7 @@ unsigned long moveCylinderUntilHighPressure(int cylinderPin){
   }
 
   digitalWrite(cylinderPin,VALUE_SOLENOIDS_ENABLED);                // Cilinder movement.
-  while(pinDigitalValueIs(PIN_PRESSURE,3)==VALUE_INPUT_DISABLED){}          //
+  while(pinDigitalValueIs(PIN_PRESSURE,3)==VALUE_HIGH_PRESSURE_DISABLED){}          //
   digitalWrite(cylinderPin,VALUE_SOLENOIDS_DISABLED);
 
   return (millis()-timestamp);
@@ -171,7 +174,7 @@ void moveCylinderDuring(uint8_t cylinderPin,unsigned long time){
   unsigned long timestamp=millis();
   
   digitalWrite(cylinderPin,VALUE_SOLENOIDS_ENABLED);                // Cylinder movement.
-  while ( (pinDigitalValueIs(PIN_PRESSURE,1)==VALUE_INPUT_DISABLED)  && (timestamp+time > millis()) ){}          //
+  while ( (pinDigitalValueIs(PIN_PRESSURE,1)==VALUE_HIGH_PRESSURE_DISABLED)  && (timestamp+time > millis()) ){}          //
   digitalWrite(cylinderPin,VALUE_SOLENOIDS_DISABLED);
 }
 
@@ -188,14 +191,20 @@ void goToTheInitialPosition(){
 // **** MACHINE MODES
 
 // Applies the actions expected in manual mode following the data stored in array.
-void applyManualMode(uint8_t array[]){
+// array[]: contains the information from the panel.
+// &hpf: flag to track the high pressure sensor.
+void applyManualMode(uint8_t array[], boolean &hpf){
 
-  digitalWrite(PIN_SOLU,(array[ID_BUTTON_UP]==VALUE_INPUT_ENABLED ? VALUE_SOLENOIDS_ENABLED:VALUE_SOLENOIDS_DISABLED));
-  digitalWrite(PIN_SOLD,(array[ID_BUTTON_DOWN]==VALUE_INPUT_ENABLED ? VALUE_SOLENOIDS_ENABLED:VALUE_SOLENOIDS_DISABLED));
-  digitalWrite(PIN_SOLL,(array[ID_BUTTON_LEFT]==VALUE_INPUT_ENABLED ? VALUE_SOLENOIDS_ENABLED:VALUE_SOLENOIDS_DISABLED));
-  digitalWrite(PIN_SOLR,(array[ID_BUTTON_RIGHT]==VALUE_INPUT_ENABLED ? VALUE_SOLENOIDS_ENABLED:VALUE_SOLENOIDS_DISABLED));
-  digitalWrite(PIN_SOLS,(array[ID_BUTTON_SHAKER]==VALUE_INPUT_ENABLED ? VALUE_SOLENOIDS_ENABLED:VALUE_SOLENOIDS_DISABLED));
-
+  if (!hpf){
+    digitalWrite(PIN_SOLU,(array[ID_BUTTON_UP]==VALUE_INPUT_ENABLED ? VALUE_SOLENOIDS_ENABLED:VALUE_SOLENOIDS_DISABLED));
+    digitalWrite(PIN_SOLD,(array[ID_BUTTON_DOWN]==VALUE_INPUT_ENABLED ? VALUE_SOLENOIDS_ENABLED:VALUE_SOLENOIDS_DISABLED));
+    digitalWrite(PIN_SOLL,(array[ID_BUTTON_LEFT]==VALUE_INPUT_ENABLED ? VALUE_SOLENOIDS_ENABLED:VALUE_SOLENOIDS_DISABLED));
+    digitalWrite(PIN_SOLR,(array[ID_BUTTON_RIGHT]==VALUE_INPUT_ENABLED ? VALUE_SOLENOIDS_ENABLED:VALUE_SOLENOIDS_DISABLED));
+    digitalWrite(PIN_SOLS,(array[ID_BUTTON_SHAKER]==VALUE_INPUT_ENABLED ? VALUE_SOLENOIDS_ENABLED:VALUE_SOLENOIDS_DISABLED));  
+  }else if (pinDigitalValueIs(PIN_PRESSURE, VALUE_INPUT_READ_DELAY)==VALUE_HIGH_PRESSURE_ENABLED){
+    hpf=true;
+    setSolenoids(VALUE_SOLENOIDS_DISABLED);
+  }
 }
 
 // Moves both cylinders during the specified time or until HIGH PRESSURE.
@@ -205,7 +214,7 @@ void moveBothCylinderDuring(uint8_t cylinderPin1, uint8_t cylinderPin2, unsigned
   
   digitalWrite(cylinderPin1,VALUE_SOLENOIDS_ENABLED);
   digitalWrite(cylinderPin2,VALUE_SOLENOIDS_ENABLED);
-  while ( (pinDigitalValueIs(PIN_PRESSURE,VALUE_INPUT_READ_DELAY)==VALUE_INPUT_DISABLED) && (timestamp+timeMoving > millis())){}
+  while ( (pinDigitalValueIs(PIN_PRESSURE,VALUE_INPUT_READ_DELAY)==VALUE_HIGH_PRESSURE_DISABLED) && (timestamp+timeMoving > millis())){}
   digitalWrite(cylinderPin1,VALUE_SOLENOIDS_DISABLED);
   digitalWrite(cylinderPin2,VALUE_SOLENOIDS_DISABLED);
 
@@ -256,7 +265,8 @@ void applyAutoMode(uint8_t panel[], unsigned long times[], int &stage){
         moveCylinderUntilHighPressure(PIN_SOLL);
         moveCylinderUntilHighPressure(PIN_SOLU);
         moveCylinderUntilHighPressure(PIN_SOLR);
-        stage=2;
+        //stage=2;
+        stage=0;    // Going to stage 0 to get full calibration before each press.
       break;
     default:
         stage=0;
@@ -367,8 +377,6 @@ void updateLeds(uint8_t panel[],unsigned long &sbt, boolean &hpf, unsigned long 
 
 }
 
-
-
 // **** END OF - READ && SHOW FUNCTIONS
 
 // *** DOWN FROM HERE - FUNCTIONS UNDER REVIEW
@@ -433,17 +441,17 @@ void loop() {
   updateLeds(panelArray, blinkingStatusTimer, flagHighPressure, blinkingHighPressureTimer);
   if (DEBUG_MODE){ printPanel(panelArray); printTimesArray(timesArray);};
 
-  if (panelArray[ID_SWON]==LOW){  // Power ON
+  if (panelArray[ID_SWON]==VALUE_INPUT_ENABLED){  // Power ON
     if (DEBUG_MODE) Serial.println("I'm ON!");
     
-    if (panelArray[ID_SWAUTO]==HIGH){ // Manual mode
+    if (panelArray[ID_SWAUTO]==VALUE_INPUT_DISABLED){ // Manual mode
       if (DEBUG_MODE) Serial.println("I'm on MANUAL MODE!");
 
       // Set auto-mode values to the default
       stage=0;
 
       // Apply manual-mode.
-      applyManualMode(panelArray);
+      applyManualMode(panelArray,flagHighPressure);
 
     }else{                            // Auto mode
       if (DEBUG_MODE) Serial.println("I'm on AUTO MODE!");
