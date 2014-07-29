@@ -46,7 +46,7 @@ int PIN_SOLS=PIN_B2;    //solenoid for shaker motor
 
 // OUTPUTS - leds
 int PIN_LED_ON=PIN_E0;
-int PIN_LED_AUTO=PIN_E1;
+int PIN_LED_HIGH_PRESSURE=PIN_E1;
 //int PIN_LED_GND=?
 //int PIN_LED_BUTTON_UP=?
 //int PIN_LED_BUTTON_DOWN=?
@@ -332,15 +332,15 @@ void updateLeds(uint8_t panel[]){
 
 // Old implementation
 //  digitalWrite(PIN_LED_ON,revertDigitalSignalValue(panel[ID_SWON]));
-//  digitalWrite(PIN_LED_AUTO,revertDigitalSignalValue(panel[ID_SWAUTO]));
+//  digitalWrite(PIN_LED_HIGH_PRESSURE,revertDigitalSignalValue(panel[ID_SWAUTO]));
 
   // New implementation
   digitalWrite(PIN_LED_ON,(panel[ID_SWON]==VALUE_INPUT_ENABLED)?VALUE_LED_ENABLED:VALUE_LED_DISABLED);
-  digitalWrite(PIN_LED_AUTO,(panel[ID_SWAUTO]==VALUE_INPUT_ENABLED)?VALUE_LED_ENABLED:VALUE_LED_DISABLED);
+  digitalWrite(PIN_LED_HIGH_PRESSURE,(panel[ID_SWAUTO]==VALUE_INPUT_ENABLED)?VALUE_LED_ENABLED:VALUE_LED_DISABLED);
 //  digitalWrite(PIN_LED_ON,revertDigitalSignalValue(panel[ID_SWON]));
-//  digitalWrite(PIN_LED_AUTO,revertDigitalSignalValue(panel[ID_SWAUTO]));
+//  digitalWrite(PIN_LED_HIGH_PRESSURE,revertDigitalSignalValue(panel[ID_SWAUTO]));
 //  digitalWrite(PIN_LED_ON,revertDigitalSignalValue(panel[ID_SWON]));
-//  digitalWrite(PIN_LED_AUTO,revertDigitalSignalValue(panel[ID_SWAUTO]));
+//  digitalWrite(PIN_LED_HIGH_PRESSURE,revertDigitalSignalValue(panel[ID_SWAUTO]));
 
 }
 
@@ -360,7 +360,7 @@ void setup() {
     pinMode(PIN_SOLS, OUTPUT);
 
     pinMode(PIN_LED_ON, OUTPUT);
-    pinMode(PIN_LED_AUTO, OUTPUT);
+    pinMode(PIN_LED_HIGH_PRESSURE, OUTPUT);
 
     pinMode(PIN_BUTTON_UP, INPUT);
     pinMode(PIN_BUTTON_DOWN, INPUT);
