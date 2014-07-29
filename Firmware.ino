@@ -443,7 +443,6 @@ void loop() {
 
   if (panelArray[ID_SWON]==VALUE_INPUT_ENABLED){  // Power ON
     if (DEBUG_MODE) Serial.println("I'm ON!");
-    digitalWrite(PIN_LED_ON,LOW);
     
     if (panelArray[ID_SWAUTO]==VALUE_INPUT_DISABLED){ // Manual mode
       if (DEBUG_MODE) Serial.println("I'm on MANUAL MODE!");
