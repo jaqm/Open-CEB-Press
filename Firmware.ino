@@ -141,6 +141,12 @@ unsigned long moveCylinderUntilHighPressure(int cylinderPin){
 
   // Variable used to compare 
   unsigned long timestamp=millis();
+  
+  // Debug Mode
+  if (DEBUG_MODE){
+    Serial.println("moveCylinderUntilHighPressure: ");
+    Serial.print("CylinderPin: "); Serial.println(cylinderPin);
+  }
 
   digitalWrite(cylinderPin,VALUE_SOLENOIDS_ENABLED);                // Cilinder movement.
   while(inputIs(PIN_PRESSURE,3)==VALUE_INPUT_DISABLED){}          //
@@ -213,7 +219,11 @@ void applyAutoMode(uint8_t panel[], unsigned long times[], int &stage){
       break;
     // BRICK SEQUENCE
     case 2:    // Push down the main cilinder and fulfill the room with sand.
-        if (DEBUG_MODE){Serial.print("Time applied to SOLD: ");Serial.println(timesArray[ID_TIME_SOLD]*(panelArray[ID_POTM]/VALUE_MAX_POTM) ) ;}
+        if (DEBUG_MODE){
+          Serial.print("Time applied to SOLD: ");Serial.println(timesArray[ID_TIME_SOLD]*(panelArray[ID_POTM]/VALUE_MAX_POTM) ) ;
+          delay(1000);
+        }
+
         //
         moveBothCylinderDuring(PIN_SOLD, PIN_SOLS, (timesArray[ID_TIME_SOLD])*(panelArray[ID_POTM]/VALUE_MAX_POTM));
         stage++;
