@@ -26,6 +26,15 @@ const uint8_t VALUE_SOLENOIDS_DISABLED=HIGH;
 const uint8_t VALUE_LED_ENABLED = LOW;
 const uint8_t VALUE_LED_DISABLED = HIGH;
 
+// CONST - LED timing for blinking
+const unsigned long VALUE_TIME_BLINKING_MANUAL=1000;
+const unsigned long VALUE_TIME_BLINKING_AUTO=500;
+const unsigned long VALUE_TIME_BLINKING_HIGH_PRESSURE=1000;
+//CONST
+const unsigned long VALUE_INPUT_READ_DELAY = 5;  // Delay (milliseconds) used to consider a stable input read.
+const unsigned long VALUE_HIGH_PRESSURE_READ_DELAY = 3;
+const unsigned long VALUE_TIME_RELEASE_PRESSURE_STAGE = 500;
+
 // VALUE_MAX_POTM=2^8 ; because a int is compound by 8 bits.
 const int VALUE_MAX_POTM=255;
 const int VALUE_MAX_POTD=VALUE_MAX_POTM;
@@ -58,15 +67,6 @@ int PIN_LED_HIGH_PRESSURE=PIN_E1;
 //int PIN_LED_BUTTON_LEFT=?
 //int PIN_LED_BUTTON_RIGHT=?
 //int PIN_LED_BUTTON_SHAKER=?
-
-// CONST - LED timing for blinking
-const unsigned long VALUE_TIME_BLINKING_MANUAL=1000;
-const unsigned long VALUE_TIME_BLINKING_AUTO=500;
-const unsigned long VALUE_TIME_BLINKING_HIGH_PRESSURE=1000;
-//CONST
-const unsigned long VALUE_INPUT_READ_DELAY = 5;  // Delay (milliseconds) used to consider a stable input read.
-const unsigned long VALUE_TIME_RELEASE_PRESSURE_STAGE = 500;
-
 
 // PANEL ARRAY - it contains all the input panel values.
 const int ID_SWON=0;
@@ -169,13 +169,18 @@ unsigned long moveCylinderUntilHighPressure(int cylinderPin){
   return (millis()-timestamp);
 }
 
-void moveCylinderDuring(uint8_t cylinderPin,unsigned long time){
+// Moves the cylinder during the time specified.
+// cylinderPin: the pin assigned to the cylinder.
+// time: the time (milliseconds) that we want to move the cylinder.
+// &hpf: high pressure flag.
+void moveCylinderDuring(uint8_t cylinderPin,unsigned long time, boolean &hpf){
 
   unsigned long timestamp=millis();
   
   digitalWrite(cylinderPin,VALUE_SOLENOIDS_ENABLED);                // Cylinder movement.
-  while ( (pinDigitalValueIs(PIN_PRESSURE,1)==VALUE_HIGH_PRESSURE_DISABLED)  && (timestamp+time > millis()) ){}          //
+  while ( (pinDigitalValueIs(PIN_PRESSURE,VALUE_HIGH_PRESSURE_READ_DELAY)==VALUE_HIGH_PRESSURE_DISABLED)  && (timestamp+time > millis()) ){}
   digitalWrite(cylinderPin,VALUE_SOLENOIDS_DISABLED);
+  if (pinDigitalValueIs(PIN_PRESSURE,VALUE_HIGH_PRESSURE_READ_DELAY)) hpf=true;
 }
 
 // Initial point is considered for both cylinders as near as possible to the high-pressure point of SOLU and SOLD.
@@ -223,11 +228,12 @@ void moveBothCylinderDuring(uint8_t cylinderPin1, uint8_t cylinderPin2, unsigned
 // Applies the auto-mode.
 // panel[]: the information readed from the machine.
 // stage: which stage of the auto-mode do we want to run.
-void applyAutoMode(uint8_t panel[], unsigned long times[], int &stage){
+// &hpf: high pressure flag.
+void applyAutoMode(uint8_t panel[], unsigned long times[], int &stage, boolean &hpf){
 
   switch(stage){
     case 0:    // INITIAL STAGE: Go to the Initial position
-        moveCylinderDuring(PIN_SOLD,VALUE_TIME_RELEASE_PRESSURE_STAGE);	  // Release pressure
+        moveCylinderDuring(PIN_SOLD,VALUE_TIME_RELEASE_PRESSURE_STAGE, hpf);	  // Release pressure
         goToTheInitialPosition();
         stage++;
       break;
@@ -250,7 +256,7 @@ void applyAutoMode(uint8_t panel[], unsigned long times[], int &stage){
         stage++;
       break;
     case 3: // Moves the drawer on the main cylinder
-        moveCylinderDuring(PIN_SOLL, (timesArray[ID_TIME_SOLL])*(panelArray[ID_POTD]/VALUE_MAX_POTD));
+        moveCylinderDuring(PIN_SOLL, (timesArray[ID_TIME_SOLL])*(panelArray[ID_POTD]/VALUE_MAX_POTD), hpf);
         stage++;
       break;
     case 4:  // Compression stage
@@ -258,7 +264,7 @@ void applyAutoMode(uint8_t panel[], unsigned long times[], int &stage){
         stage++;
       break;
     case 5: // Release pressure stage. 
-        moveCylinderDuring(PIN_SOLD,VALUE_TIME_RELEASE_PRESSURE_STAGE);
+        moveCylinderDuring(PIN_SOLD,VALUE_TIME_RELEASE_PRESSURE_STAGE,hpf);
         stage++;
         break;
     case 6: // Take out the brick
@@ -459,7 +465,7 @@ void loop() {
       // Set the proper initial values
       // Checks, if needed.
 
-      applyAutoMode(panelArray, timesArray, stage);
+      applyAutoMode(panelArray, timesArray, stage, flagHighPressure);
     }
   
   }else{                              // Power OFF
