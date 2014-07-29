@@ -10,25 +10,32 @@ boolean flagHighPressure=false; // Flag to track if it was received a highPressu
 // Debug mode
 const boolean DEBUG_MODE=true;
 const boolean DEBUG_VERBOSE_MODE=false;
+const boolean DEBUG_LED_MODE=false;
 
 // STANDARD VALUES
 // inputs
 const uint8_t VALUE_INPUT_ENABLED = LOW;
 const uint8_t VALUE_INPUT_DISABLED = HIGH;
 // inputs - high pressure sensor
-const uint8_t VALUE_HIGH_PRESSURE_ENABLED = HIGH;
-const uint8_t VALUE_HIGH_PRESSURE_DISABLED = LOW;
+//// Real values
+const uint8_t VALUE_HIGH_PRESSURE_ENABLED = LOW;
+const uint8_t VALUE_HIGH_PRESSURE_DISABLED = HIGH;
+//// For testing auto-mode purpose.
+//const uint8_t VALUE_HIGH_PRESSURE_ENABLED = HIGH;
+//const uint8_t VALUE_HIGH_PRESSURE_DISABLED = LOW;
 // outputs - Solenoids
 const uint8_t VALUE_SOLENOIDS_ENABLED=LOW;
 const uint8_t VALUE_SOLENOIDS_DISABLED=HIGH;
 // outputs - leds
 const uint8_t VALUE_LED_ENABLED = LOW;
 const uint8_t VALUE_LED_DISABLED = HIGH;
+const uint8_t VALUE_LED_HIGHPRESSURE_ENABLED = HIGH;
+const uint8_t VALUE_LED_HIGHPRESSURE_DISABLED = LOW;
 
 // CONST - LED timing for blinking
 const unsigned long VALUE_TIME_BLINKING_MANUAL=1000;
-const unsigned long VALUE_TIME_BLINKING_AUTO=500;
-const unsigned long VALUE_TIME_BLINKING_HIGH_PRESSURE=1000;
+const unsigned long VALUE_TIME_BLINKING_AUTO=250;
+const unsigned long VALUE_TIME_BLINKING_HIGH_PRESSURE=500;
 //CONST
 const unsigned long VALUE_INPUT_READ_DELAY = 5;  // Delay (milliseconds) used to consider a stable input read.
 const unsigned long VALUE_HIGH_PRESSURE_READ_DELAY = 3;
@@ -204,12 +211,14 @@ void goToTheInitialPosition(boolean &hpf){
 void applyManualMode(uint8_t array[], boolean &hpf){
 
   if (pinDigitalValueIs(PIN_PRESSURE, VALUE_INPUT_READ_DELAY)==VALUE_HIGH_PRESSURE_DISABLED){
+    if (DEBUG_MODE){Serial.println("Applying movement data to solenoids..");}
     digitalWrite(PIN_SOLU,(array[ID_BUTTON_UP]==VALUE_INPUT_ENABLED ? VALUE_SOLENOIDS_ENABLED:VALUE_SOLENOIDS_DISABLED));
     digitalWrite(PIN_SOLD,(array[ID_BUTTON_DOWN]==VALUE_INPUT_ENABLED ? VALUE_SOLENOIDS_ENABLED:VALUE_SOLENOIDS_DISABLED));
     digitalWrite(PIN_SOLL,(array[ID_BUTTON_LEFT]==VALUE_INPUT_ENABLED ? VALUE_SOLENOIDS_ENABLED:VALUE_SOLENOIDS_DISABLED));
     digitalWrite(PIN_SOLR,(array[ID_BUTTON_RIGHT]==VALUE_INPUT_ENABLED ? VALUE_SOLENOIDS_ENABLED:VALUE_SOLENOIDS_DISABLED));
     digitalWrite(PIN_SOLS,(array[ID_BUTTON_SHAKER]==VALUE_INPUT_ENABLED ? VALUE_SOLENOIDS_ENABLED:VALUE_SOLENOIDS_DISABLED));  
   }else {
+    if (DEBUG_MODE){Serial.println("Warning: high pressure signal detected. Switching off solenoids.");}
     hpf=true;
     setSolenoids(VALUE_SOLENOIDS_DISABLED);
   }
@@ -244,15 +253,15 @@ void applyAutoMode(uint8_t panel[], unsigned long times[], int &stage, boolean &
     case 1:       // Fulfill the times array.
         times[ID_TIME_SOLL] = moveCylinderUntilHighPressure(PIN_SOLL, hpf);
         times[ID_TIME_SOLD] = moveCylinderUntilHighPressure(PIN_SOLD, hpf);
-        times[ID_TIME_SOLU] = moveCylinderUntilHighPressure(PIN_SOLU, hpf);
-        times[ID_TIME_SOLR] = moveCylinderUntilHighPressure(PIN_SOLR, hpf);
+        times[ID_TIME_SOLU] = moveCylinderUntilHighPressure(PIN_SOLU, hpf);  // Documentation says: this time is not really interesting
+        times[ID_TIME_SOLR] = moveCylinderUntilHighPressure(PIN_SOLR, hpf);  // Documentation says: this time is not really interesting
         stage++;
       break;
     // BRICK SEQUENCE
     case 2:    // Push down the main cilinder and fulfill the room with sand.
         if (DEBUG_MODE){
           Serial.print("Time applied to SOLD: ");Serial.println(timesArray[ID_TIME_SOLD]*(panelArray[ID_POTM]/VALUE_MAX_POTM) ) ;
-          delay(1000);
+          //delay(1000);
         }
 
         //
@@ -338,8 +347,8 @@ void printPanel(uint8_t panel[]){
   Serial.print("Button RIGHT: "); Serial.println(panel[ID_BUTTON_RIGHT],DEC);
   Serial.print("Button SHAKER: "); Serial.println(panel[ID_BUTTON_SHAKER],DEC);
   Serial.print("High PRESSURE: "); Serial.println(panel[ID_PRESSURE],DEC);
-  Serial.print("Main Potentiometer: "); Serial.println(panel[ID_POTM],BIN);
-  Serial.print("Drawer potentiometer: "); Serial.println(panel[ID_POTD],BIN);
+  Serial.print("Main Potentiometer: "); Serial.println(panel[ID_POTM],DEC);
+  Serial.print("Drawer potentiometer: "); Serial.println(panel[ID_POTD],DEC);
   Serial.println("********************************************"); 
 
 }
@@ -363,28 +372,57 @@ void printTimesArray(unsigned long ta[]){
 // &hpt: high pressure timer. It tracks the last time the led was activated dure to the high presure sensor flag.
 void updateLeds(uint8_t panel[],unsigned long &sbt, boolean &hpf, unsigned long &hpt){
 
-  // New implementation
-//  digitalWrite(PIN_LED_STATUS,(panel[ID_SWON]==VALUE_INPUT_ENABLED)?VALUE_LED_ENABLED:VALUE_LED_DISABLED);
-//  digitalWrite(PIN_LED_HIGH_PRESSURE,(panel[ID_SWAUTO]==VALUE_INPUT_ENABLED)?VALUE_LED_ENABLED:VALUE_LED_DISABLED);
-////  digitalWrite(PIN_LED_STATUS,revertDigitalSignalValue(panel[ID_SWON]));
-////  digitalWrite(PIN_LED_HIGH_PRESSURE,revertDigitalSignalValue(panel[ID_SWAUTO]));
-
   // Blinking procedure - STATUS LED
   // Note: Consider taking out this variable
   unsigned long timer=((panel[ID_SWAUTO]==VALUE_INPUT_ENABLED)?VALUE_TIME_BLINKING_AUTO:VALUE_TIME_BLINKING_MANUAL);
-  if (millis() > sbt+timer){
-      digitalWrite(PIN_LED_STATUS,revertDigitalSignalValue(pinDigitalValueIs(PIN_LED_STATUS,VALUE_INPUT_READ_DELAY)) );
+  unsigned long presentTime=millis();
+  uint8_t value=0;
+  uint8_t value1=0;
+  if (DEBUG_LED_MODE){
+    Serial.print("UPDATING LED STATUS. Present time:");Serial.println(presentTime);
+    Serial.print("Last Status Led udpate: ");Serial.println(sbt);
+    Serial.print("timer: ");Serial.println(timer);
+    delay(5000);
+  }
+  if (presentTime > sbt+timer){
+      if (DEBUG_LED_MODE){Serial.println("LED STATUS IS GONNA BE UPDATED");delay(1000);}
+      value=pinDigitalValueIs(PIN_LED_STATUS, VALUE_INPUT_READ_DELAY);
+      value1=revertDigitalSignalValue(value);
+      if(DEBUG_LED_MODE){
+        Serial.print("Digital value read from LED STATUS: ");Serial.println(value);
+        Serial.print("Digital value that will be written to LED STATUS: ");Serial.println(value1);
+      }
+      digitalWrite(PIN_LED_STATUS,revertDigitalSignalValue(value) );
+      sbt=presentTime;
+      if (DEBUG_LED_MODE){Serial.println("LED STATUS HAS BEEN UPDATED"); delay(1000);}
   }
 
   // Blinking procedure - HIGH PRESSURE LED
-  if (hpf){
-    digitalWrite(PIN_LED_STATUS,VALUE_LED_ENABLED);
-    hpt=millis();
-    hpf=false;
-  }else if(millis()>hpt+VALUE_TIME_BLINKING_HIGH_PRESSURE){
-    digitalWrite(PIN_LED_STATUS,VALUE_LED_DISABLED);
+
+  if (DEBUG_LED_MODE){
+    Serial.print("hpt: ");Serial.println(hpt);
+    Serial.print("VALUE_TIME_BLINKING_HIGH_PRESSURE: ");Serial.println(VALUE_TIME_BLINKING_HIGH_PRESSURE);
   }
 
+  if (DEBUG_LED_MODE){Serial.print("Last high pressure led update:");Serial.println(hpt);}
+
+  if (hpf){
+
+    if (DEBUG_LED_MODE){
+      Serial.println("HIGH PRESSURE FLAG ON.");
+      Serial.println("HIGH PRESSURE LED IS GONNA BE UPDATED.");delay(5000);
+    }
+    digitalWrite(PIN_LED_HIGH_PRESSURE,VALUE_LED_HIGHPRESSURE_ENABLED);
+    hpt=presentTime;
+    hpf=false;
+    if (DEBUG_LED_MODE){Serial.println("HIGH PRESSURE LED HAS BEEN UPDATED.");delay(10000);}
+
+  }else if(presentTime>hpt+VALUE_TIME_BLINKING_HIGH_PRESSURE){
+
+    if (DEBUG_LED_MODE){Serial.println("HIGH PRESSURE FLAG OFF.");}
+    digitalWrite(PIN_LED_HIGH_PRESSURE,VALUE_LED_HIGHPRESSURE_DISABLED);
+
+  }
 }
 
 // **** END OF - READ && SHOW FUNCTIONS
@@ -478,7 +516,7 @@ void loop() {
     stage=0;
 
   }
-  if (DEBUG_MODE) delay(1000);  
+//  if (DEBUG_MODE) delay(2000);  
 
 }
 
