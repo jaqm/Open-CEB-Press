@@ -2,9 +2,11 @@
 // 
 
 // loop() variables
-int stage=0;       // Defines the stage for the auto-mode
-const unsigned long VALUE_INPUT_READ_DELAY = 5;  // Delay (milliseconds) used to consider a stable input read.
-const unsigned long VALUE_TIME_RELEASE_PRESSURE_STAGE = 500;
+int stage=0;       // Defines the stage for the auto-mode.
+unsigned long blinkingStatusTimer=millis();  // Timer to track the blinking procedure.
+unsigned long blinkingHighPressureTimer=0;  // Timer to track the blinking procedure for pressure timer.
+boolean flagHighPressure=false; // Flag to track if it was received a highPressure signal.
+
 
 // Debug mode
 const boolean DEBUG_MODE=true;
@@ -45,7 +47,7 @@ int PIN_SOLR=PIN_B3;    //solenoid for drawer right
 int PIN_SOLS=PIN_B2;    //solenoid for shaker motor 
 
 // OUTPUTS - leds
-int PIN_LED_ON=PIN_E0;
+int PIN_LED_STATUS=PIN_E0;
 int PIN_LED_HIGH_PRESSURE=PIN_E1;
 //int PIN_LED_GND=?
 //int PIN_LED_BUTTON_UP=?
@@ -53,6 +55,15 @@ int PIN_LED_HIGH_PRESSURE=PIN_E1;
 //int PIN_LED_BUTTON_LEFT=?
 //int PIN_LED_BUTTON_RIGHT=?
 //int PIN_LED_BUTTON_SHAKER=?
+
+// CONST - LED timing for blinking
+const unsigned long VALUE_TIME_BLINKING_MANUAL=1000;
+const unsigned long VALUE_TIME_BLINKING_AUTO=500;
+const unsigned long VALUE_TIME_BLINKING_HIGH_PRESSURE=1000;
+//CONST
+const unsigned long VALUE_INPUT_READ_DELAY = 5;  // Delay (milliseconds) used to consider a stable input read.
+const unsigned long VALUE_TIME_RELEASE_PRESSURE_STAGE = 500;
+
 
 // PANEL ARRAY - it contains all the input panel values.
 const int ID_SWON=0;
@@ -95,7 +106,7 @@ void setSolenoids(uint8_t mode){
 // Input: pin: the value corresponding to the ping selected.
 //        d (delay): amount of milliseconds between the first and the 2nd digital read to confirm the value.
 // Return: the status as it is.
-uint8_t inputIs(int pin, int d){
+uint8_t pinDigitalValueIs(int pin, int d){
 
     uint8_t value0 = HIGH;
     uint8_t value1 = LOW;
@@ -121,17 +132,17 @@ uint8_t inputIs(int pin, int d){
 // This function inverts a digital value read from a pin like HIGH or LOW.
 // val: HIGH or LOW
 // return: if val=HGH then return LOW, if val=LOW then return HIGH. Default: B00001111.
-//uint8_t revertDigitalSignalValue(uint8_t val){
-//
-//  uint8_t oppositeValue=B00001111;
-//  
-//  if (val==HIGH){
-//    oppositeValue=LOW;
-//  }else if (val==LOW){
-//    oppositeValue=HIGH;
-//  }
-//  return oppositeValue;
-//}
+uint8_t revertDigitalSignalValue(uint8_t val){
+
+ uint8_t oppositeValue=B00001111;
+ 
+ if (val==HIGH){
+   oppositeValue=LOW;
+ }else if (val==LOW){
+   oppositeValue=HIGH;
+ }
+ return oppositeValue;
+}
 
 // **** END of DATA HANDLING
 // **** MACHINE MOVEMENTS
@@ -149,7 +160,7 @@ unsigned long moveCylinderUntilHighPressure(int cylinderPin){
   }
 
   digitalWrite(cylinderPin,VALUE_SOLENOIDS_ENABLED);                // Cilinder movement.
-  while(inputIs(PIN_PRESSURE,3)==VALUE_INPUT_DISABLED){}          //
+  while(pinDigitalValueIs(PIN_PRESSURE,3)==VALUE_INPUT_DISABLED){}          //
   digitalWrite(cylinderPin,VALUE_SOLENOIDS_DISABLED);
 
   return (millis()-timestamp);
@@ -160,7 +171,7 @@ void moveCylinderDuring(uint8_t cylinderPin,unsigned long time){
   unsigned long timestamp=millis();
   
   digitalWrite(cylinderPin,VALUE_SOLENOIDS_ENABLED);                // Cylinder movement.
-  while ( (inputIs(PIN_PRESSURE,1)==VALUE_INPUT_DISABLED)  && (timestamp+time > millis()) ){}          //
+  while ( (pinDigitalValueIs(PIN_PRESSURE,1)==VALUE_INPUT_DISABLED)  && (timestamp+time > millis()) ){}          //
   digitalWrite(cylinderPin,VALUE_SOLENOIDS_DISABLED);
 }
 
@@ -194,7 +205,7 @@ void moveBothCylinderDuring(uint8_t cylinderPin1, uint8_t cylinderPin2, unsigned
   
   digitalWrite(cylinderPin1,VALUE_SOLENOIDS_ENABLED);
   digitalWrite(cylinderPin2,VALUE_SOLENOIDS_ENABLED);
-  while ( (inputIs(PIN_PRESSURE,VALUE_INPUT_READ_DELAY)==VALUE_INPUT_DISABLED) && (timestamp+timeMoving > millis())){}
+  while ( (pinDigitalValueIs(PIN_PRESSURE,VALUE_INPUT_READ_DELAY)==VALUE_INPUT_DISABLED) && (timestamp+timeMoving > millis())){}
   digitalWrite(cylinderPin1,VALUE_SOLENOIDS_DISABLED);
   digitalWrite(cylinderPin2,VALUE_SOLENOIDS_DISABLED);
 
@@ -206,7 +217,8 @@ void moveBothCylinderDuring(uint8_t cylinderPin1, uint8_t cylinderPin2, unsigned
 void applyAutoMode(uint8_t panel[], unsigned long times[], int &stage){
 
   switch(stage){
-    case 0:    // INITIAL STAGE: Initial position
+    case 0:    // INITIAL STAGE: Go to the Initial position
+        moveCylinderDuring(PIN_SOLD,VALUE_TIME_RELEASE_PRESSURE_STAGE);	  // Release pressure
         goToTheInitialPosition();
         stage++;
       break;
@@ -325,24 +337,37 @@ void printTimesArray(unsigned long ta[]){
 }
 
 // Updates the leds according to the information from the panel.
-// NOTE: we are directly reverting the digital signal as we are using the opposite value
-// to activate outputs and inputs. !!
-// CONSIDER: reimplement this function using constant values defined in the begining of this code. 
-void updateLeds(uint8_t panel[]){
-
-// Old implementation
-//  digitalWrite(PIN_LED_ON,revertDigitalSignalValue(panel[ID_SWON]));
-//  digitalWrite(PIN_LED_HIGH_PRESSURE,revertDigitalSignalValue(panel[ID_SWAUTO]));
+// panel[]: The array containing the information from the panel.
+// &sbt: the status blinking timer. It contains the last time (millisecs) in which the led status changed it's status.
+// &hpf: high prssure sensor flag. It is true if the high pressure sensor was activated.
+// &hpt: high pressure timer. It tracks the last time the led was activated dure to the high presure sensor flag.
+void updateLeds(uint8_t panel[],unsigned long &sbt, boolean &hpf, unsigned long &hpt){
 
   // New implementation
-  digitalWrite(PIN_LED_ON,(panel[ID_SWON]==VALUE_INPUT_ENABLED)?VALUE_LED_ENABLED:VALUE_LED_DISABLED);
-  digitalWrite(PIN_LED_HIGH_PRESSURE,(panel[ID_SWAUTO]==VALUE_INPUT_ENABLED)?VALUE_LED_ENABLED:VALUE_LED_DISABLED);
-//  digitalWrite(PIN_LED_ON,revertDigitalSignalValue(panel[ID_SWON]));
-//  digitalWrite(PIN_LED_HIGH_PRESSURE,revertDigitalSignalValue(panel[ID_SWAUTO]));
-//  digitalWrite(PIN_LED_ON,revertDigitalSignalValue(panel[ID_SWON]));
-//  digitalWrite(PIN_LED_HIGH_PRESSURE,revertDigitalSignalValue(panel[ID_SWAUTO]));
+//  digitalWrite(PIN_LED_STATUS,(panel[ID_SWON]==VALUE_INPUT_ENABLED)?VALUE_LED_ENABLED:VALUE_LED_DISABLED);
+//  digitalWrite(PIN_LED_HIGH_PRESSURE,(panel[ID_SWAUTO]==VALUE_INPUT_ENABLED)?VALUE_LED_ENABLED:VALUE_LED_DISABLED);
+////  digitalWrite(PIN_LED_STATUS,revertDigitalSignalValue(panel[ID_SWON]));
+////  digitalWrite(PIN_LED_HIGH_PRESSURE,revertDigitalSignalValue(panel[ID_SWAUTO]));
+
+  // Blinking procedure - STATUS LED
+  // Note: Consider taking out this variable
+  unsigned long timer=((panel[ID_SWAUTO]==VALUE_INPUT_ENABLED)?VALUE_TIME_BLINKING_AUTO:VALUE_TIME_BLINKING_MANUAL);
+  if (millis() > sbt+timer){
+      digitalWrite(PIN_LED_STATUS,revertDigitalSignalValue(pinDigitalValueIs(PIN_LED_STATUS,VALUE_INPUT_READ_DELAY)) );
+  }
+
+  // Blinking procedure - HIGH PRESSURE LED
+  if (hpf){
+    digitalWrite(PIN_LED_STATUS,VALUE_LED_ENABLED);
+    hpt=millis();
+    hpf=false;
+  }else if(millis()>hpt+VALUE_TIME_BLINKING_HIGH_PRESSURE){
+    digitalWrite(PIN_LED_STATUS,VALUE_LED_DISABLED);
+  }
 
 }
+
+
 
 // **** END OF - READ && SHOW FUNCTIONS
 
@@ -359,7 +384,7 @@ void setup() {
     pinMode(PIN_SOLR, OUTPUT);
     pinMode(PIN_SOLS, OUTPUT);
 
-    pinMode(PIN_LED_ON, OUTPUT);
+    pinMode(PIN_LED_STATUS, OUTPUT);
     pinMode(PIN_LED_HIGH_PRESSURE, OUTPUT);
 
     pinMode(PIN_BUTTON_UP, INPUT);
@@ -395,6 +420,9 @@ void setup() {
     digitalWrite(PIN_POTD, HIGH);
 
     stage=0;
+    blinkingStatusTimer=millis();
+    blinkingHighPressureTimer=0;
+    flagHighPressure=false;
 
     Serial.begin(9600);
 }
@@ -402,12 +430,11 @@ void setup() {
 void loop() {
 
   readPanel(panelArray,VALUE_INPUT_READ_DELAY);
-  updateLeds(panelArray);
+  updateLeds(panelArray, blinkingStatusTimer, flagHighPressure, blinkingHighPressureTimer);
   if (DEBUG_MODE){ printPanel(panelArray); printTimesArray(timesArray);};
 
   if (panelArray[ID_SWON]==LOW){  // Power ON
     if (DEBUG_MODE) Serial.println("I'm ON!");
-    digitalWrite(PIN_LED_ON,LOW);
     
     if (panelArray[ID_SWAUTO]==HIGH){ // Manual mode
       if (DEBUG_MODE) Serial.println("I'm on MANUAL MODE!");
