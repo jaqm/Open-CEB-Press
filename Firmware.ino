@@ -1,17 +1,5 @@
-
-// 
-enum autoModeStage{
-  PUSH_BRICK,
-  DROP_PLATFORM,
-  DUMP_DIRT,
-  OBSTRUCT_PASSAGE,
-  COMPRESS_BLOCK,
-  OPEN_PASSAGE,
-  RAISE_BRICK
-}
-
 // loop() variables
-int stage=0;       // Defines the stage for the auto-mode.
+short stage;       // Defines the stage for the auto-mode.
 unsigned long blinkingStatusTimer=millis();  // Timer to track the blinking procedure.
 unsigned long blinkingHighPressureTimer=0;  // Timer to track the blinking procedure for pressure timer.
 boolean flagHighPressure=false; // Flag to track if it was received a highPressure signal.
@@ -49,6 +37,16 @@ const unsigned long VALUE_TIME_BLINKING_HIGH_PRESSURE=500;
 const unsigned long VALUE_INPUT_READ_DELAY = 5;  // Delay (milliseconds) used to consider a stable input read.
 const unsigned long VALUE_HIGH_PRESSURE_READ_DELAY = 3;
 const unsigned long VALUE_TIME_RELEASE_PRESSURE_STAGE = 500;
+// CONST - STATES OF THE AUTO-MODE
+const short FAILSAFE_STAGE=0;
+const short CALIBRATE_SOLENOIDS = 1;
+const short EJECT_BRICK = 2;
+const short PUSH_BRICK = 3;
+const short LOAD_SOIL = 4;
+const short CLOSE_CHAMBER = 5;
+const short COMPRESS_SOIL = 6;
+const short OPEN_CHAMBER = 7;
+
 
 // VALUE_MAX_POTM=2^8 ; because a int is compound by 8 bits.
 const int VALUE_MAX_POTM=255;
@@ -203,12 +201,12 @@ void moveCylinderDuring(uint8_t cylinderPin,unsigned long time, boolean &hpf){
 
 // Initial point is considered for both cylinders as near as possible to the high-pressure point of SOLU and SOLD.
 // &hpf: high pressure flag
-void goToTheInitialPosition(boolean &hpf){
-
-  setSolenoids(VALUE_SOLENOIDS_DISABLED);
-  moveCylinderUntilHighPressure(PIN_SOLR, hpf);
-  moveCylinderUntilHighPressure(PIN_SOLU, hpf);
-}
+//void goToTheInitialPosition(boolean &hpf){
+//
+//  setSolenoids(VALUE_SOLENOIDS_DISABLED);
+//  moveCylinderUntilHighPressure(PIN_SOLR, hpf);
+//  moveCylinderUntilHighPressure(PIN_SOLU, hpf);
+//}
 
 // **** END OF MACHINE MOVEMENTS
 
@@ -250,54 +248,52 @@ void moveBothCylinderDuring(uint8_t cylinderPin1, uint8_t cylinderPin2, unsigned
 // panel[]: the information readed from the machine.
 // stage: which stage of the auto-mode do we want to run.
 // &hpf: high pressure flag.
-void applyAutoMode(uint8_t panel[], unsigned long times[], int &stage, boolean &hpf){
+void applyAutoMode(uint8_t panel[], unsigned long times[], short &stage, boolean &hpf){
 
   switch(stage){
-    case 0:    // INITIAL STAGE: Go to the Initial position
+    case FAILSAFE_STAGE:    // FAILSAFE_STAGE: Startup procedure
         setSolenoids(VALUE_SOLENOIDS_DISABLED);                                   // switch off the solenoids - as described in the documentation.
         moveCylinderDuring(PIN_SOLD,VALUE_TIME_RELEASE_PRESSURE_STAGE, hpf);	  // Release pressure
-        goToTheInitialPosition(hpf);
-        stage++;
-      break;
-    case 1:       // Fulfill the times array.
-        times[ID_TIME_SOLL] = moveCylinderUntilHighPressure(PIN_SOLL, hpf);
-        times[ID_TIME_SOLD] = moveCylinderUntilHighPressure(PIN_SOLD, hpf);
-        times[ID_TIME_SOLU] = moveCylinderUntilHighPressure(PIN_SOLU, hpf);  // This value is not needed right now
-        times[ID_TIME_SOLR] = moveCylinderUntilHighPressure(PIN_SOLR, hpf);  // This value is not needed right now
-        stage++;
-      break;
-    // BRICK SEQUENCE
-    case 2:    // Push down the main cilinder and fulfill the room with sand.
-        if (DEBUG_MODE){
-          Serial.print("Time applied to SOLD: ");Serial.println(timesArray[ID_TIME_SOLD]*(panelArray[ID_POTM]/VALUE_MAX_POTM) ) ;
-          //delay(1000);
-        }
-
-        //
-        moveBothCylinderDuring(PIN_SOLD, PIN_SOLS, (timesArray[ID_TIME_SOLD])*(panelArray[ID_POTM]/VALUE_MAX_POTM));
-        stage++;
-      break;
-    case 3: // Moves the drawer on the main cylinder
-        moveCylinderDuring(PIN_SOLL, (timesArray[ID_TIME_SOLL])*(panelArray[ID_POTD]/VALUE_MAX_POTD), hpf);
-        stage++;
-      break;
-    case 4:  // Compression stage
-        moveCylinderUntilHighPressure(PIN_SOLU, hpf);
-        stage++;
-      break;
-    case 5: // Release pressure stage. 
-        moveCylinderDuring(PIN_SOLD,VALUE_TIME_RELEASE_PRESSURE_STAGE,hpf);
-        stage++;
-        break;
-    case 6: // Take out the brick
-        moveCylinderUntilHighPressure(PIN_SOLL, hpf);
+        moveCylinderUntilHighPressure(PIN_SOLL, hpf);          // Clean the platform and goes to the initial position.
         moveCylinderUntilHighPressure(PIN_SOLU, hpf);
         moveCylinderUntilHighPressure(PIN_SOLR, hpf);
-        //stage=2;
-        stage=0;    // Going to stage 0 to get full calibration before each press.
+        //goToTheInitialPosition(hpf);
+        stage=CALIBRATE_SOLENOIDS;
+      break;
+    case CALIBRATE_SOLENOIDS:       // Fulfill the times array.
+        times[ID_TIME_SOLD] = moveCylinderUntilHighPressure(PIN_SOLD, hpf);
+        times[ID_TIME_SOLL] = moveCylinderUntilHighPressure(PIN_SOLL, hpf);
+        stage=EJECT_BRICK;
+      break;
+    // BRICK SEQUENCE
+    case EJECT_BRICK: // Open the chamber
+        times[ID_TIME_SOLU] = moveCylinderUntilHighPressure(PIN_SOLU, hpf);  // This value is not needed right now
+        stage=PUSH_BRICK;    // Going to stage 0 to get full calibration before each press.
+      break;
+    case PUSH_BRICK:
+        times[ID_TIME_SOLR] = moveCylinderUntilHighPressure(PIN_SOLR, hpf);  // This value is not needed, right now.
+        stage=LOAD_SOIL;
+      break;
+    case LOAD_SOIL: // Push down the main cilinder and load the room with soil.
+        if (DEBUG_MODE){Serial.print("Time applied to SOLD: ");Serial.println(timesArray[ID_TIME_SOLD]*(panelArray[ID_POTM]/VALUE_MAX_POTM) ) ;}//delay(1000);
+        moveBothCylinderDuring(PIN_SOLD, PIN_SOLS, (timesArray[ID_TIME_SOLD])*(panelArray[ID_POTM]/VALUE_MAX_POTM));
+        stage=CLOSE_CHAMBER;
+      break;
+    case CLOSE_CHAMBER:  // Moves the drawer on the main cylinder
+        moveCylinderDuring(PIN_SOLL, (timesArray[ID_TIME_SOLL])*(panelArray[ID_POTD]/VALUE_MAX_POTD), hpf);
+        stage=COMPRESS_SOIL;
+      break;
+    case COMPRESS_SOIL: // Compression stage
+        moveCylinderUntilHighPressure(PIN_SOLU, hpf);
+        moveCylinderDuring(PIN_SOLD,VALUE_TIME_RELEASE_PRESSURE_STAGE,hpf);  // Release pressure
+        stage=OPEN_CHAMBER;
+        break;
+    case OPEN_CHAMBER: // Open the chamber
+        moveCylinderUntilHighPressure(PIN_SOLL, hpf);
+        stage=EJECT_BRICK;    // Going to stage 0 to get full calibration before each press.
       break;
     default:
-        stage=0;
+        stage=FAILSAFE_STAGE;
       break;
   }
 }
@@ -484,7 +480,7 @@ void setup() {
     digitalWrite(PIN_POTM, HIGH);
     digitalWrite(PIN_POTD, HIGH);
 
-    stage=0;
+    stage=FAILSAFE_STAGE;
     blinkingStatusTimer=millis();
     blinkingHighPressureTimer=0;
     flagHighPressure=false;
@@ -505,14 +501,14 @@ void loop() {
       if (DEBUG_MODE) Serial.println("I'm on MANUAL MODE!");
 
       // Set auto-mode values to the default
-      stage=0;
+      stage=FAILSAFE_STAGE;
 
       // Apply manual-mode.
       applyManualMode(panelArray,flagHighPressure);
 
     }else{                            // Auto mode
       if (DEBUG_MODE){
-        Serial.print("I'm on AUTO MODE!"); Serial.print("Stage: ");Serial.println(stage,DEC);
+        Serial.print("I'm on AUTO MODE!"); Serial.print("Stage: ");Serial.println(stage);
       }
       // Set the proper initial values
       // Checks, if needed.
@@ -523,7 +519,7 @@ void loop() {
   }else{                              // Power OFF
     if (DEBUG_MODE) Serial.println("I'm OFF!");
     setSolenoids(VALUE_SOLENOIDS_DISABLED);
-    stage=0;
+    stage=FAILSAFE_STAGE;
 
   }
 //  if (DEBUG_MODE) delay(2000);  
