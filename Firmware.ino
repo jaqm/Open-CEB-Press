@@ -178,14 +178,36 @@ uint8_t revertDigitalSignalValue(uint8_t val){
 // **** END of DATA HANDLING
 // **** MACHINE MOVEMENTS
 
+//// Moves the cylinder until high pressure sensor reaches the value secified and returns the time itgets to reach that place.
+//// cylinderPin: the pin assigned to the cylinder we want to move.
+//// &hpf: high pressure flag.
+//unsigned long moveCylinderUntilHPtakeTime(int cylinderPin, boolean &hpf){
+//
+//  // Variable used to compare 
+//  unsigned long timestamp=millis();
+//
+//  // Debug Mode
+//  if (DEBUG_MODE){
+//    Serial.println("moveCylinderUntilHPtakeTime: ");
+//    Serial.print("CylinderPin: "); Serial.println(cylinderPin);
+//  }
+//
+//  digitalWrite(cylinderPin,VALUE_SOL_ENABLED);                // Cilinder movement.
+//  while(pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)!=VALUE_HP_ENABLED){}
+//  hpf=true;
+//  digitalWrite(cylinderPin,VALUE_SOL_DISABLED);
+//
+//  return (millis()-timestamp);
+//}
+
 // Moves the cylinder to the top position and returns the time itgets to reach that place.
 // cylinderPin: the pin assigned to the cylinder we want to move.
 // &hpf: high pressure flag.
-unsigned long moveCylinderUntilHighPressure(int cylinderPin, boolean &hpf){
+void moveCylinderUntilHighPressure(int cylinderPin, boolean &hpf){
 
   // Variable used to compare 
-  unsigned long timestamp=millis();
-  unsigned long result=0;
+//  unsigned long timestamp=millis();
+//  unsigned long result=0;
   
   // Debug Mode
   if (DEBUG_MODE){
@@ -194,14 +216,15 @@ unsigned long moveCylinderUntilHighPressure(int cylinderPin, boolean &hpf){
   }
 
   digitalWrite(cylinderPin,VALUE_SOL_ENABLED);                // Cilinder movement.
-  while(pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)==VALUE_HP_DISABLED){}          //
-  hpf=true;
-  digitalWrite(cylinderPin,VALUE_SOL_DISABLED);
-  result=(millis()-timestamp);
-
-  moveCylinderUntilHighPressureBecomes( getOppositeSolenoid(cylinderPin),hpf,VALUE_HP_DISABLED);  // Release pressure
-
-  return result;
+  if(pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)==VALUE_HP_ENABLED){
+    hpf=true;
+    digitalWrite(cylinderPin,VALUE_SOL_DISABLED);
+//    result=(millis()-timestamp);
+  
+    moveCylinderUntilHighPressureBecomes( getOppositeSolenoid(cylinderPin),hpf,VALUE_HP_DISABLED);  // Release pressure
+  
+//    return result;
+  }          //
 }
 
 // Moves the cylinder until high pressure sensor reaches the value secified and returns the time itgets to reach that place.
@@ -213,7 +236,7 @@ unsigned long moveCylinderUntilHighPressureBecomes(int cylinderPin, boolean &hpf
   // Variable used to compare 
   unsigned long timestamp=millis();
   uint8_t highPressure=revertDigitalSignalValue(hpv);
-  
+
   // Debug Mode
   if (DEBUG_MODE){
     Serial.println("moveCylinderUntilHighPressure: ");
@@ -314,18 +337,23 @@ void applyAutoMode(uint8_t panel[], unsigned long times[], short &stage, short &
 
   switch(stage){
     case FAILSAFE_STAGE:    // FAILSAFE_STAGE: Startup procedure
-        digitalWrite(PIN_LED_STATUS, VALUE_LED_ENABLED);
 
         setSolenoids(VALUE_SOL_DISABLED);                                   // switch off the solenoids - as described in the documentation.
         moveCylinderDuring(PIN_SOLD,VALUE_TIME_RELEASE_PRESSURE_STAGE, hpf);	  // Release pressure
         if (substage==0 && !hpf){
+  
           moveCylinderUntilHighPressure(PIN_SOLL, hpf);          // Clean the platform and goes to the initial position.
+  
           if (hpf) substage++;
         }else if (substage==1 && !hpf){
+
             moveCylinderUntilHighPressure(PIN_SOLU, hpf);
+
             if (hpf) substage++;
         }else if (substage==2 && !hpf){
-            moveCylinderUntilHighPressure(PIN_SOLR, hpf);
+
+          moveCylinderUntilHighPressure(PIN_SOLR, hpf);
+
             if (hpf) substage++;            
         }else if (substage==3 && !hpf){
           stage=CALIBRATE_SOLENOIDS;
@@ -333,17 +361,19 @@ void applyAutoMode(uint8_t panel[], unsigned long times[], short &stage, short &
         }
       break;
     case CALIBRATE_SOLENOIDS:       // Get the times we need
-        times[ID_TIME_SOLD] = moveCylinderUntilHighPressure(PIN_SOLD, hpf);
-        times[ID_TIME_SOLL] = moveCylinderUntilHighPressure(PIN_SOLL, hpf);
+        digitalWrite(PIN_LED_STATUS, VALUE_LED_ENABLED);
+        times[ID_TIME_SOLD] = moveCylinderUntilHighPressureBecomes(PIN_SOLD,hpf,VALUE_HP_ENABLED);
+        times[ID_TIME_SOLL] = moveCylinderUntilHighPressureBecomes(PIN_SOLL,hpf,VALUE_HP_ENABLED);
+        digitalWrite(PIN_LED_STATUS, VALUE_LED_DISABLED);
         stage=EJECT_BRICK;
       break;
     // BRICK SEQUENCE
     case EJECT_BRICK: // Open the chamber
-        times[ID_TIME_SOLU] = moveCylinderUntilHighPressure(PIN_SOLU, hpf);  // This value is not needed right now
-        stage=PUSH_BRICK;    // Going to stage 0 to get full calibration before each press.
+        times[ID_TIME_SOLU] = moveCylinderUntilHighPressureBecomes(PIN_SOLU, hpf,VALUE_HP_ENABLED);  // This value is not needed right now
+        if (hpf) stage=PUSH_BRICK;
       break;
     case PUSH_BRICK:
-        times[ID_TIME_SOLR] = moveCylinderUntilHighPressure(PIN_SOLR, hpf);  // This value is not needed, right now.
+        times[ID_TIME_SOLR] = moveCylinderUntilHighPressureBecomes(PIN_SOLR, hpf,VALUE_HP_ENABLED);  // This value is not needed, right now.
         stage=LOAD_SOIL;
       break;
     case LOAD_SOIL: // Push down the main cilinder and load the room with soil.
