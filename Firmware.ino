@@ -23,8 +23,8 @@ const uint8_t VALUE_HP_DISABLED = HIGH;
 //const uint8_t VALUE_HP_ENABLED = HIGH;
 //const uint8_t VALUE_HP_DISABLED = LOW;
 // outputs - Solenoids
-const uint8_t VALUE_SOLENOIDS_ENABLED=LOW;
-const uint8_t VALUE_SOLENOIDS_DISABLED=HIGH;
+const uint8_t VALUE_SOL_ENABLED=LOW;
+const uint8_t VALUE_SOL_DISABLED=HIGH;
 // outputs - leds
 const uint8_t VALUE_LED_ENABLED = LOW;
 const uint8_t VALUE_LED_DISABLED = HIGH;
@@ -143,7 +143,7 @@ uint8_t pinDigitalValueIs(int pin, int d){
     return value0;
 }
 
-uint8_t getOppositeSolenoid(uint8_t solPin){
+uint8_t getOppositeSolenoid(uint8_t pinSol){
   
   uint8_t opposite=-1;
   if (pinSol==PIN_SOLU){opposite=PIN_SOLD;}
@@ -192,13 +192,13 @@ unsigned long moveCylinderUntilHighPressure(int cylinderPin, boolean &hpf){
     Serial.print("CylinderPin: "); Serial.println(cylinderPin);
   }
 
-  digitalWrite(cylinderPin,VALUE_SOLENOIDS_ENABLED);                // Cilinder movement.
+  digitalWrite(cylinderPin,VALUE_SOL_ENABLED);                // Cilinder movement.
   while(pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)==VALUE_HP_DISABLED){}          //
   hpf=true;
-  digitalWrite(cylinderPin,VALUE_SOLENOIDS_DISABLED);
+  digitalWrite(cylinderPin,VALUE_SOL_DISABLED);
   result=(millis()-timestamp);
 
-  moveCylinderUntilHighPressureBecomes(getOppositeSolenoid(cylinderPin),VALUE_HP_DISABLED));  // Release pressure
+  moveCylinderUntilHighPressureBecomes( getOppositeSolenoid(cylinderPin),hpf,VALUE_HP_DISABLED);  // Release pressure
 
   return result;
 }
@@ -219,10 +219,10 @@ unsigned long moveCylinderUntilHighPressureBecomes(int cylinderPin, boolean &hpf
     Serial.print("CylinderPin: "); Serial.println(cylinderPin);
   }
 
-  digitalWrite(cylinderPin,VALUE_SOLENOIDS_ENABLED);                // Cilinder movement.
+  digitalWrite(cylinderPin,VALUE_SOL_ENABLED);                // Cilinder movement.
   while(pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)!=hpv){}
   if (pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)==VALUE_HP_ENABLED){hpf=true;}
-  digitalWrite(cylinderPin,VALUE_SOLENOIDS_DISABLED);
+  digitalWrite(cylinderPin,VALUE_SOL_DISABLED);
 
   return (millis()-timestamp);
 }
@@ -235,9 +235,9 @@ void moveCylinderDuring(uint8_t cylinderPin,unsigned long time, boolean &hpf){
 
   unsigned long timestamp=millis();
   
-  digitalWrite(cylinderPin,VALUE_SOLENOIDS_ENABLED);                // Cylinder movement.
+  digitalWrite(cylinderPin,VALUE_SOL_ENABLED);                // Cylinder movement.
   while ( (pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)==VALUE_HP_DISABLED)  && (timestamp+time > millis()) ){}
-  digitalWrite(cylinderPin,VALUE_SOLENOIDS_DISABLED);
+  digitalWrite(cylinderPin,VALUE_SOL_DISABLED);
   if (pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)) hpf=true;
 }
 
@@ -246,11 +246,11 @@ void moveBothCylinderDuring(uint8_t cylinderPin1, uint8_t cylinderPin2, unsigned
 
   unsigned long timestamp=millis();
   
-  digitalWrite(cylinderPin1,VALUE_SOLENOIDS_ENABLED);
-  digitalWrite(cylinderPin2,VALUE_SOLENOIDS_ENABLED);
+  digitalWrite(cylinderPin1,VALUE_SOL_ENABLED);
+  digitalWrite(cylinderPin2,VALUE_SOL_ENABLED);
   while ( (pinDigitalValueIs(PIN_PRESSURE,VALUE_INPUT_READ_DELAY)==VALUE_HP_DISABLED) && (timestamp+timeMoving > millis())){}
-  digitalWrite(cylinderPin1,VALUE_SOLENOIDS_DISABLED);
-  digitalWrite(cylinderPin2,VALUE_SOLENOIDS_DISABLED);
+  digitalWrite(cylinderPin1,VALUE_SOL_DISABLED);
+  digitalWrite(cylinderPin2,VALUE_SOL_DISABLED);
 
 }
 
@@ -258,7 +258,7 @@ void moveBothCylinderDuring(uint8_t cylinderPin1, uint8_t cylinderPin2, unsigned
 // &hpf: high pressure flag
 //void goToTheInitialPosition(boolean &hpf){
 //
-//  setSolenoids(VALUE_SOLENOIDS_DISABLED);
+//  setSolenoids(VALUE_SOL_DISABLED);
 //  moveCylinderUntilHighPressure(PIN_SOLR, hpf);
 //  moveCylinderUntilHighPressure(PIN_SOLU, hpf);
 //}
@@ -271,13 +271,13 @@ void releasePressureManualMode(uint8_t array[]){
   if (pinDigitalValueIs(PIN_PRESSURE, VALUE_INPUT_READ_DELAY)==VALUE_HP_ENABLED){
     if (DEBUG_MODE){Serial.println("Applying reversal data movement to solenoids..");}
 
-    digitalWrite(PIN_SOLD,(array[ID_BUTTON_UP]==VALUE_INPUT_ENABLED ? VALUE_SOLENOIDS_ENABLED:VALUE_SOLENOIDS_DISABLED));
-    digitalWrite(PIN_SOLU,(array[ID_BUTTON_DOWN]==VALUE_INPUT_ENABLED ? VALUE_SOLENOIDS_ENABLED:VALUE_SOLENOIDS_DISABLED));
-    digitalWrite(PIN_SOLR,(array[ID_BUTTON_LEFT]==VALUE_INPUT_ENABLED ? VALUE_SOLENOIDS_ENABLED:VALUE_SOLENOIDS_DISABLED));
-    digitalWrite(PIN_SOLL,(array[ID_BUTTON_RIGHT]==VALUE_INPUT_ENABLED ? VALUE_SOLENOIDS_ENABLED:VALUE_SOLENOIDS_DISABLED));
-//    digitalWrite(PIN_SOLS,(array[ID_BUTTON_SHAKER]==VALUE_INPUT_ENABLED ? VALUE_SOLENOIDS_ENABLED:VALUE_SOLENOIDS_DISABLED));  
+    digitalWrite(PIN_SOLD,(array[ID_BUTTON_UP]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
+    digitalWrite(PIN_SOLU,(array[ID_BUTTON_DOWN]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
+    digitalWrite(PIN_SOLR,(array[ID_BUTTON_LEFT]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
+    digitalWrite(PIN_SOLL,(array[ID_BUTTON_RIGHT]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
+//    digitalWrite(PIN_SOLS,(array[ID_BUTTON_SHAKER]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));  
     delay(VALUE_TIME_RELEASE_PRESSURE_STAGE);
-    setSolenoids(VALUE_SOLENOIDS_DISABLED);
+    setSolenoids(VALUE_SOL_DISABLED);
 
   }
 }
@@ -293,15 +293,15 @@ void applyManualMode(uint8_t array[], boolean &hpf){
 
   if (pinDigitalValueIs(PIN_PRESSURE, VALUE_INPUT_READ_DELAY)==VALUE_HP_DISABLED){
     if (DEBUG_MODE){Serial.println("Applying movement data to solenoids..");}
-    digitalWrite(PIN_SOLU,(array[ID_BUTTON_UP]==VALUE_INPUT_ENABLED ? VALUE_SOLENOIDS_ENABLED:VALUE_SOLENOIDS_DISABLED));
-    digitalWrite(PIN_SOLD,(array[ID_BUTTON_DOWN]==VALUE_INPUT_ENABLED ? VALUE_SOLENOIDS_ENABLED:VALUE_SOLENOIDS_DISABLED));
-    digitalWrite(PIN_SOLL,(array[ID_BUTTON_LEFT]==VALUE_INPUT_ENABLED ? VALUE_SOLENOIDS_ENABLED:VALUE_SOLENOIDS_DISABLED));
-    digitalWrite(PIN_SOLR,(array[ID_BUTTON_RIGHT]==VALUE_INPUT_ENABLED ? VALUE_SOLENOIDS_ENABLED:VALUE_SOLENOIDS_DISABLED));
-    digitalWrite(PIN_SOLS,(array[ID_BUTTON_SHAKER]==VALUE_INPUT_ENABLED ? VALUE_SOLENOIDS_ENABLED:VALUE_SOLENOIDS_DISABLED));  
+    digitalWrite(PIN_SOLU,(array[ID_BUTTON_UP]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
+    digitalWrite(PIN_SOLD,(array[ID_BUTTON_DOWN]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
+    digitalWrite(PIN_SOLL,(array[ID_BUTTON_LEFT]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
+    digitalWrite(PIN_SOLR,(array[ID_BUTTON_RIGHT]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
+    digitalWrite(PIN_SOLS,(array[ID_BUTTON_SHAKER]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));  
   }else {
     if (DEBUG_MODE){Serial.println("Warning: high pressure signal detected. Switching off solenoids.");}
     hpf=true;
-    setSolenoids(VALUE_SOLENOIDS_DISABLED);
+    setSolenoids(VALUE_SOL_DISABLED);
   }
 }
 
@@ -313,7 +313,7 @@ void applyAutoMode(uint8_t panel[], unsigned long times[], short &stage, boolean
 
   switch(stage){
     case FAILSAFE_STAGE:    // FAILSAFE_STAGE: Startup procedure
-        setSolenoids(VALUE_SOLENOIDS_DISABLED);                                   // switch off the solenoids - as described in the documentation.
+        setSolenoids(VALUE_SOL_DISABLED);                                   // switch off the solenoids - as described in the documentation.
         moveCylinderDuring(PIN_SOLD,VALUE_TIME_RELEASE_PRESSURE_STAGE, hpf);	  // Release pressure
         moveCylinderUntilHighPressure(PIN_SOLL, hpf);          // Clean the platform and goes to the initial position.
         moveCylinderUntilHighPressure(PIN_SOLU, hpf);
@@ -580,7 +580,7 @@ void loop() {
   
   }else{                              // Power OFF
     if (DEBUG_MODE) Serial.println("I'm OFF!");
-    setSolenoids(VALUE_SOLENOIDS_DISABLED);
+    setSolenoids(VALUE_SOL_DISABLED);
     stage=FAILSAFE_STAGE;
 
   }
