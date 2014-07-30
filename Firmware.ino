@@ -2,6 +2,7 @@
 
 // loop() variables
 short stage;       // Defines the stage for the auto-mode.
+short substage;
 unsigned long blinkingStatusTimer=millis();  // Timer to track the blinking procedure.
 unsigned long blinkingHighPressureTimer=0;  // Timer to track the blinking procedure for pressure timer.
 boolean flagHighPressure=false; // Flag to track if it was received a highPressure signal.
@@ -309,19 +310,29 @@ void applyManualMode(uint8_t array[], boolean &hpf){
 // panel[]: the information readed from the machine.
 // stage: which stage of the auto-mode do we want to run.
 // &hpf: high pressure flag.
-void applyAutoMode(uint8_t panel[], unsigned long times[], short &stage, boolean &hpf){
+void applyAutoMode(uint8_t panel[], unsigned long times[], short &stage, short &substage, boolean &hpf){
 
   switch(stage){
     case FAILSAFE_STAGE:    // FAILSAFE_STAGE: Startup procedure
+        digitalWrite(PIN_LED_STATUS, VALUE_LED_ENABLED);
+
         setSolenoids(VALUE_SOL_DISABLED);                                   // switch off the solenoids - as described in the documentation.
         moveCylinderDuring(PIN_SOLD,VALUE_TIME_RELEASE_PRESSURE_STAGE, hpf);	  // Release pressure
-        moveCylinderUntilHighPressure(PIN_SOLL, hpf);          // Clean the platform and goes to the initial position.
-        moveCylinderUntilHighPressure(PIN_SOLU, hpf);
-        moveCylinderUntilHighPressure(PIN_SOLR, hpf);
-        //goToTheInitialPosition(hpf);
-        stage=CALIBRATE_SOLENOIDS;
+        if (substage==0 && !hpf){
+          moveCylinderUntilHighPressure(PIN_SOLL, hpf);          // Clean the platform and goes to the initial position.
+          if (hpf) substage++;
+        }else if (substage==1 && !hpf){
+            moveCylinderUntilHighPressure(PIN_SOLU, hpf);
+            if (hpf) substage++;
+        }else if (substage==2 && !hpf){
+            moveCylinderUntilHighPressure(PIN_SOLR, hpf);
+            if (hpf) substage++;            
+        }else if (substage==3 && !hpf){
+          stage=CALIBRATE_SOLENOIDS;
+          substage=0;
+        }
       break;
-    case CALIBRATE_SOLENOIDS:       // Fulfill the times array.
+    case CALIBRATE_SOLENOIDS:       // Get the times we need
         times[ID_TIME_SOLD] = moveCylinderUntilHighPressure(PIN_SOLD, hpf);
         times[ID_TIME_SOLL] = moveCylinderUntilHighPressure(PIN_SOLL, hpf);
         stage=EJECT_BRICK;
@@ -431,11 +442,15 @@ void printTimesArray(unsigned long ta[]){
 
 }
 
-// Updates the leds according to the information from the panel.
+// Updates the leds according to the information from the panel and the flags.
 // panel[]: The array containing the information from the panel.
 // &sbt: the status blinking timer. It contains the last time (millisecs) in which the led status changed it's status.
-// &hpf: high prssure sensor flag. It is true if the high pressure sensor was activated.
+// &hpf: high pressure sensor flag. It is true if the high pressure sensor was activated.
 // &hpt: high pressure timer. It tracks the last time the led was activated dure to the high presure sensor flag.
+// Output:
+// Led status: It blinks with different frequency depending on the mode we are running.
+// Led high pressure: It is enabled if the high pressure flag in true. If so we always turn on the led and put the flag false.
+//   Disabled if the flag is false and the time has passed.
 void updateLeds(uint8_t panel[],unsigned long &sbt, boolean &hpf, unsigned long &hpt){
 
   // Blinking procedure - STATUS LED
@@ -451,20 +466,19 @@ void updateLeds(uint8_t panel[],unsigned long &sbt, boolean &hpf, unsigned long 
     delay(5000);
   }
   if (presentTime > sbt+timer){
-      if (DEBUG_LED_MODE){Serial.println("LED STATUS IS GONNA BE UPDATED");delay(1000);}
-      value=pinDigitalValueIs(PIN_LED_STATUS, VALUE_INPUT_READ_DELAY);
-      value1=revertDigitalSignalValue(value);
-      if(DEBUG_LED_MODE){
-        Serial.print("Digital value read from LED STATUS: ");Serial.println(value);
-        Serial.print("Digital value that will be written to LED STATUS: ");Serial.println(value1);
-      }
-      digitalWrite(PIN_LED_STATUS,revertDigitalSignalValue(value) );
+//      if (DEBUG_LED_MODE){Serial.println("LED STATUS IS GONNA BE UPDATED");delay(1000);}
+//      value=pinDigitalValueIs(PIN_LED_STATUS, VALUE_INPUT_READ_DELAY);
+//      value1=revertDigitalSignalValue(value);
+//      if(DEBUG_LED_MODE){
+//        Serial.print("Digital value read from LED STATUS: ");Serial.println(value);
+//        Serial.print("Digital value that will be written to LED STATUS: ");Serial.println(value1);
+//      }
+      digitalWrite(PIN_LED_STATUS,revertDigitalSignalValue(pinDigitalValueIs(PIN_LED_STATUS, VALUE_INPUT_READ_DELAY)) );
       sbt=presentTime;
       if (DEBUG_LED_MODE){Serial.println("LED STATUS HAS BEEN UPDATED"); delay(1000);}
   }
 
   // Blinking procedure - HIGH PRESSURE LED
-
   if (DEBUG_LED_MODE){
     Serial.print("hpt: ");Serial.println(hpt);
     Serial.print("VALUE_TIME_BLINKING_HIGH_PRESSURE: ");Serial.println(VALUE_TIME_BLINKING_HIGH_PRESSURE);
@@ -542,10 +556,11 @@ void setup() {
     digitalWrite(PIN_POTD, HIGH);
 
     stage=FAILSAFE_STAGE;
+    substage=0;
     blinkingStatusTimer=millis();
     blinkingHighPressureTimer=0;
     flagHighPressure=false;
-
+    
     Serial.begin(9600);
 }
 
@@ -563,6 +578,7 @@ void loop() {
 
       // Set auto-mode values to the default
       stage=FAILSAFE_STAGE;
+      substage=0;
 
       // Apply manual-mode.
       applyManualMode(panelArray,flagHighPressure);
@@ -575,16 +591,17 @@ void loop() {
       // Set the proper initial values
       // Checks, if needed.
 
-      applyAutoMode(panelArray, timesArray, stage, flagHighPressure);
+      applyAutoMode(panelArray, timesArray, stage, substage, flagHighPressure);
     }
   
   }else{                              // Power OFF
     if (DEBUG_MODE) Serial.println("I'm OFF!");
     setSolenoids(VALUE_SOL_DISABLED);
     stage=FAILSAFE_STAGE;
+    substage=0;
 
   }
-//  if (DEBUG_MODE) delay(2000);  
+  if (DEBUG_MODE) delay(2000);  
 
 }
 
