@@ -17,11 +17,11 @@ const uint8_t VALUE_INPUT_ENABLED = LOW;
 const uint8_t VALUE_INPUT_DISABLED = HIGH;
 // inputs - high pressure sensor
 //// Real values
-const uint8_t VALUE_HIGH_PRESSURE_ENABLED = LOW;
-const uint8_t VALUE_HIGH_PRESSURE_DISABLED = HIGH;
+const uint8_t VALUE_HP_ENABLED = LOW;
+const uint8_t VALUE_HP_DISABLED = HIGH;
 //// For testing auto-mode purpose.
-//const uint8_t VALUE_HIGH_PRESSURE_ENABLED = HIGH;
-//const uint8_t VALUE_HIGH_PRESSURE_DISABLED = LOW;
+//const uint8_t VALUE_HP_ENABLED = HIGH;
+//const uint8_t VALUE_HP_DISABLED = LOW;
 // outputs - Solenoids
 const uint8_t VALUE_SOLENOIDS_ENABLED=LOW;
 const uint8_t VALUE_SOLENOIDS_DISABLED=HIGH;
@@ -37,7 +37,7 @@ const unsigned long VALUE_TIME_BLINKING_AUTO=250;
 const unsigned long VALUE_TIME_BLINKING_HIGH_PRESSURE=500;
 //CONST
 const unsigned long VALUE_INPUT_READ_DELAY = 5;  // Delay (milliseconds) used to consider a stable input read.
-const unsigned long VALUE_HIGH_PRESSURE_READ_DELAY = 3;
+const unsigned long VALUE_HP_READ_DELAY = 3;
 const unsigned long VALUE_TIME_RELEASE_PRESSURE_STAGE = 100;
 // CONST - STATES OF THE AUTO-MODE
 const short FAILSAFE_STAGE=0;
@@ -143,6 +143,18 @@ uint8_t pinDigitalValueIs(int pin, int d){
     return value0;
 }
 
+uint8_t getOppositeSolenoid(uint8_t solPin){
+  
+  uint8_t opposite=-1;
+  if (pinSol==PIN_SOLU){opposite=PIN_SOLD;}
+  else if (pinSol==PIN_SOLD){opposite=PIN_SOLU;}
+  else if (pinSol==PIN_SOLL){opposite=PIN_SOLR;}
+  else if (pinSol==PIN_SOLR){opposite=PIN_SOLL;}
+  else if (pinSol==PIN_SOLS){opposite=PIN_SOLS;}
+  else Serial.println("ERROR: Unexpected pin value received by getOppositeSolenoid()");
+  return opposite;
+}
+
 // **** END of GETTERS && SETTERS
 
 // **** DATA HANDLING
@@ -172,6 +184,7 @@ unsigned long moveCylinderUntilHighPressure(int cylinderPin, boolean &hpf){
 
   // Variable used to compare 
   unsigned long timestamp=millis();
+  unsigned long result=0;
   
   // Debug Mode
   if (DEBUG_MODE){
@@ -180,11 +193,14 @@ unsigned long moveCylinderUntilHighPressure(int cylinderPin, boolean &hpf){
   }
 
   digitalWrite(cylinderPin,VALUE_SOLENOIDS_ENABLED);                // Cilinder movement.
-  while(pinDigitalValueIs(PIN_PRESSURE,VALUE_HIGH_PRESSURE_READ_DELAY)==VALUE_HIGH_PRESSURE_DISABLED){}          //
+  while(pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)==VALUE_HP_DISABLED){}          //
   hpf=true;
   digitalWrite(cylinderPin,VALUE_SOLENOIDS_DISABLED);
+  result=(millis()-timestamp);
 
-  return (millis()-timestamp);
+  moveCylinderUntilHighPressureBecomes(getOppositeSolenoid(cylinderPin),VALUE_HP_DISABLED));  // Release pressure
+
+  return result;
 }
 
 // Moves the cylinder until high pressure sensor reaches the value secified and returns the time itgets to reach that place.
@@ -204,8 +220,8 @@ unsigned long moveCylinderUntilHighPressureBecomes(int cylinderPin, boolean &hpf
   }
 
   digitalWrite(cylinderPin,VALUE_SOLENOIDS_ENABLED);                // Cilinder movement.
-  while(pinDigitalValueIs(PIN_PRESSURE,VALUE_HIGH_PRESSURE_READ_DELAY)!=hpv){}
-  if (pinDigitalValueIs(PIN_PRESSURE,VALUE_HIGH_PRESSURE_READ_DELAY)==VALUE_HIGH_PRESSURE_ENABLED){hpf=true;}
+  while(pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)!=hpv){}
+  if (pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)==VALUE_HP_ENABLED){hpf=true;}
   digitalWrite(cylinderPin,VALUE_SOLENOIDS_DISABLED);
 
   return (millis()-timestamp);
@@ -220,9 +236,9 @@ void moveCylinderDuring(uint8_t cylinderPin,unsigned long time, boolean &hpf){
   unsigned long timestamp=millis();
   
   digitalWrite(cylinderPin,VALUE_SOLENOIDS_ENABLED);                // Cylinder movement.
-  while ( (pinDigitalValueIs(PIN_PRESSURE,VALUE_HIGH_PRESSURE_READ_DELAY)==VALUE_HIGH_PRESSURE_DISABLED)  && (timestamp+time > millis()) ){}
+  while ( (pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)==VALUE_HP_DISABLED)  && (timestamp+time > millis()) ){}
   digitalWrite(cylinderPin,VALUE_SOLENOIDS_DISABLED);
-  if (pinDigitalValueIs(PIN_PRESSURE,VALUE_HIGH_PRESSURE_READ_DELAY)) hpf=true;
+  if (pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)) hpf=true;
 }
 
 // Moves both cylinders during the specified time or until HIGH PRESSURE.
@@ -232,7 +248,7 @@ void moveBothCylinderDuring(uint8_t cylinderPin1, uint8_t cylinderPin2, unsigned
   
   digitalWrite(cylinderPin1,VALUE_SOLENOIDS_ENABLED);
   digitalWrite(cylinderPin2,VALUE_SOLENOIDS_ENABLED);
-  while ( (pinDigitalValueIs(PIN_PRESSURE,VALUE_INPUT_READ_DELAY)==VALUE_HIGH_PRESSURE_DISABLED) && (timestamp+timeMoving > millis())){}
+  while ( (pinDigitalValueIs(PIN_PRESSURE,VALUE_INPUT_READ_DELAY)==VALUE_HP_DISABLED) && (timestamp+timeMoving > millis())){}
   digitalWrite(cylinderPin1,VALUE_SOLENOIDS_DISABLED);
   digitalWrite(cylinderPin2,VALUE_SOLENOIDS_DISABLED);
 
@@ -252,7 +268,7 @@ void moveBothCylinderDuring(uint8_t cylinderPin1, uint8_t cylinderPin2, unsigned
 // array[]: contains the information from the panel.
 void releasePressureManualMode(uint8_t array[]){
 
-  if (pinDigitalValueIs(PIN_PRESSURE, VALUE_INPUT_READ_DELAY)==VALUE_HIGH_PRESSURE_ENABLED){
+  if (pinDigitalValueIs(PIN_PRESSURE, VALUE_INPUT_READ_DELAY)==VALUE_HP_ENABLED){
     if (DEBUG_MODE){Serial.println("Applying reversal data movement to solenoids..");}
 
     digitalWrite(PIN_SOLD,(array[ID_BUTTON_UP]==VALUE_INPUT_ENABLED ? VALUE_SOLENOIDS_ENABLED:VALUE_SOLENOIDS_DISABLED));
@@ -266,7 +282,6 @@ void releasePressureManualMode(uint8_t array[]){
   }
 }
 
-
 // **** END OF MACHINE MOVEMENTS
 
 // **** MACHINE MODES
@@ -276,7 +291,7 @@ void releasePressureManualMode(uint8_t array[]){
 // &hpf: flag to track the high pressure sensor.
 void applyManualMode(uint8_t array[], boolean &hpf){
 
-  if (pinDigitalValueIs(PIN_PRESSURE, VALUE_INPUT_READ_DELAY)==VALUE_HIGH_PRESSURE_DISABLED){
+  if (pinDigitalValueIs(PIN_PRESSURE, VALUE_INPUT_READ_DELAY)==VALUE_HP_DISABLED){
     if (DEBUG_MODE){Serial.println("Applying movement data to solenoids..");}
     digitalWrite(PIN_SOLU,(array[ID_BUTTON_UP]==VALUE_INPUT_ENABLED ? VALUE_SOLENOIDS_ENABLED:VALUE_SOLENOIDS_DISABLED));
     digitalWrite(PIN_SOLD,(array[ID_BUTTON_DOWN]==VALUE_INPUT_ENABLED ? VALUE_SOLENOIDS_ENABLED:VALUE_SOLENOIDS_DISABLED));
@@ -302,7 +317,6 @@ void applyAutoMode(uint8_t panel[], unsigned long times[], short &stage, boolean
         moveCylinderDuring(PIN_SOLD,VALUE_TIME_RELEASE_PRESSURE_STAGE, hpf);	  // Release pressure
         moveCylinderUntilHighPressure(PIN_SOLL, hpf);          // Clean the platform and goes to the initial position.
         moveCylinderUntilHighPressure(PIN_SOLU, hpf);
-        moveCylinderUntilHighPressureBecomes(PIN_SOLU,hpf,VALUE_HIGH_PRESSURE_DISABLED);  // ReleasePressure
         moveCylinderUntilHighPressure(PIN_SOLR, hpf);
         //goToTheInitialPosition(hpf);
         stage=CALIBRATE_SOLENOIDS;
@@ -315,7 +329,6 @@ void applyAutoMode(uint8_t panel[], unsigned long times[], short &stage, boolean
     // BRICK SEQUENCE
     case EJECT_BRICK: // Open the chamber
         times[ID_TIME_SOLU] = moveCylinderUntilHighPressure(PIN_SOLU, hpf);  // This value is not needed right now
-        moveCylinderUntilHighPressureBecomes(PIN_SOLU,hpf,VALUE_HIGH_PRESSURE_DISABLED);  // ReleasePressure
         stage=PUSH_BRICK;    // Going to stage 0 to get full calibration before each press.
       break;
     case PUSH_BRICK:
@@ -333,7 +346,7 @@ void applyAutoMode(uint8_t panel[], unsigned long times[], short &stage, boolean
       break;
     case COMPRESS_SOIL: // Compression stage
         moveCylinderUntilHighPressure(PIN_SOLU, hpf);
-        moveCylinderUntilHighPressureBecomes(PIN_SOLU,hpf,VALUE_HIGH_PRESSURE_DISABLED);  // ReleasePressure
+        moveCylinderDuring(PIN_SOLD,(timesArray[ID_TIME_SOLD])*(panelArray[ID_POTM]/VALUE_MAX_POTM), hpf);
         stage=OPEN_CHAMBER;
         break;
     case OPEN_CHAMBER: // Open the chamber
