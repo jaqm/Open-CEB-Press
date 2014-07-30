@@ -1,5 +1,14 @@
 
 // 
+enum autoModeStage{
+  PUSH_BRICK,
+  DROP_PLATFORM,
+  DUMP_DIRT,
+  OBSTRUCT_PASSAGE,
+  COMPRESS_BLOCK,
+  OPEN_PASSAGE,
+  RAISE_BRICK
+}
 
 // loop() variables
 int stage=0;       // Defines the stage for the auto-mode.
@@ -253,8 +262,8 @@ void applyAutoMode(uint8_t panel[], unsigned long times[], int &stage, boolean &
     case 1:       // Fulfill the times array.
         times[ID_TIME_SOLL] = moveCylinderUntilHighPressure(PIN_SOLL, hpf);
         times[ID_TIME_SOLD] = moveCylinderUntilHighPressure(PIN_SOLD, hpf);
-        times[ID_TIME_SOLU] = moveCylinderUntilHighPressure(PIN_SOLU, hpf);  // Documentation says: this time is not really interesting
-        times[ID_TIME_SOLR] = moveCylinderUntilHighPressure(PIN_SOLR, hpf);  // Documentation says: this time is not really interesting
+        times[ID_TIME_SOLU] = moveCylinderUntilHighPressure(PIN_SOLU, hpf);  // This value is not needed right now
+        times[ID_TIME_SOLR] = moveCylinderUntilHighPressure(PIN_SOLR, hpf);  // This value is not needed right now
         stage++;
       break;
     // BRICK SEQUENCE
