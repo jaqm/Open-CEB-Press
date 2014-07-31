@@ -616,7 +616,7 @@ void loop() {
       
     }else{                            // Auto mode
       if (DEBUG_MODE){
-        Serial.print("I'm on AUTO MODE!"); Serial.print("Stage: ");Serial.println(stage);
+        Serial.println("I'm on AUTO MODE!"); Serial.print("Stage: ");Serial.println(stage); Serial.print(" SubStage: ");Serial.println(substage);
       }
       // Set the proper initial values
       // Checks, if needed.
