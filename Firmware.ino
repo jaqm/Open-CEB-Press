@@ -364,8 +364,8 @@ void applyAutoMode(uint8_t panel[], unsigned long times[], short &stage, short &
         digitalWrite(PIN_LED_STATUS, VALUE_LED_ENABLED);
         times[ID_TIME_SOLD] = moveCylinderUntilHighPressureBecomes(PIN_SOLD,hpf,VALUE_HP_ENABLED);
         times[ID_TIME_SOLL] = moveCylinderUntilHighPressureBecomes(PIN_SOLL,hpf,VALUE_HP_ENABLED);
-        digitalWrite(PIN_LED_STATUS, VALUE_LED_DISABLED);
-        stage=EJECT_BRICK;
+        //digitalWrite(PIN_LED_STATUS, VALUE_LED_DISABLED);
+        if (hpf) stage=EJECT_BRICK;
       break;
     // BRICK SEQUENCE
     case EJECT_BRICK: // Open the chamber
@@ -374,7 +374,7 @@ void applyAutoMode(uint8_t panel[], unsigned long times[], short &stage, short &
       break;
     case PUSH_BRICK:
         times[ID_TIME_SOLR] = moveCylinderUntilHighPressureBecomes(PIN_SOLR, hpf,VALUE_HP_ENABLED);  // This value is not needed, right now.
-        stage=LOAD_SOIL;
+        if (hpf) stage=LOAD_SOIL;
       break;
     case LOAD_SOIL: // Push down the main cilinder and load the room with soil.
         if (DEBUG_MODE){Serial.print("Time applied to SOLD: ");Serial.println(timesArray[ID_TIME_SOLD]*(panelArray[ID_POTM]/VALUE_MAX_POTM) ) ;}//delay(1000);
@@ -387,12 +387,12 @@ void applyAutoMode(uint8_t panel[], unsigned long times[], short &stage, short &
       break;
     case COMPRESS_SOIL: // Compression stage
         moveCylinderUntilHighPressure(PIN_SOLU, hpf);
-        moveCylinderDuring(PIN_SOLD,(timesArray[ID_TIME_SOLD])*(panelArray[ID_POTM]/VALUE_MAX_POTM), hpf);
-        stage=OPEN_CHAMBER;
+//        moveCylinderDuring(PIN_SOLD,(timesArray[ID_TIME_SOLD])*(panelArray[ID_POTM]/VALUE_MAX_POTM), hpf);
+        if (hpf) stage=OPEN_CHAMBER;
         break;
     case OPEN_CHAMBER: // Open the chamber
         moveCylinderUntilHighPressure(PIN_SOLL, hpf);
-        stage=EJECT_BRICK;    // Going to stage 0 to get full calibration before each press.
+        if (hpf) stage=EJECT_BRICK;    // Going to stage 0 to get full calibration before each press.
       break;
     default:
         stage=FAILSAFE_STAGE;
