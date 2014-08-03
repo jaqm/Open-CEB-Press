@@ -589,7 +589,7 @@ void loop() {
           break;
         case CALIBRATE_SOLENOIDS:       // Get the times we need
 
-            if (substage==0){
+            if (substage==0){            // Note: Consider to encapsulate the next feature (chronometer).
               if (!chronoIsRunning){
                 timer=millis();
                 chronoIsRunning=true;
@@ -624,11 +624,13 @@ void loop() {
           break;
         // BRICK SEQUENCE
         case EJECT_BRICK: // Open the chamber
-            timesArray[ID_TIME_SOLU] = moveCylinderUntilHighPressureBecomes(PIN_SOLU, flagHighPressure,VALUE_HP_ENABLED);  // This value is not needed right now
+            //timesArray[ID_TIME_SOLU] = moveCylinderUntilHighPressureBecomes(PIN_SOLU, flagHighPressure,VALUE_HP_ENABLED);  // This value is not needed right now
+            moveCylinderUntilHighPressure(PIN_SOLU, flagHighPressure);
             if (flagHighPressure) stage=PUSH_BRICK;
           break;
         case PUSH_BRICK:
-            timesArray[ID_TIME_SOLR] = moveCylinderUntilHighPressureBecomes(PIN_SOLR, flagHighPressure,VALUE_HP_ENABLED);  // This value is not needed, right now.
+            //timesArray[ID_TIME_SOLR] = moveCylinderUntilHighPressureBecomes(PIN_SOLR, flagHighPressure,VALUE_HP_ENABLED);  // This value is not needed, right now.
+            moveCylinderUntilHighPressure(PIN_SOLR, flagHighPressure);
             if (flagHighPressure) stage=LOAD_SOIL;
           break;
         case LOAD_SOIL: // Push down the main cilinder and load the room with soil.
