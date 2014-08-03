@@ -597,6 +597,7 @@ void loop() {
               moveCylinderUntilHighPressure(PIN_SOLD,flagHighPressure);
               if (flagHighPressure){
                 timesArray[ID_TIME_SOLD] = millis() - timer;
+                if (DEBUG_MODE) {Serial.print("The for SOLD has been: ");Serial.println(timesArray[ID_TIME_SOLD]);}
                 chronoIsRunning=false;
                 timer=0;
                 substage++;
@@ -612,6 +613,7 @@ void loop() {
               moveCylinderUntilHighPressure(PIN_SOLL,flagHighPressure);
               if (flagHighPressure){
                 timesArray[ID_TIME_SOLL] = millis() - timer;
+                if (DEBUG_MODE) {Serial.print("The for SOLL has been: ");Serial.println(timesArray[ID_TIME_SOLL]);}
                 chronoIsRunning=false;
                 timer=0;
                 substage=0;
