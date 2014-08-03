@@ -637,7 +637,9 @@ void loop() {
             if (flagHighPressure) stage=LOAD_SOIL;
           break;
         case LOAD_SOIL: // Push down the main cilinder and load the room with soil.
-            if (DEBUG_MODE){Serial.print("Time applied to SOLD and SOLS: ");Serial.println(timesArray[ID_TIME_SOLD]*(panelArray[ID_POTM]/VALUE_MAX_POTM) ) ;}//delay(1000);
+
+            movementTimer=timesArray[ID_TIME_SOLD]*(panelArray[ID_POTM]/VALUE_MAX_POTM);
+            if (DEBUG_MODE){Serial.print("Time applied to SOLD and SOLS: ");Serial.println(movementTimer) ;}//delay(1000);
             
             //moveBothCylinderDuring(PIN_SOLD, PIN_SOLS, (timesArray[ID_TIME_SOLD])*(panelArray[ID_POTM]/VALUE_MAX_POTM));
             if (!chronoIsRunning){
@@ -648,7 +650,7 @@ void loop() {
             moveCylinderUntilHighPressure(PIN_SOLD, flagHighPressure);
             moveCylinderUntilHighPressure(PIN_SOLS, flagHighPressure);
 
-            if ( (flagHighPressure) || (timesArray[ID_TIME_SOLD]<millis()-timer) ){
+            if ( (flagHighPressure) || (movementTimer<millis()-timer) ){
             
               timer=0;
               chronoIsRunning=false;
