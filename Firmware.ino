@@ -7,6 +7,7 @@ unsigned long blinkingStatusTimer=millis();  // Timer to track the blinking proc
 unsigned long blinkingHighPressureTimer=0;  // Timer to track the blinking procedure for pressure timer.
 boolean flagHighPressure=false; // Flag to track if it was received a highPressure signal.
 unsigned long timer=0;          // Timer to track times.
+unsigned long movementTimer=0;          // Used to calculate the time that is being applied to move a cylinder.
 boolean chronoIsRunning=false;
 
 // Debug mode
@@ -651,17 +652,33 @@ void loop() {
             
               timer=0;
               chronoIsRunning=false;
-              if (DEBUG_MODE){Serial.print("Stage LOAD_SOIL finished. Stop moving SOLS and SOLD.");
-              
-                stage=CLOSE_CHAMBER;
-              }
+              stage=CLOSE_CHAMBER;
+
+              if (DEBUG_MODE){Serial.println("Stage LOAD_SOIL finished. Stop moving SOLS and SOLD.");};
             }
           break;
 
         case CLOSE_CHAMBER:  // Moves the drawer on the main cylinder
-            moveCylinderDuring(PIN_SOLL, (timesArray[ID_TIME_SOLL])*(panelArray[ID_POTD]/VALUE_MAX_POTD), flagHighPressure);
-            stage=COMPRESS_SOIL;
+//            moveCylinderDuring(PIN_SOLL, (timesArray[ID_TIME_SOLL])*(panelArray[ID_POTD]/VALUE_MAX_POTD), flagHighPressure);
+            movementTimer=timesArray[ID_TIME_SOLL]*(panelArray[ID_POTD]/VALUE_MAX_POTD);
+
+            if (!chronoIsRunning){
+              if (DEBUG_MODE){Serial.print("Time applied to SOLL: ");Serial.println(movementTimer) ;}//delay(1000);
+              timer=millis();
+              chronoIsRunning=true;
+            }
+
+            moveCylinderUntilHighPressure(PIN_SOLL, flagHighPressure);
+
+            if ( (flagHighPressure) || (movementTimer<millis()-timer) ){
+
+              timer=0;
+              chronoIsRunning=false;
+              stage=COMPRESS_SOIL;
+              if (DEBUG_MODE){Serial.println("Stage CLOSE_CHAMBER finished.");}
+            }
           break;
+
         case COMPRESS_SOIL: // Compression stage
             moveCylinderUntilHighPressure(PIN_SOLU, flagHighPressure);
     //        moveCylinderDuring(PIN_SOLD,(timesArray[ID_TIME_SOLD])*(panelArray[ID_POTM]/VALUE_MAX_POTM), hpf);
@@ -685,7 +702,7 @@ void loop() {
     substage=0;
 
   }
-  if (DEBUG_MODE) delay(2000);  
+  if (DEBUG_MODE) delay(1000);
 
 }
 
