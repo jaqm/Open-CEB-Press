@@ -6,6 +6,8 @@ short substage;
 unsigned long blinkingStatusTimer=millis();  // Timer to track the blinking procedure.
 unsigned long blinkingHighPressureTimer=0;  // Timer to track the blinking procedure for pressure timer.
 boolean flagHighPressure=false; // Flag to track if it was received a highPressure signal.
+unsigned long timer=0;          // Timer to track times.
+boolean chronoIsRunning=false;
 
 // Debug mode
 const boolean DEBUG_MODE=true;
@@ -526,7 +528,9 @@ void setup() {
     blinkingStatusTimer=millis();
     blinkingHighPressureTimer=0;
     flagHighPressure=false;
-    
+    timer=millis();
+    chronoIsRunning=false;
+
     Serial.begin(9600);
 }
 
@@ -576,19 +580,45 @@ void loop() {
             }else if (substage==2 && !flagHighPressure){
     
               moveCylinderUntilHighPressure(PIN_SOLR, flagHighPressure);
-    
-                if (flagHighPressure) substage++;            
+              if (flagHighPressure) substage++;
+
             }else if (substage==3 && !flagHighPressure){
               stage=CALIBRATE_SOLENOIDS;
               substage=0;
             }
           break;
         case CALIBRATE_SOLENOIDS:       // Get the times we need
-            digitalWrite(PIN_LED_STATUS, VALUE_LED_ENABLED);
-            timesArray[ID_TIME_SOLD] = moveCylinderUntilHighPressureBecomes(PIN_SOLD,flagHighPressure,VALUE_HP_ENABLED);
-            timesArray[ID_TIME_SOLL] = moveCylinderUntilHighPressureBecomes(PIN_SOLL,flagHighPressure,VALUE_HP_ENABLED);
-            //digitalWrite(PIN_LED_STATUS, VALUE_LED_DISABLED);
-            if (flagHighPressure) stage=EJECT_BRICK;
+
+            if (substage==0){
+              if (!chronoIsRunning){
+                timer=millis();
+                chronoIsRunning=true;
+              }
+              moveCylinderUntilHighPressure(PIN_SOLD,flagHighPressure);
+              if (flagHighPressure){
+                timesArray[ID_TIME_SOLD] = millis() - timer;
+                chronoIsRunning=false;
+                timer=0;
+                substage++;
+              }
+              
+
+            }else if (substage==1){
+              
+              if (!chronoIsRunning){
+                timer=millis();
+                chronoIsRunning=true;
+              }
+              moveCylinderUntilHighPressure(PIN_SOLL,flagHighPressure);
+              if (flagHighPressure){
+                timesArray[ID_TIME_SOLL] = millis() - timer;
+                chronoIsRunning=false;
+                timer=0;
+                substage=0;
+                stage=EJECT_BRICK;
+              }
+              
+            }
           break;
         // BRICK SEQUENCE
         case EJECT_BRICK: // Open the chamber
