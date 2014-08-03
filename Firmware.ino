@@ -610,7 +610,9 @@ void loop() {
                 timer=millis();
                 chronoIsRunning=true;
               }
+
               moveCylinderUntilHighPressure(PIN_SOLL,flagHighPressure);
+
               if (flagHighPressure){
                 timesArray[ID_TIME_SOLL] = millis() - timer;
                 if (DEBUG_MODE) {Serial.print("The for SOLL has been: ");Serial.println(timesArray[ID_TIME_SOLL]);}
@@ -634,10 +636,28 @@ void loop() {
             if (flagHighPressure) stage=LOAD_SOIL;
           break;
         case LOAD_SOIL: // Push down the main cilinder and load the room with soil.
-            if (DEBUG_MODE){Serial.print("Time applied to SOLD: ");Serial.println(timesArray[ID_TIME_SOLD]*(panelArray[ID_POTM]/VALUE_MAX_POTM) ) ;}//delay(1000);
-            moveBothCylinderDuring(PIN_SOLD, PIN_SOLS, (timesArray[ID_TIME_SOLD])*(panelArray[ID_POTM]/VALUE_MAX_POTM));
-            stage=CLOSE_CHAMBER;
+            if (DEBUG_MODE){Serial.print("Time applied to SOLD and SOLS: ");Serial.println(timesArray[ID_TIME_SOLD]*(panelArray[ID_POTM]/VALUE_MAX_POTM) ) ;}//delay(1000);
+            
+            //moveBothCylinderDuring(PIN_SOLD, PIN_SOLS, (timesArray[ID_TIME_SOLD])*(panelArray[ID_POTM]/VALUE_MAX_POTM));
+            if (!chronoIsRunning){
+              timer=millis();
+              chronoIsRunning=true;
+            }
+            
+            moveCylinderUntilHighPressure(PIN_SOLD, flagHighPressure);
+            moveCylinderUntilHighPressure(PIN_SOLS, flagHighPressure);
+
+            if ( (flagHighPressure) || (timesArray[ID_TIME_SOLD]<millis()-timer) ){
+            
+              timer=0;
+              chronoIsRunning=false;
+              if (DEBUG_MODE){Serial.print("Stage LOAD_SOIL finished. Stop moving SOLS and SOLD.");
+              
+                stage=CLOSE_CHAMBER;
+              }
+            }
           break;
+
         case CLOSE_CHAMBER:  // Moves the drawer on the main cylinder
             moveCylinderDuring(PIN_SOLL, (timesArray[ID_TIME_SOLL])*(panelArray[ID_POTD]/VALUE_MAX_POTD), flagHighPressure);
             stage=COMPRESS_SOIL;
