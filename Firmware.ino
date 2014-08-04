@@ -163,6 +163,14 @@ uint8_t getOppositeSolenoid(uint8_t pinSol){
 
 // **** DATA HANDLING
 
+// Receiving the values related to the potentiometer and the total time, returns the value that should be applied to the cylinder.
+unsigned long getTimeFromPotentiometer(unsigned long totalTime, uint8_t potValue,uint8_t maxPotValue){
+  unsigned long result=( (3/4) * totalTime * (potValue/maxPotValue) );
+  if (DEBUG_MODE) {Serial.print("The time calculated is: ");Serial.println(result);}
+  return result;
+}
+
+
 // This function inverts a digital value read from a pin like HIGH or LOW.
 // val: HIGH or LOW
 // return: if val=HGH then return LOW, if val=LOW then return HIGH. Default: B00001111.
@@ -638,7 +646,9 @@ void loop() {
           break;
         case LOAD_SOIL: // Push down the main cilinder and load the room with soil.
 
-            movementTimer=timesArray[ID_TIME_SOLD]*(panelArray[ID_POTM]/VALUE_MAX_POTM);
+            //movementTimer=timesArray[ID_TIME_SOLD]*(panelArray[ID_POTM]/VALUE_MAX_POTM);
+            movementTimer=getTimeFromPotentiometer(timesArray[ID_TIME_SOLD],panelArray[ID_POTD],VALUE_MAX_POTM);
+            
             if (DEBUG_MODE){Serial.print("Time applied to SOLD and SOLS: ");Serial.println(movementTimer) ;}//delay(1000);
             
             //moveBothCylinderDuring(PIN_SOLD, PIN_SOLS, (timesArray[ID_TIME_SOLD])*(panelArray[ID_POTM]/VALUE_MAX_POTM));
@@ -662,7 +672,8 @@ void loop() {
 
         case CLOSE_CHAMBER:  // Moves the drawer on the main cylinder
 //            moveCylinderDuring(PIN_SOLL, (timesArray[ID_TIME_SOLL])*(panelArray[ID_POTD]/VALUE_MAX_POTD), flagHighPressure);
-            movementTimer=timesArray[ID_TIME_SOLL]*(panelArray[ID_POTD]/VALUE_MAX_POTD);
+            //movementTimer=timesArray[ID_TIME_SOLL]*(panelArray[ID_POTD]/VALUE_MAX_POTD);
+            movementTimer=getTimeFromPotentiometer(timesArray[ID_TIME_SOLL],panelArray[ID_POTD],VALUE_MAX_POTD);
 
             if (!chronoIsRunning){
               if (DEBUG_MODE){Serial.print("Time applied to SOLL: ");Serial.println(movementTimer) ;}//delay(1000);
