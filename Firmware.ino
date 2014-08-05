@@ -210,25 +210,16 @@ uint8_t revertDigitalSignalValue(uint8_t val){
 // &hpf: high pressure flag.
 void moveCylinderUntilHighPressure(int cylinderPin, boolean &hpf){
 
-  // Variable used to compare 
-//  unsigned long timestamp=millis();
-//  unsigned long result=0;
-  
-  // Debug Mode
   if (DEBUG_MODE){
     Serial.println("moveCylinderUntilHighPressure: ");
     Serial.print("CylinderPin: "); Serial.println(cylinderPin);
   }
 
-  digitalWrite(cylinderPin,VALUE_SOL_ENABLED);                // Cilinder movement.
   if(pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)==VALUE_HP_ENABLED){
     hpf=true;
-    digitalWrite(cylinderPin,VALUE_SOL_DISABLED);
-//    result=(millis()-timestamp);
   
     moveCylinderUntilHighPressureBecomes( getOppositeSolenoid(cylinderPin),hpf,VALUE_HP_DISABLED);  // Release pressure
   
-//    return result;
   }          //
 }
 
@@ -282,15 +273,6 @@ void moveBothCylinderDuring(uint8_t cylinderPin1, uint8_t cylinderPin2, unsigned
   digitalWrite(cylinderPin2,VALUE_SOL_DISABLED);
 
 }
-
-// Initial point is considered for both cylinders as near as possible to the high-pressure point of SOLU and SOLD.
-// &hpf: high pressure flag
-//void goToTheInitialPosition(boolean &hpf){
-//
-//  setSolenoids(VALUE_SOL_DISABLED);
-//  moveCylinderUntilHighPressure(PIN_SOLR, hpf);
-//  moveCylinderUntilHighPressure(PIN_SOLU, hpf);
-//}
 
 // Release the pressure from the solenoids using the data received from the panel.
 // ONLY APPLIES FOR MANUAL MODE.
