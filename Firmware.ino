@@ -310,8 +310,18 @@ void moveCylinderDuring(uint8_t cylinderPin,unsigned long time, boolean &hpf){
 
   unsigned long timestamp=millis();
   
-  digitalWrite(cylinderPin,VALUE_SOL_ENABLED);                // Cylinder movement.
-  while ( (pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)==VALUE_HP_DISABLED)  && (timestamp+time > millis()) ){}
+  while ( (pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)==VALUE_HP_DISABLED)  && (timestamp+time > millis()) ){
+
+    if (DEBUG_MODE){
+      Serial.print("timestamp: ");Serial.println(timestamp);
+      Serial.print("time: ");Serial.println(time);
+      Serial.print("TIMESTAMP+TIME: ");Serial.println(timestamp+time);
+      Serial.print("MILLIS: ");Serial.println(millis());
+//      Serial.print("");Serial.println("");
+    }
+
+    digitalWrite(cylinderPin,VALUE_SOL_ENABLED);                // Cylinder movement.
+  }
   digitalWrite(cylinderPin,VALUE_SOL_DISABLED);
   if (pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)) hpf=true;
 }
