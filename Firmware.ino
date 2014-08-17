@@ -25,6 +25,7 @@ boolean flagHighPressure=false; // Flag to track if it was received a highPressu
 unsigned long timer=0;          // Timer to track times.
 unsigned long movementTimer=0;          // Used to calculate the time that is being applied to move a cylinder.
 boolean chronoIsRunning=false;
+int testModeCylinderPin;  // test mode pin
 
 // Debug mode
 const boolean DEBUG_MODE=true;
@@ -73,7 +74,9 @@ const short LOAD_SOIL = 4;
 const short CLOSE_CHAMBER = 5;
 const short COMPRESS_SOIL = 6;
 const short OPEN_CHAMBER = 7;
-
+//CONST - NULL VALUES
+const int VALUE_PIN_NULL=-1;
+const unsigned long VALUE_TIMER_NULL=0;
 
 // VALUE_MAX_POTM=2^8 ; because a int is compound by 8 bits.
 const int VALUE_MAX_POTM=255;
@@ -124,7 +127,6 @@ const int ID_TIME_SOLL=2;
 const int ID_TIME_SOLR=3;
 const int ID_TIME_SOLS=4;
 
-//**********************************
 // *** END OF CONSTANTS && VARIABLES
 //**********************************
 
@@ -174,12 +176,32 @@ uint8_t getOppositeSolenoid(uint8_t pinSol){
   return opposite;
 }
 
+// Description: Receiving the panelArray, it returns the solenoid pin related to the active input.
+// Default: VALUE_PIN_NULL
+int getActiveCylinder(uint8_t array[]){
+
+  int activePin=VALUE_PIN_NULL;
+  
+  if (array[ID_BUTTON_UP]==VALUE_INPUT_ENABLED){
+    activePin=PIN_SOLU;
+  }else if (array[ID_BUTTON_DOWN]==VALUE_INPUT_ENABLED){
+    activePin=PIN_SOLD;
+  }else if (array[ID_BUTTON_LEFT]==VALUE_INPUT_ENABLED) {
+    activePin=PIN_SOLL;
+  }else if (array[ID_BUTTON_RIGHT]==VALUE_INPUT_ENABLED){
+    activePin=PIN_SOLR;
+  }
+  return activePin;
+}
+
+
 // **** END of GETTERS && SETTERS
 
 // **** DATA HANDLING
 
 // Receiving the values related to the potentiometer and the total time, returns the value that should be applied to the cylinder.
 unsigned long getTimeFromPotentiometer(unsigned long totalTime, uint8_t potValue,uint8_t maxPotValue){
+
   unsigned long result=( (3/4) * totalTime * (potValue/maxPotValue) );
   if (DEBUG_MODE) {Serial.print("The time calculated is: ");Serial.println(result);}
   return result;
@@ -225,6 +247,14 @@ uint8_t revertDigitalSignalValue(uint8_t val){
 //
 //  return (millis()-timestamp);
 //}
+
+
+// ** MACHINE MOVEMENTS -- NON-STOP FUNCTIONS
+
+// Description: Moves the opposite cylinder during a short period of time. Used to release pressure.
+void releasePressure(int cylinderPin, boolean &hpf){
+  moveCylinderUntilHighPressureBecomes( getOppositeSolenoid(cylinderPin),hpf,VALUE_HP_DISABLED);  // Release pressure
+}
 
 // Moves the cylinder to the top position and returns the time itgets to reach that place.
 // cylinderPin: the pin assigned to the cylinder we want to move.
@@ -313,6 +343,8 @@ void releasePressureManualMode(uint8_t array[]){
 
   }
 }
+// ** MACHINE MOVEMENTS -- STATUS FUNCTIONS
+// ** MACHINE MOVEMENTS -- END of STATUS FUNCTIONS
 
 // **** END OF MACHINE MOVEMENTS
 
@@ -345,6 +377,7 @@ void applyManualMode(uint8_t array[], boolean &hpf){
 //}
 
 // **** END OF MACHINE MODES
+// **********************
 // **** READ && SHOW FUNCTIONS
 
 // Reads all the values of the panel, adding a check protection against rebounce, with a delay.
@@ -380,8 +413,8 @@ void readPanel(uint8_t panelArray[], const int d){
   panelArray[ID_BUTTON_RIGHT] = (vR0==vR1?vR0:VALUE_INPUT_DISABLED);
   panelArray[ID_BUTTON_SHAKER] = (vS0==vS1?vS0:VALUE_INPUT_DISABLED);
   panelArray[ID_PRESSURE] = (vP0==vP1?vP0:VALUE_INPUT_DISABLED);
-  panelArray[ID_SWON] = (vSwOn0==vSwOn1?vSwOn0:VALUE_INPUT_DISABLED);
-  panelArray[ID_SWAUTO] = (vSwAuto0==vSwAuto0?vSwAuto0:VALUE_INPUT_DISABLED);
+  panelArray[ID_SWON] = (vSwOn0==vSwOn1?vSwOn0:VALUE_INPUT_SW_DISABLED);
+  panelArray[ID_SWAUTO] = (vSwAuto0==vSwAuto0?vSwAuto0:VALUE_INPUT_SW_DISABLED);
   panelArray[ID_POTM] = (vPotM0==vPotM1?vPotM0:VALUE_INPUT_DISABLED);
   panelArray[ID_POTD] = (vPotD0==vPotD1?vPotD0:VALUE_INPUT_DISABLED);
 
@@ -429,7 +462,7 @@ void updateLeds(uint8_t panel[],unsigned long &sbt, boolean &hpf, unsigned long 
 
   // Blinking procedure - STATUS LED
   // Note: Consider taking out this variable
-  unsigned long timer=((panel[ID_SWAUTO]==VALUE_INPUT_ENABLED)?VALUE_TIME_BLINKING_AUTO:VALUE_TIME_BLINKING_MANUAL);
+  unsigned long timer=((panel[ID_SWAUTO]==VALUE_INPUT_SW_ENABLED)?VALUE_TIME_BLINKING_AUTO:VALUE_TIME_BLINKING_MANUAL);
   unsigned long presentTime=millis();
   uint8_t value=0;
   uint8_t value1=0;
@@ -536,7 +569,9 @@ void setup() {
     flagHighPressure=false;
     timer=millis();
     chronoIsRunning=false;
-
+    testModeCylinderPin=VALUE_PIN_NULL;
+    movementTimer=VALUE_TIMER_NULL;
+    
     Serial.begin(9600);
 }
 
@@ -546,21 +581,26 @@ void loop() {
   updateLeds(panelArray, blinkingStatusTimer, flagHighPressure, blinkingHighPressureTimer);
   if (DEBUG_MODE){ printPanel(panelArray); printTimesArray(timesArray);};
 
-  if (panelArray[ID_SWON]==VALUE_INPUT_ENABLED){  // Power ON
+  if (panelArray[ID_SWON]==VALUE_INPUT_SW_ENABLED){  // Power ON
+
     if (DEBUG_MODE) Serial.println("I'm ON!");
+
+    // Set test-mode values to the default
+    testModeCylinderPin=VALUE_PIN_NULL;
     
-    if (panelArray[ID_SWAUTO]==VALUE_INPUT_DISABLED){ // Manual mode
+    if (panelArray[ID_SWAUTO]==VALUE_INPUT_SW_DISABLED){ // Manual mode
       if (DEBUG_MODE) Serial.println("I'm on MANUAL MODE!");
 
       // Set auto-mode values to the default
       stage=FAILSAFE_STAGE;
       substage=0;
+      movementTimer=VALUE_TIMER_NULL;
 
       // Apply manual-mode.
       applyManualMode(panelArray,flagHighPressure);
-      releasePressureManualMode(panelArray);
       
-    }else{                            // Auto mode
+    }else{                            // AUTO MODE
+
       if (DEBUG_MODE){
         Serial.println("I'm on AUTO MODE!"); Serial.print("Stage: ");Serial.println(stage); Serial.print(" SubStage: ");Serial.println(substage);
       }
@@ -711,8 +751,21 @@ void loop() {
     stage=FAILSAFE_STAGE;
     substage=0;
 
+    // TEST MODE
+    // Apply test-mode.
+    if (testModeCylinderPin==VALUE_PIN_NULL){
+      testModeCylinderPin = getActiveCylinder(panelArray);
+    }else{
+      moveCylinderUntilHighPressure(testModeCylinderPin,flagHighPressure);
+      if (flagHighPressure){
+        releasePressure(testModeCylinderPin,flagHighPressure);
+        testModeCylinderPin==VALUE_PIN_NULL;      }
+    } 
+
   }
-  if (DEBUG_MODE) delay(1000);
+//  if (DEBUG_MODE) delay(1000);
 
 }
+
+
 
