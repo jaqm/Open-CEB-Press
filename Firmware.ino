@@ -1,4 +1,20 @@
 
+  //******************
+  // ** TODO **
+  // MAIN CYLINDER: we want all the time travel
+  // If the potM value is close to the maximum we want to move it until High pressure
+  // DRAW CYLINDER: we want to be able to move it from the 1/4 to the 3/4
+  // *****************
+  // DONE:
+  // SHAKER: we want to be able to move the shaker when the cylinders are NOT moving under timing. (<- Beginning of the auto-mode)
+  //******************
+  
+
+// NOTES:
+// * untilHighPressure functions always release pressure
+// * EVERY MODE: always release pressure after reaching the high pressure point.
+//     This is a must and have to be applied with the releasePressure() function,  
+//     which is a non-stop function until high pressure becomes disabled.
 
 // loop() variables
 short stage;       // Defines the stage for the auto-mode.
