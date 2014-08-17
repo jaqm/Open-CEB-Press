@@ -269,10 +269,9 @@ void moveCylinderUntilHighPressure(int cylinderPin, boolean &hpf){
 
   if(pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)==VALUE_HP_ENABLED){
     hpf=true;
-  
-    moveCylinderUntilHighPressureBecomes( getOppositeSolenoid(cylinderPin),hpf,VALUE_HP_DISABLED);  // Release pressure
-  
-  }          //
+    //    moveCylinderUntilHighPressureBecomes( getOppositeSolenoid(cylinderPin),hpf,VALUE_HP_DISABLED);  // Release pressure
+    releasePressure(cylinderPin,hpf);
+  }
 }
 
 // Moves the cylinder until high pressure sensor reaches the value secified and returns the time itgets to reach that place.
@@ -373,6 +372,7 @@ void applyManualMode(uint8_t array[], boolean &hpf){
     if (DEBUG_MODE){Serial.println("Warning: high pressure signal detected. Switching off solenoids.");}
     hpf=true;
     setSolenoids(VALUE_SOL_DISABLED);
+    releasePressureManualMode(panelArray);
   }
 }
 
@@ -631,7 +631,11 @@ void loop() {
         case FAILSAFE_STAGE:    // FAILSAFE_STAGE: Startup procedure
     
             setSolenoids(VALUE_SOL_DISABLED);                                   // switch off the solenoids - as described in the documentation.
-            moveCylinderDuring(PIN_SOLD,VALUE_TIME_RELEASE_PRESSURE_STAGE, flagHighPressure);	  // Release pressure
+
+            // Release pressure from SOLU if neccesary.
+            if (panelArray[ID_PRESSURE]==VALUE_HP_ENABLED) releasePressure(PIN_SOLU,flagHighPressure);
+            
+
             if (substage==0 && !flagHighPressure){
       
               moveCylinderUntilHighPressure(PIN_SOLL, flagHighPressure);          // Clean the platform and goes to the initial position.
