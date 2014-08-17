@@ -32,19 +32,24 @@ const boolean DEBUG_VERBOSE_MODE=false;
 const boolean DEBUG_LED_MODE=false;
 
 // STANDARD VALUES
-// inputs
+// inputs :: UP-LEFT-RIGHT-DOWN-SHAKER
 const uint8_t VALUE_INPUT_ENABLED = LOW;
 const uint8_t VALUE_INPUT_DISABLED = HIGH;
+
+// inputs :: SWON - SWAUTO
+const uint8_t VALUE_INPUT_SW_ENABLED = HIGH;
+const uint8_t VALUE_INPUT_SW_DISABLED = LOW;
+
 // inputs - high pressure sensor
 //// Real values
-const uint8_t VALUE_HP_ENABLED = LOW;
-const uint8_t VALUE_HP_DISABLED = HIGH;
+const uint8_t VALUE_HP_ENABLED = HIGH;
+const uint8_t VALUE_HP_DISABLED = LOW;
 //// For testing auto-mode purpose.
 //const uint8_t VALUE_HP_ENABLED = HIGH;
 //const uint8_t VALUE_HP_DISABLED = LOW;
 // outputs - Solenoids
-const uint8_t VALUE_SOL_ENABLED=LOW;
-const uint8_t VALUE_SOL_DISABLED=HIGH;
+const uint8_t VALUE_SOL_ENABLED=HIGH;
+const uint8_t VALUE_SOL_DISABLED=LOW;
 // outputs - leds
 const uint8_t VALUE_LED_ENABLED = LOW;
 const uint8_t VALUE_LED_DISABLED = HIGH;
