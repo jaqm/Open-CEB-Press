@@ -5,7 +5,8 @@
   // DRAW CYLINDER: we want to be able to move it from the 1/4 to the 3/4
   // *****************
   // ** DONE **
-  // SHAKER: we want to be able to move the shaker when the cylinders are NOT moving under timing. (<- Beginning of the auto-mode)
+  // - SHAKER: we want to be able to move the shaker when the cylinders are NOT moving under timing. (<- Beginning of the auto-mode)
+  // - Added Test mode.
   //******************
   
 
