@@ -1,12 +1,12 @@
   //******************
   // ** TODO **
-  // MAIN CYLINDER: we want all the time travel
-  // If the potM value is close to the maximum we want to move it until High pressure
   // DRAW CYLINDER: we want to be able to move it from the 1/4 to the 3/4
   // *****************
   // ** DONE **
   // - SHAKER: we want to be able to move the shaker when the cylinders are NOT moving under timing. (<- Beginning of the auto-mode)
   // - Added Test mode.
+  // MAIN CYLINDER: we want all the time travel
+  // If the potM value is close to the maximum we want to move it until High pressure
   //******************
   
 
@@ -720,23 +720,29 @@ void loop() {
         case LOAD_SOIL: // Push down the main cilinder and load the room with soil.
 
             // MAIN CYLINDER - POTM behaviour: we want all the time travel
-            // If the potM value is close to the maximum we want to move it until High pressure
-            movementTimer=getTimeFromPotentiometer(timesArray[ID_TIME_SOLD],panelArray[ID_POTD],VALUE_MAX_POTM);
-            
-            if (DEBUG_MODE){Serial.print("Time applied to SOLD and SOLS: ");Serial.println(movementTimer) ;}//delay(1000);
-            
-            //moveBothCylinderDuring(PIN_SOLD, PIN_SOLS, (timesArray[ID_TIME_SOLD])*(panelArray[ID_POTM]/VALUE_MAX_POTM));
-            if (!chronoIsRunning){
-              timer=millis();
-              chronoIsRunning=true;
+            // Two behaviours dependending on the potM value:
+            // panelArray[ID_POTM]/VALUE_MAX_POTM < 0.95 ( close to the maximum) we want to move it until High pressure.
+            // In other case: go into timed mode.
+            if (panelArray[ID_POTM]/VALUE_MAX_POTM < 0.95){ // Go into timing mode
+  
+              movementTimer = timesArray[ID_TIME_SOLD] * (panelArray[ID_POTM]/VALUE_MAX_POTM);
+              if (DEBUG_MODE){Serial.print("Time applied to SOLD and SOLS: ");Serial.println(movementTimer) ;}//delay(1000);
+              
+              //moveBothCylinderDuring(PIN_SOLD, PIN_SOLS, (timesArray[ID_TIME_SOLD])*(panelArray[ID_POTM]/VALUE_MAX_POTM));
+              if (!chronoIsRunning){
+                timer=millis();
+                chronoIsRunning=true;
+              }
+              
             }
             
             moveCylinderUntilHighPressure(PIN_SOLD, flagHighPressure);
             moveCylinderUntilHighPressure(PIN_SOLS, flagHighPressure);
 
             if ( (flagHighPressure) || (movementTimer<millis()-timer) ){
-            
-              timer=0;
+
+              setSolenoids(VALUE_SOL_DISABLED);                
+              timer=VALUE_TIMER_NULL;
               chronoIsRunning=false;
               stage=CLOSE_CHAMBER;
 
