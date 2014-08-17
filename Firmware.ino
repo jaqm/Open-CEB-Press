@@ -78,8 +78,8 @@ int PIN_SOLR=PIN_B3;    //solenoid for drawer right
 int PIN_SOLS=PIN_B2;    //solenoid for shaker motor 
 
 // OUTPUTS - leds
-int PIN_LED_STATUS=PIN_E0;
-int PIN_LED_HIGH_PRESSURE=PIN_E1;
+int PIN_LED_STATUS=PIN_E1;
+int PIN_LED_HIGH_PRESSURE=PIN_E0;
 
 // PANEL ARRAY - it contains all the input panel values.
 const int ID_SWON=0;
