@@ -26,6 +26,8 @@ unsigned long timer=0;          // Timer to track times.
 unsigned long movementTimer=0;          // Used to calculate the time that is being applied to move a cylinder.
 boolean chronoIsRunning=false;
 int testModeCylinderPin;  // test mode pin
+unsigned long auxTimer;  // used to store times for debug purposes at any time in the code. 
+//boolean mainCylinderTimingMode=false;
 
 // Debug mode
 const boolean DEBUG_MODE=true;
@@ -120,7 +122,7 @@ const int SENSORS_AMOUNT=10;
 uint8_t panelArray[SENSORS_AMOUNT];  // The array which contains all the input panel variables.
 
 // TIMESARRAY
-unsigned long timesArray[]={0,0,0,0,0};
+unsigned long timesArray[]={VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL};
 const int ID_TIME_SOLU=0;
 const int ID_TIME_SOLD=1;
 const int ID_TIME_SOLL=2;
@@ -591,12 +593,14 @@ void setup() {
     stage=FAILSAFE_STAGE;
     substage=0;
     blinkingStatusTimer=millis();
-    blinkingHighPressureTimer=0;
+    blinkingHighPressureTimer=VALUE_TIMER_NULL;
     flagHighPressure=false;
     timer=millis();
     chronoIsRunning=false;
     testModeCylinderPin=VALUE_PIN_NULL;
     movementTimer=VALUE_TIMER_NULL;
+    auxTimer=VALUE_TIMER_NULL;
+//    mainCylinderTimingMode=false;
     
     Serial.begin(9600);
 }
@@ -646,9 +650,11 @@ void loop() {
             setSolenoids(VALUE_SOL_DISABLED);                                   // switch off the solenoids - as described in the documentation.
 
             // Release pressure from SOLU if neccesary.
-            if (panelArray[ID_PRESSURE]==VALUE_HP_ENABLED) releasePressure(PIN_SOLU,flagHighPressure); // TODO: Implement a releaseHighPressureOnAllSolenoids().
+            if (panelArray[ID_PRESSURE]==VALUE_HP_ENABLED) {
+              auxTimer=releasePressure(PIN_SOLU,flagHighPressure); // TODO: Implement a releaseHighPressureOnAllSolenoids().
+              if (DEBUG_MODE) Serial.print("Time measured to release pressure: ");Serial.println(auxTimer);
+            }
             
-
             if (substage==0 && !flagHighPressure){
       
               moveCylinderUntilHighPressure(PIN_SOLL, flagHighPressure);          // Clean the platform and goes to the initial position.
@@ -681,7 +687,7 @@ void loop() {
                 timesArray[ID_TIME_SOLD] = millis() - timer;
                 if (DEBUG_MODE) {Serial.print("The for SOLD has been: ");Serial.println(timesArray[ID_TIME_SOLD]);}
                 chronoIsRunning=false;
-                timer=0;
+                timer=VALUE_TIMER_NULL;
                 substage++;
               }
               
@@ -699,7 +705,7 @@ void loop() {
                 timesArray[ID_TIME_SOLL] = millis() - timer;
                 if (DEBUG_MODE) {Serial.print("The for SOLL has been: ");Serial.println(timesArray[ID_TIME_SOLL]);}
                 chronoIsRunning=false;
-                timer=0;
+                timer=VALUE_TIMER_NULL;
                 substage=0;
                 stage=EJECT_BRICK;
               }
@@ -735,7 +741,6 @@ void loop() {
               }
               
             }
-            
             moveCylinderUntilHighPressure(PIN_SOLD, flagHighPressure);
             moveCylinderUntilHighPressure(PIN_SOLS, flagHighPressure);
 
@@ -744,10 +749,13 @@ void loop() {
               setSolenoids(VALUE_SOL_DISABLED);                
               timer=VALUE_TIMER_NULL;
               chronoIsRunning=false;
+              movementTimer=VALUE_TIMER_NULL;
               stage=CLOSE_CHAMBER;
 
               if (DEBUG_MODE){Serial.println("Stage LOAD_SOIL finished. Stop moving SOLS and SOLD.");};
             }
+
+
           break;
 
         case CLOSE_CHAMBER:  // Moves the drawer on the main cylinder
@@ -765,7 +773,7 @@ void loop() {
 
             if ( (flagHighPressure) || (movementTimer<millis()-timer) ){
 
-              timer=0;
+              timer=VALUE_TIMER_NULL;
               chronoIsRunning=false;
               stage=COMPRESS_SOIL;
               if (DEBUG_MODE){Serial.println("Stage CLOSE_CHAMBER finished.");}
