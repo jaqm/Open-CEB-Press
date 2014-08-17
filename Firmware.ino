@@ -782,12 +782,14 @@ void loop() {
   
   }else{                              // SWON is Disabled -> TEST MODE
     if (DEBUG_MODE) Serial.println("SWON is DISABLED -> I'm on TEST-MODE!");
-    setSolenoids(VALUE_SOL_DISABLED);
-    stage=FAILSAFE_STAGE;
-    substage=0;
 
     // Apply test-mode.
     if (testModeCylinderPin==VALUE_PIN_NULL){
+      // Init default values for the other modes
+      setSolenoids(VALUE_SOL_DISABLED);
+      stage=FAILSAFE_STAGE;
+      substage=0;
+
       testModeCylinderPin = getActiveCylinder(panelArray);
     }else{
       moveCylinderUntilHighPressure(testModeCylinderPin,flagHighPressure);
