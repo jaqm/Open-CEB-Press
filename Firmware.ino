@@ -1,11 +1,10 @@
-
   //******************
   // ** TODO **
   // MAIN CYLINDER: we want all the time travel
   // If the potM value is close to the maximum we want to move it until High pressure
   // DRAW CYLINDER: we want to be able to move it from the 1/4 to the 3/4
   // *****************
-  // DONE:
+  // ** DONE **
   // SHAKER: we want to be able to move the shaker when the cylinders are NOT moving under timing. (<- Beginning of the auto-mode)
   //******************
   
@@ -781,13 +780,12 @@ void loop() {
 
     }
   
-  }else{                              // Power OFF
-    if (DEBUG_MODE) Serial.println("I'm OFF!");
+  }else{                              // SWON is Disabled -> TEST MODE
+    if (DEBUG_MODE) Serial.println("SWON is DISABLED -> I'm on TEST-MODE!");
     setSolenoids(VALUE_SOL_DISABLED);
     stage=FAILSAFE_STAGE;
     substage=0;
 
-    // TEST MODE
     // Apply test-mode.
     if (testModeCylinderPin==VALUE_PIN_NULL){
       testModeCylinderPin = getActiveCylinder(panelArray);
@@ -802,6 +800,5 @@ void loop() {
 //  if (DEBUG_MODE) delay(1000);
 
 }
-
 
 
