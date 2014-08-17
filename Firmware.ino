@@ -645,7 +645,7 @@ void loop() {
             setSolenoids(VALUE_SOL_DISABLED);                                   // switch off the solenoids - as described in the documentation.
 
             // Release pressure from SOLU if neccesary.
-            if (panelArray[ID_PRESSURE]==VALUE_HP_ENABLED) releasePressure(PIN_SOLU,flagHighPressure);
+            if (panelArray[ID_PRESSURE]==VALUE_HP_ENABLED) releasePressure(PIN_SOLU,flagHighPressure); // TODO: Implement a releaseHighPressureOnAllSolenoids().
             
 
             if (substage==0 && !flagHighPressure){
