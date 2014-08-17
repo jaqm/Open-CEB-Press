@@ -278,6 +278,7 @@ void moveCylinderUntilHighPressure(int cylinderPin, boolean &hpf){
 // cylinderPin: the pin assigned to the cylinder we want to move.
 // &hpf: high pressure flag.
 // hpv: the High Pressure Value we want to reach.
+// Return: time used to reach the desired high pressure value.
 unsigned long moveCylinderUntilHighPressureBecomes(int cylinderPin, boolean &hpf, uint8_t hpv){
 
   // Variable used to compare 
@@ -290,8 +291,9 @@ unsigned long moveCylinderUntilHighPressureBecomes(int cylinderPin, boolean &hpf
     Serial.print("CylinderPin: "); Serial.println(cylinderPin);
   }
 
-  digitalWrite(cylinderPin,VALUE_SOL_ENABLED);                // Cilinder movement.
-  while(pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)!=hpv){}
+  while(pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)!=hpv){
+    digitalWrite(cylinderPin,VALUE_SOL_ENABLED);                // Cilinder movement.
+  }
   if (pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)==VALUE_HP_ENABLED){hpf=true;}
   digitalWrite(cylinderPin,VALUE_SOL_DISABLED);
 
