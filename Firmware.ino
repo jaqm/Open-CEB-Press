@@ -253,25 +253,9 @@ uint8_t revertDigitalSignalValue(uint8_t val){
 // ** MACHINE MOVEMENTS -- NON-STOP FUNCTIONS
 
 // Description: Moves the opposite cylinder during a short period of time. Used to release pressure.
-void releasePressure(int cylinderPin, boolean &hpf){
-  moveCylinderUntilHighPressureBecomes( getOppositeSolenoid(cylinderPin),hpf,VALUE_HP_DISABLED);  // Release pressure
-}
-
-// Moves the cylinder to the top position and returns the time itgets to reach that place.
-// cylinderPin: the pin assigned to the cylinder we want to move.
-// &hpf: high pressure flag.
-void moveCylinderUntilHighPressure(int cylinderPin, boolean &hpf){
-
-  if (DEBUG_MODE){
-    Serial.println("moveCylinderUntilHighPressure: ");
-    Serial.print("CylinderPin: "); Serial.println(cylinderPin);
-  }
-
-  if(pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)==VALUE_HP_ENABLED){
-    hpf=true;
-    //    moveCylinderUntilHighPressureBecomes( getOppositeSolenoid(cylinderPin),hpf,VALUE_HP_DISABLED);  // Release pressure
-    releasePressure(cylinderPin,hpf);
-  }
+unsigned long releasePressure(int cylinderPin, boolean &hpf){
+  if (DEBUG_MODE) Serial.println("Releasing pressure");
+  return moveCylinderUntilHighPressureBecomes( getOppositeSolenoid(cylinderPin),hpf,VALUE_HP_DISABLED);  // Release pressure
 }
 
 // Moves the cylinder until high pressure sensor reaches the value secified and returns the time itgets to reach that place.
@@ -298,6 +282,23 @@ unsigned long moveCylinderUntilHighPressureBecomes(int cylinderPin, boolean &hpf
   digitalWrite(cylinderPin,VALUE_SOL_DISABLED);
 
   return (millis()-timestamp);
+}
+
+// Moves the cylinder to the top position and returns the time itgets to reach that place.
+// cylinderPin: the pin assigned to the cylinder we want to move.
+// &hpf: high pressure flag.
+void moveCylinderUntilHighPressure(int cylinderPin, boolean &hpf){
+
+  if (DEBUG_MODE){
+    Serial.println("moveCylinderUntilHighPressure: ");
+    Serial.print("CylinderPin: "); Serial.println(cylinderPin);
+  }
+
+  if(pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)==VALUE_HP_ENABLED){
+    hpf=true;
+    //    moveCylinderUntilHighPressureBecomes( getOppositeSolenoid(cylinderPin),hpf,VALUE_HP_DISABLED);  // Release pressure
+    releasePressure(cylinderPin,hpf);
+  }
 }
 
 // Description: Moves the cylinder during the time specified.
