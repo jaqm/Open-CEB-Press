@@ -621,6 +621,12 @@ void loop() {
       // Checks, if needed.
 
 //      applyAutoMode(panelArray, timesArray, stage, substage, flagHighPressure);
+
+      // Being able to move the shaker at any time in auto-mode if the !chronoIsRunning
+      if (panelArray[ID_BUTTON_SHAKER]==VALUE_INPUT_ENABLED && !chronoIsRunning){
+        digitalWrite(PIN_SOLS,VALUE_SOL_ENABLED);
+      }else digitalWrite(PIN_SOLS,VALUE_SOL_DISABLED);
+
       switch(stage){
         case FAILSAFE_STAGE:    // FAILSAFE_STAGE: Startup procedure
     
