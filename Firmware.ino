@@ -282,11 +282,11 @@ unsigned long moveCylinderUntilHighPressureBecomes(int cylinderPin, boolean &hpf
 
   // Variable used to compare 
   unsigned long timestamp=millis();
-  uint8_t highPressure=revertDigitalSignalValue(hpv);
+//  uint8_t highPressure=revertDigitalSignalValue(hpv);
 
   // Debug Mode
   if (DEBUG_MODE){
-    Serial.println("moveCylinderUntilHighPressure: ");
+    Serial.print("moveCylinderUntilHighPressureBecomes: ");Serial.println(hpv);
     Serial.print("CylinderPin: "); Serial.println(cylinderPin);
   }
 
