@@ -224,6 +224,7 @@ uint8_t revertDigitalSignalValue(uint8_t val){
 }
 
 // **** END of DATA HANDLING
+// **********************
 // **** MACHINE MOVEMENTS
 
 //// Moves the cylinder until high pressure sensor reaches the value secified and returns the time itgets to reach that place.
@@ -298,7 +299,11 @@ unsigned long moveCylinderUntilHighPressureBecomes(int cylinderPin, boolean &hpf
   return (millis()-timestamp);
 }
 
-// Moves the cylinder during the time specified.
+// Description: Moves the cylinder during the time specified.
+// As we are always releasing pressure after any cylinder movement we can check the high pressure sensor in this function, 
+// which is good for the machine.
+// This function will not stop the movement until high pressure or reaching the specified time. So it's recommeded for short periods of time.
+// * Input - Outputs - return values *
 // cylinderPin: the pin assigned to the cylinder.
 // time: the time (milliseconds) that we want to move the cylinder.
 // &hpf: high pressure flag.
@@ -324,6 +329,8 @@ void moveBothCylinderDuring(uint8_t cylinderPin1, uint8_t cylinderPin2, unsigned
   digitalWrite(cylinderPin2,VALUE_SOL_DISABLED);
 
 }
+
+// ** MACHINE MOVEMENTS -- END of NON-STOP FUNCTIONS
 
 // Release the pressure from the solenoids using the data received from the panel.
 // ONLY APPLIES FOR MANUAL MODE.
@@ -501,6 +508,12 @@ void updateLeds(uint8_t panel[],unsigned long &sbt, boolean &hpf, unsigned long 
     }
     digitalWrite(PIN_LED_HIGH_PRESSURE,VALUE_LED_HIGHPRESSURE_ENABLED);
     hpt=presentTime;
+    // ******
+    // This is the only place in the code where highPressureFlag becomes false.
+    // Take care about this detail for the rest of the code to be consistent.
+    // High pressure flag != highPressureSensor input. This flag is to track the high pressure sensor led behaviour.
+    // To know the real state of the high pressure sensor input just check the input.
+    // ******
     hpf=false;
     if (DEBUG_LED_MODE){Serial.println("HIGH PRESSURE LED HAS BEEN UPDATED.");delay(10000);}
 
@@ -683,7 +696,8 @@ void loop() {
           break;
         case LOAD_SOIL: // Push down the main cilinder and load the room with soil.
 
-            //movementTimer=timesArray[ID_TIME_SOLD]*(panelArray[ID_POTM]/VALUE_MAX_POTM);
+            // MAIN CYLINDER - POTM behaviour: we want all the time travel
+            // If the potM value is close to the maximum we want to move it until High pressure
             movementTimer=getTimeFromPotentiometer(timesArray[ID_TIME_SOLD],panelArray[ID_POTD],VALUE_MAX_POTM);
             
             if (DEBUG_MODE){Serial.print("Time applied to SOLD and SOLS: ");Serial.println(movementTimer) ;}//delay(1000);
