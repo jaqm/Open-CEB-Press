@@ -122,7 +122,7 @@ uint8_t digitalInputs[AMOUNT_DIGITAL_INPUTS];  // The array which contains all t
 // ANALOG INPUTS ARRAY
 const int ID_POTD=0;
 const int ID_POTM=1;
-const int AMOUNT_ANALOG_SENSORS=2;
+const int AMOUNT_ANALOG_INPUTS=2;
 float analogInputs[AMOUNT_ANALOG_INPUTS];
 
 // TIMESARRAY
@@ -182,7 +182,7 @@ uint8_t getOppositeSolenoid(uint8_t pinSol){
   return opposite;
 }
 
-// Description: Receiving the panelArray, it returns the solenoid pin related to the active input.
+// Description: Receiving the digitalInputs, it returns the solenoid pin related to the active input.
 // Default: VALUE_PIN_NULL
 int getActiveCylinder(uint8_t array[]){
 
@@ -413,7 +413,7 @@ void applyManualMode(uint8_t digitalInputs[], boolean &hpf){
 // **** READ && SHOW FUNCTIONS
 
 // Reads all the values of the panel, adding a check protection against rebounce, with a delay.
-void readPanel(uint8_t panelArray[], const int d){  
+void readPanel(uint8_t digitalInputs[], float analogInputs[], const int d){  
   
   uint8_t vU0 = digitalRead(PIN_BUTTON_UP);
   uint8_t vD0 = digitalRead(PIN_BUTTON_DOWN);
@@ -463,8 +463,8 @@ void printPanel(uint8_t panel[], float analogInputs[]){
   Serial.print("Button RIGHT: "); Serial.println(panel[ID_BUTTON_RIGHT],DEC);
   Serial.print("Button SHAKER: "); Serial.println(panel[ID_BUTTON_SHAKER],DEC);
   Serial.print("High PRESSURE: "); Serial.println(panel[ID_PRESSURE],DEC);
-  Serial.print("Main Potentiometer: "); Serial.println(panel[ID_POTM],DEC);
-  Serial.print("Drawer potentiometer: "); Serial.println(panel[ID_POTD],DEC);
+  Serial.print("Main Potentiometer: "); Serial.println(analogInputs[ID_POTM],DEC);
+  Serial.print("Drawer potentiometer: "); Serial.println(analogInputs[ID_POTD],DEC);
   Serial.println("********************************************"); 
 
 }
@@ -637,7 +637,7 @@ void loop() {
       movementTimer=VALUE_TIMER_NULL;
 
       // Apply manual-mode.
-      applyManualMode(panelArray,flagHighPressure);
+      applyManualMode(digitalInputs,flagHighPressure);
       
     }else{                            // AUTO MODE
 
@@ -795,7 +795,7 @@ void loop() {
 
         case COMPRESS_SOIL: // Compression stage
             moveCylinderUntilHighPressure(PIN_SOLU, flagHighPressure);
-    //        moveCylinderDuring(PIN_SOLD,(timesArray[ID_TIME_SOLD])*(panelArray[ID_POTM]/VALUE_MAX_POTM), hpf);
+    //        moveCylinderDuring(PIN_SOLD,(timesArray[ID_TIME_SOLD])*(digitalInputs[ID_POTM]/VALUE_MAX_POTM), hpf);
             if (flagHighPressure) stage=OPEN_CHAMBER;
             break;
         case OPEN_CHAMBER: // Open the chamber
