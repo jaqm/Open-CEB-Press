@@ -16,17 +16,21 @@
 // * Every mode, stage and substage must release pressure after reaching the high pressure point.
 //     This is a must and will be applied using the releasePressure() function,
 //     which is a non-stop function that runs until the high pressure pressure reaches the disabled status.
+//***********************************
 
-// loop() variables
-short stage;       // Defines the stage for the auto-mode.
-short substage;
-unsigned long blinkingStatusTimer=millis();  // Timer to track the blinking procedure.
-unsigned long blinkingHighPressureTimer=0;  // Timer to track the blinking procedure for pressure timer.
+// loop() variables - general purpose
 boolean flagHighPressure=false; // Flag to track if it was received a highPressure signal.
-unsigned long timer=0;          // Timer to track times.
-unsigned long movementTimer=0;          // Used to calculate the time that is being applied to move a cylinder.
-boolean chronoIsRunning=false;
+boolean chronoIsRunning=false;  // Flag to know if we are running the chrono.
+// loop() variables - auto-mode
+short stage;       // Defines the stage for the auto-mode.
+short substage;    // Defines the substage for the auto-mode.
+// loop() variables - test-mode
 int testModeCylinderPin;  // test mode pin
+// loop() variables - Timers
+unsigned long blinkingStatusTimer;  // Timer to track the blinking procedure.
+unsigned long blinkingHighPressureTimer;  // Timer to track the timing for the blinking procedure of the pressure sensor led.
+unsigned long timer;          // Timer to track times.
+unsigned long movementTimer;          // Used to calculate the time that is being applied to move the main and the drawer cylinder.
 unsigned long auxTimer;  // used to store times for debug purposes at any time in the code. 
 //boolean mainCylinderTimingMode=false;
 
