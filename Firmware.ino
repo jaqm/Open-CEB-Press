@@ -815,8 +815,9 @@ void loop() {
     }else{
       moveCylinderUntilHighPressure(testModeCylinderPin,flagHighPressure);
       if (flagHighPressure){
-        releasePressure(testModeCylinderPin,flagHighPressure);
-        testModeCylinderPin=VALUE_PIN_NULL;      
+        auxTimer= releasePressure(testModeCylinderPin,flagHighPressure);
+        testModeCylinderPin=VALUE_PIN_NULL;
+        if (DEBUG_MODE) {Serial.print("It took ");Serial.print(auxTimer); Serial.print(" to relase th pressure from pin ");Serial.println(testModeCylinderPin);}
       }
     } 
 
