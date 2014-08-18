@@ -257,6 +257,7 @@ uint8_t revertDigitalSignalValue(uint8_t val){
 
 // Description: Moves the opposite cylinder during a short period of time. Used to release pressure.
 unsigned long releasePressure(int cylinderPin, boolean &hpf){
+  unsigned long auxT=VALUE_TIMER_NULL;
   if (DEBUG_MODE) Serial.println("Releasing pressure");
   auxT = moveCylinderUntilHighPressureBecomes( getOppositeSolenoid(cylinderPin),hpf,VALUE_HP_DISABLED);  // Release pressure
   if (DEBUG_MODE) Serial.print("Time measured to release pressure: ");Serial.println(auxT);
@@ -653,14 +654,6 @@ void loop() {
         case FAILSAFE_STAGE:    // FAILSAFE_STAGE: Startup procedure
     
             if (substage==0 && !flagHighPressure){
-      
-              moveCylinderUntilHighPressure(PIN_SOLL, flagHighPressure);          // Clean the platform and goes to the initial position.
-      
-              if (flagHighPressure) substage++;
-            }else if (substage==1 && !flagHighPressure){
-    
-                moveCylinderUntilHighPressure(PIN_SOLU, flagHighPressure);
-    
 
               setSolenoids(VALUE_SOL_DISABLED);                                   // switch off the solenoids - as described in the documentation.
                 // Release pressure from SOLU if neccesary.
@@ -671,13 +664,21 @@ void loop() {
               substage++;
 
             }else if (substage==1 && !flagHighPressure){
-                if (flagHighPressure) substage++;
+      
+              moveCylinderUntilHighPressure(PIN_SOLL, flagHighPressure);          // Clean the platform and goes to the initial position.
+              if (flagHighPressure) substage++;
+
             }else if (substage==2 && !flagHighPressure){
+    
+                moveCylinderUntilHighPressure(PIN_SOLU, flagHighPressure);
+    
+                if (flagHighPressure) substage++;
+            }else if (substage==3 && !flagHighPressure){
     
               moveCylinderUntilHighPressure(PIN_SOLR, flagHighPressure);
               if (flagHighPressure) substage++;
 
-            }else if (substage==3 && !flagHighPressure){
+            }else if (substage==4 && !flagHighPressure){
               stage=CALIBRATE_SOLENOIDS;
               substage=0;
             }
