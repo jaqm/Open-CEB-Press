@@ -13,9 +13,9 @@
 
 // NOTES:
 // * untilHighPressure functions always release pressure
-// * EVERY MODE: always release pressure after reaching the high pressure point.
-//     This is a must and have to be applied with the releasePressure() function,  
-//     which is a non-stop function until high pressure becomes disabled.
+// * Every mode, stage and substage must release pressure after reaching the high pressure point.
+//     This is a must and will be applied using the releasePressure() function,
+//     which is a non-stop function that runs until the high pressure pressure reaches the disabled status.
 
 // loop() variables
 short stage;       // Defines the stage for the auto-mode.
