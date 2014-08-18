@@ -423,8 +423,8 @@ void readPanel(uint8_t digitalInputs[], float analogInputs[], const int d){
   uint8_t vP0 = digitalRead(PIN_PRESSURE);
   uint8_t vSwOn0 = digitalRead(PIN_SWON);
   uint8_t vSwAuto0 = digitalRead(PIN_SWAUTO);
-  uint8_t vPotM0 = analogRead(PIN_POTM);
-  uint8_t vPotD0 = analogRead(PIN_POTD);
+//  float vPotM0 = analogRead(PIN_POTM);
+//  float vPotD0 = analogRead(PIN_POTD);
   
   delay(d);
   
@@ -436,8 +436,8 @@ void readPanel(uint8_t digitalInputs[], float analogInputs[], const int d){
   uint8_t vP1 = digitalRead(PIN_PRESSURE);
   uint8_t vSwOn1 = digitalRead(PIN_SWON);
   uint8_t vSwAuto1 = digitalRead(PIN_SWAUTO);
-  float vPotM1 = analogRead(PIN_POTM);
-  float vPotD1 = analogRead(PIN_POTD);
+//  float vPotM1 = analogRead(PIN_POTM);
+//  float vPotD1 = analogRead(PIN_POTD);
 
   digitalInputs[ID_BUTTON_UP] = (vU0==vU1?vU0:VALUE_INPUT_DISABLED);
   digitalInputs[ID_BUTTON_DOWN] = (vD0==vD1?vD0:VALUE_INPUT_DISABLED);
@@ -447,8 +447,11 @@ void readPanel(uint8_t digitalInputs[], float analogInputs[], const int d){
   digitalInputs[ID_PRESSURE] = (vP0==vP1?vP0:VALUE_INPUT_DISABLED);
   digitalInputs[ID_SWON] = (vSwOn0==vSwOn1?vSwOn0:VALUE_INPUT_SW_DISABLED);
   digitalInputs[ID_SWAUTO] = (vSwAuto0==vSwAuto0?vSwAuto0:VALUE_INPUT_SW_DISABLED);
-  analogInputs[ID_POTM] = (vPotM0==vPotM1?vPotM0:analogInputs[ID_POTM]);  // If the analog inputs differ, we keep the old value.
-  analogInputs[ID_POTD] = (vPotD0==vPotD1?vPotD0:analogInputs[ID_POTD]);
+
+//  analogInputs[ID_POTM] = (vPotM0==vPotM1?vPotM0:analogInputs[ID_POTM]);  // If the analog inputs differ, we keep the old value.
+//  analogInputs[ID_POTD] = (vPotD0==vPotD1?vPotD0:analogInputs[ID_POTD]);
+  analogInputs[ID_POTM]=analogRead(PIN_POTM);
+  analogInputs[ID_POTD]=analogRead(PIN_POTD);  
 
 }
 
