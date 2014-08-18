@@ -652,14 +652,6 @@ void loop() {
       switch(stage){
         case FAILSAFE_STAGE:    // FAILSAFE_STAGE: Startup procedure
     
-            setSolenoids(VALUE_SOL_DISABLED);                                   // switch off the solenoids - as described in the documentation.
-
-            // Release pressure from SOLU if neccesary.
-            if (panelArray[ID_PRESSURE]==VALUE_HP_ENABLED) {
-              auxTimer=releasePressure(PIN_SOLU,flagHighPressure); // TODO: Implement a releaseHighPressureOnAllSolenoids().
-              if (DEBUG_MODE) Serial.print("Time measured to release pressure: ");Serial.println(auxTimer);
-            }
-            
             if (substage==0 && !flagHighPressure){
       
               moveCylinderUntilHighPressure(PIN_SOLL, flagHighPressure);          // Clean the platform and goes to the initial position.
@@ -669,6 +661,16 @@ void loop() {
     
                 moveCylinderUntilHighPressure(PIN_SOLU, flagHighPressure);
     
+
+              setSolenoids(VALUE_SOL_DISABLED);                                   // switch off the solenoids - as described in the documentation.
+                // Release pressure from SOLU if neccesary.
+              if (panelArray[ID_PRESSURE]==VALUE_HP_ENABLED) {
+                auxTimer=releasePressure(PIN_SOLU,flagHighPressure); // TODO: Implement a releaseHighPressureOnAllSolenoids().
+                
+              }
+              substage++;
+
+            }else if (substage==1 && !flagHighPressure){
                 if (flagHighPressure) substage++;
             }else if (substage==2 && !flagHighPressure){
     
