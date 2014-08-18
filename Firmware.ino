@@ -193,6 +193,7 @@ int getActiveCylinder(uint8_t array[]){
   }else if (array[ID_BUTTON_RIGHT]==VALUE_INPUT_ENABLED){
     activePin=PIN_SOLR;
   }
+  if (DEBUG_MODE) {Serial.print("The corresponding solenoid pin is: ");Serial.println(activePin);}
   return activePin;
 }
 
@@ -296,8 +297,10 @@ void moveCylinderUntilHighPressure(int cylinderPin, boolean &hpf){
     Serial.print("CylinderPin: "); Serial.println(cylinderPin);
   }
 
+  digitalWrite(cylinderPin,VALUE_SOL_ENABLED);
   if(pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)==VALUE_HP_ENABLED){
     hpf=true;
+    digitalWrite(cylinderPin,VALUE_SOL_DISABLED);
     //    moveCylinderUntilHighPressureBecomes( getOppositeSolenoid(cylinderPin),hpf,VALUE_HP_DISABLED);  // Release pressure
     releasePressure(cylinderPin,hpf);
   }
@@ -811,7 +814,8 @@ void loop() {
       moveCylinderUntilHighPressure(testModeCylinderPin,flagHighPressure);
       if (flagHighPressure){
         releasePressure(testModeCylinderPin,flagHighPressure);
-        testModeCylinderPin==VALUE_PIN_NULL;      }
+        testModeCylinderPin=VALUE_PIN_NULL;      
+      }
     } 
 
   }
