@@ -1,12 +1,13 @@
   //******************
   // ** TODO **
-  // DRAW CYLINDER: we want to be able to move it from the 1/4 to the 3/4
+  // - Review the blinking procedure. Specially for auto, manual and test mode.
   // *****************
   // ** DONE **
   // - SHAKER: we want to be able to move the shaker when the cylinders are NOT moving under timing. (<- Beginning of the auto-mode)
   // - Added Test mode.
-  // MAIN CYLINDER: we want all the time travel
+  // - MAIN CYLINDER: we want all the time travel
   // If the potM value is close to the maximum we want to move it until High pressure
+  // - DRAW CYLINDER: we want to be able to move it from the 1/4 to the 3/4
   //******************
   
 
