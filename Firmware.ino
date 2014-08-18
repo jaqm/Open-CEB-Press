@@ -258,7 +258,9 @@ uint8_t revertDigitalSignalValue(uint8_t val){
 // Description: Moves the opposite cylinder during a short period of time. Used to release pressure.
 unsigned long releasePressure(int cylinderPin, boolean &hpf){
   if (DEBUG_MODE) Serial.println("Releasing pressure");
-  return moveCylinderUntilHighPressureBecomes( getOppositeSolenoid(cylinderPin),hpf,VALUE_HP_DISABLED);  // Release pressure
+  auxT = moveCylinderUntilHighPressureBecomes( getOppositeSolenoid(cylinderPin),hpf,VALUE_HP_DISABLED);  // Release pressure
+  if (DEBUG_MODE) Serial.print("Time measured to release pressure: ");Serial.println(auxT);
+  return auxT;
 }
 
 // Moves the cylinder until high pressure sensor reaches the value secified and returns the time itgets to reach that place.
