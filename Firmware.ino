@@ -10,7 +10,7 @@
   // - DRAW CYLINDER: we want to be able to move it from the 1/4 to the 3/4
   //******************
   
-
+//***********************************
 // NOTES:
 // * untilHighPressure functions always release pressure
 // * Every mode, stage and substage must release pressure after reaching the high pressure point.
@@ -85,7 +85,7 @@ const short OPEN_CHAMBER = 7;
 const int VALUE_PIN_NULL=-1;
 const unsigned long VALUE_TIMER_NULL=0;
 
-// VALUE_MAX_POTM=2^8 ; because a int is compound by 8 bits.
+// VALUE_MAX_POTM=2^10=1024 so the range is 0-1023
 const int VALUE_MAX_POTM=1023;
 const int VALUE_MAX_POTD=VALUE_MAX_POTM;
 
@@ -175,6 +175,7 @@ uint8_t pinDigitalValueIs(int pin, int d){
     return value0;
 }
 
+// Receiving a pin, it returns the pin of the cylinder in charge of the opposite movement.
 uint8_t getOppositeSolenoid(uint8_t pinSol){
   
   uint8_t opposite=-1;
@@ -187,9 +188,10 @@ uint8_t getOppositeSolenoid(uint8_t pinSol){
   return opposite;
 }
 
-// Description: Receiving the digitalInputs, it returns the solenoid pin related to the active input.
+// Description: Receiving the digitalInputs array, it returns the enabled solenoid pin.
+// array: the array containing the digitalInputs array.
 // Default: VALUE_PIN_NULL
-int getActiveCylinder(uint8_t array[]){
+int getEnabledCylinder(uint8_t array[]){
 
   int activePin=VALUE_PIN_NULL;
   
@@ -202,23 +204,22 @@ int getActiveCylinder(uint8_t array[]){
   }else if (array[ID_BUTTON_RIGHT]==VALUE_INPUT_ENABLED){
     activePin=PIN_SOLR;
   }
-  if (DEBUG_MODE) {Serial.print("The corresponding solenoid pin is: ");Serial.println(activePin);}
+  if (DEBUG_MODE) {Serial.print("The enabled solenoid pin is: ");Serial.println(activePin);}
   return activePin;
 }
-
 
 // **** END of GETTERS && SETTERS
 
 // **** DATA HANDLING
 
-// Receiving the values related to the potentiometer and the total time, returns the value that should be applied to the cylinder.
-unsigned long getTimeFromPotentiometer(unsigned long totalTime, uint8_t potValue,uint8_t maxPotValue){
-
-  unsigned long result=( (3/4) * totalTime * (potValue/maxPotValue) );
-  if (DEBUG_MODE) {Serial.print("The time calculated is: ");Serial.println(result);}
-  return result;
-}
-
+//// DEPRECATED
+//// Receiving the values related to the potentiometer and the total time, returns the value that should be applied to the cylinder.
+//unsigned long getTimeFromPotentiometer(unsigned long totalTime, uint8_t potValue,uint8_t maxPotValue){
+//
+//  unsigned long result=( (3/4) * totalTime * (potValue/maxPotValue) );
+//  if (DEBUG_MODE) {Serial.print("The time calculated is: ");Serial.println(result);}
+//  return result;
+//}
 
 // This function inverts a digital value read from a pin like HIGH or LOW.
 // val: HIGH or LOW
@@ -261,7 +262,6 @@ uint8_t revertDigitalSignalValue(uint8_t val){
 //  return (millis()-timestamp);
 //}
 
-
 // ** MACHINE MOVEMENTS -- NON-STOP FUNCTIONS
 
 // Description: Moves the opposite cylinder during a short period of time. Used to release pressure.
@@ -280,9 +280,7 @@ unsigned long releasePressure(int cylinderPin, boolean &hpf){
 // Return: time used to reach the desired high pressure value.
 unsigned long moveCylinderUntilHighPressureBecomes(int cylinderPin, boolean &hpf, uint8_t hpv){
 
-  // Variable used to compare 
   unsigned long timestamp=millis();
-//  uint8_t highPressure=revertDigitalSignalValue(hpv);
 
   // Debug Mode
   if (DEBUG_MODE){
@@ -298,6 +296,69 @@ unsigned long moveCylinderUntilHighPressureBecomes(int cylinderPin, boolean &hpf
 
   return (millis()-timestamp);
 }
+
+// Description: Moves the cylinder during the time specified.
+// As we are always releasing pressure after any cylinder movement we can check the high pressure sensor in this function, 
+// which is good for the machine.
+// This function will not stop the movement until high pressure or reaching the specified time. So it's recommeded for short periods of time.
+// * Input - Outputs - return values *
+// cylinderPin: the pin assigned to the cylinder.
+// time: the time (milliseconds) that we want to move the cylinder.
+// &hpf: high pressure flag.
+void moveCylinderDuring(uint8_t cylinderPin,unsigned long time, boolean &hpf){
+
+  unsigned long timestamp=millis();
+
+  if (DEBUG_MODE){
+    Serial.print("timestamp: ");Serial.println(timestamp);
+    Serial.print("time: ");Serial.println(time);
+    Serial.print("TIMESTAMP+TIME: ");Serial.println(timestamp+time);
+    Serial.print("MILLIS: ");Serial.println(millis());
+//      Serial.print("");Serial.println("");
+  }
+
+  while ( (pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)==VALUE_HP_DISABLED)  && (timestamp+time > millis()) ){
+    digitalWrite(cylinderPin,VALUE_SOL_ENABLED);                // Cylinder movement.
+  }
+  digitalWrite(cylinderPin,VALUE_SOL_DISABLED);
+  if (pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)) hpf=true;
+}
+
+// Moves both cylinders during the specified time or until HIGH PRESSURE.
+void moveBothCylinderDuring(uint8_t cylinderPin1, uint8_t cylinderPin2, unsigned long timeMoving){
+
+  unsigned long timestamp=millis();
+  
+  digitalWrite(cylinderPin1,VALUE_SOL_ENABLED);
+  digitalWrite(cylinderPin2,VALUE_SOL_ENABLED);
+  while ( (pinDigitalValueIs(PIN_PRESSURE,VALUE_INPUT_READ_DELAY)==VALUE_HP_DISABLED) && (timestamp+timeMoving > millis())){}
+  digitalWrite(cylinderPin1,VALUE_SOL_DISABLED);
+  digitalWrite(cylinderPin2,VALUE_SOL_DISABLED);
+
+}
+
+// Release the pressure from the solenoids using the data received from the panel.
+// ONLY APPLIES FOR MANUAL MODE.
+// digitalInputs[]: contains the information from the panel.
+void releasePressureManualMode(uint8_t digitalInputs[]){
+
+  if (pinDigitalValueIs(PIN_PRESSURE, VALUE_INPUT_READ_DELAY)==VALUE_HP_ENABLED){
+    if (DEBUG_MODE){Serial.println("Applying reversal movement on solenoids..");}
+
+    digitalWrite(PIN_SOLD,(digitalInputs[ID_BUTTON_UP]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
+    digitalWrite(PIN_SOLU,(digitalInputs[ID_BUTTON_DOWN]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
+    digitalWrite(PIN_SOLR,(digitalInputs[ID_BUTTON_LEFT]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
+    digitalWrite(PIN_SOLL,(digitalInputs[ID_BUTTON_RIGHT]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
+//    digitalWrite(PIN_SOLS,(array[ID_BUTTON_SHAKER]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));  
+    delay(VALUE_TIME_RELEASE_PRESSURE_STAGE);
+    setSolenoids(VALUE_SOL_DISABLED);
+
+  }
+}
+
+// ** MACHINE MOVEMENTS -- END of NON-STOP FUNCTIONS
+// **
+// ** MACHINE MOVEMENTS -- CHECK-AND-GO FUNCTIONS
 
 // Moves the cylinder to the top position and returns the time itgets to reach that place.
 // cylinderPin: the pin assigned to the cylinder we want to move.
@@ -318,67 +379,8 @@ void moveCylinderUntilHighPressure(int cylinderPin, boolean &hpf){
   }
 }
 
-// Description: Moves the cylinder during the time specified.
-// As we are always releasing pressure after any cylinder movement we can check the high pressure sensor in this function, 
-// which is good for the machine.
-// This function will not stop the movement until high pressure or reaching the specified time. So it's recommeded for short periods of time.
-// * Input - Outputs - return values *
-// cylinderPin: the pin assigned to the cylinder.
-// time: the time (milliseconds) that we want to move the cylinder.
-// &hpf: high pressure flag.
-void moveCylinderDuring(uint8_t cylinderPin,unsigned long time, boolean &hpf){
+// ** MACHINE MOVEMENTS -- END OF CHECK-AND-GO FUNCTIONS
 
-  unsigned long timestamp=millis();
-  
-  while ( (pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)==VALUE_HP_DISABLED)  && (timestamp+time > millis()) ){
-
-    if (DEBUG_MODE){
-      Serial.print("timestamp: ");Serial.println(timestamp);
-      Serial.print("time: ");Serial.println(time);
-      Serial.print("TIMESTAMP+TIME: ");Serial.println(timestamp+time);
-      Serial.print("MILLIS: ");Serial.println(millis());
-//      Serial.print("");Serial.println("");
-    }
-
-    digitalWrite(cylinderPin,VALUE_SOL_ENABLED);                // Cylinder movement.
-  }
-  digitalWrite(cylinderPin,VALUE_SOL_DISABLED);
-  if (pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)) hpf=true;
-}
-
-// Moves both cylinders during the specified time or until HIGH PRESSURE.
-void moveBothCylinderDuring(uint8_t cylinderPin1, uint8_t cylinderPin2, unsigned long timeMoving){
-
-  unsigned long timestamp=millis();
-  
-  digitalWrite(cylinderPin1,VALUE_SOL_ENABLED);
-  digitalWrite(cylinderPin2,VALUE_SOL_ENABLED);
-  while ( (pinDigitalValueIs(PIN_PRESSURE,VALUE_INPUT_READ_DELAY)==VALUE_HP_DISABLED) && (timestamp+timeMoving > millis())){}
-  digitalWrite(cylinderPin1,VALUE_SOL_DISABLED);
-  digitalWrite(cylinderPin2,VALUE_SOL_DISABLED);
-
-}
-
-// ** MACHINE MOVEMENTS -- END of NON-STOP FUNCTIONS
-
-// Release the pressure from the solenoids using the data received from the panel.
-// ONLY APPLIES FOR MANUAL MODE.
-// array[]: contains the information from the panel.
-void releasePressureManualMode(uint8_t digitalInputs[]){
-
-  if (pinDigitalValueIs(PIN_PRESSURE, VALUE_INPUT_READ_DELAY)==VALUE_HP_ENABLED){
-    if (DEBUG_MODE){Serial.println("Applying reversal movement on solenoids..");}
-
-    digitalWrite(PIN_SOLD,(digitalInputs[ID_BUTTON_UP]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
-    digitalWrite(PIN_SOLU,(digitalInputs[ID_BUTTON_DOWN]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
-    digitalWrite(PIN_SOLR,(digitalInputs[ID_BUTTON_LEFT]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
-    digitalWrite(PIN_SOLL,(digitalInputs[ID_BUTTON_RIGHT]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
-//    digitalWrite(PIN_SOLS,(array[ID_BUTTON_SHAKER]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));  
-    delay(VALUE_TIME_RELEASE_PRESSURE_STAGE);
-    setSolenoids(VALUE_SOL_DISABLED);
-
-  }
-}
 // ** MACHINE MOVEMENTS -- STATUS FUNCTIONS
 // ** MACHINE MOVEMENTS -- END of STATUS FUNCTIONS
 
@@ -420,6 +422,7 @@ void applyManualMode(uint8_t digitalInputs[], boolean &hpf){
 // Reads all the values of the panel, adding a check protection against rebounce, with a delay.
 void readPanel(uint8_t digitalInputs[], float analogInputs[], const int d){  
   
+  // read and delay for digital inputs
   uint8_t vU0 = digitalRead(PIN_BUTTON_UP);
   uint8_t vD0 = digitalRead(PIN_BUTTON_DOWN);
   uint8_t vL0 = digitalRead(PIN_BUTTON_LEFT);
@@ -428,8 +431,6 @@ void readPanel(uint8_t digitalInputs[], float analogInputs[], const int d){
   uint8_t vP0 = digitalRead(PIN_PRESSURE);
   uint8_t vSwOn0 = digitalRead(PIN_SWON);
   uint8_t vSwAuto0 = digitalRead(PIN_SWAUTO);
-//  float vPotM0 = analogRead(PIN_POTM);
-//  float vPotD0 = analogRead(PIN_POTD);
   
   delay(d);
   
@@ -441,10 +442,8 @@ void readPanel(uint8_t digitalInputs[], float analogInputs[], const int d){
   uint8_t vP1 = digitalRead(PIN_PRESSURE);
   uint8_t vSwOn1 = digitalRead(PIN_SWON);
   uint8_t vSwAuto1 = digitalRead(PIN_SWAUTO);
-//  float vPotM1 = analogRead(PIN_POTM);
-//  float vPotD1 = analogRead(PIN_POTD);
 
-  digitalInputs[ID_BUTTON_UP] = (vU0==vU1?vU0:VALUE_INPUT_DISABLED);
+  digitalInputs[ID_BUTTON_UP] = (vU0==vU1?vU0:VALUE_INPUT_DISABLED);  // If the analog inputs differ, we keep the old value.
   digitalInputs[ID_BUTTON_DOWN] = (vD0==vD1?vD0:VALUE_INPUT_DISABLED);
   digitalInputs[ID_BUTTON_LEFT] = (vL0==vL1?vL0:VALUE_INPUT_DISABLED);
   digitalInputs[ID_BUTTON_RIGHT] = (vR0==vR1?vR0:VALUE_INPUT_DISABLED);
@@ -453,13 +452,12 @@ void readPanel(uint8_t digitalInputs[], float analogInputs[], const int d){
   digitalInputs[ID_SWON] = (vSwOn0==vSwOn1?vSwOn0:VALUE_INPUT_SW_DISABLED);
   digitalInputs[ID_SWAUTO] = (vSwAuto0==vSwAuto0?vSwAuto0:VALUE_INPUT_SW_DISABLED);
 
-//  analogInputs[ID_POTM] = (vPotM0==vPotM1?vPotM0:analogInputs[ID_POTM]);  // If the analog inputs differ, we keep the old value.
-//  analogInputs[ID_POTD] = (vPotD0==vPotD1?vPotD0:analogInputs[ID_POTD]);
-  analogInputs[ID_POTM]=analogRead(PIN_POTM);
+  analogInputs[ID_POTM]=analogRead(PIN_POTM);  // We do no extra checks for analog  inputs
   analogInputs[ID_POTD]=analogRead(PIN_POTD);  
 
 }
 
+// Prints the content of the digital and analog inputs.
 void printPanel(uint8_t panel[], float analogInputs[]){
 
   Serial.println("********************************************");  
@@ -477,6 +475,7 @@ void printPanel(uint8_t panel[], float analogInputs[]){
 
 }
 
+// Shows the content of the timesArray
 void printTimesArray(unsigned long ta[]){
 
   Serial.println("********************************************");
@@ -489,6 +488,9 @@ void printTimesArray(unsigned long ta[]){
 
 }
 
+// **** END OF - READ && SHOW FUNCTIONS
+// **** DOWN FROM HERE - FUNCTIONS UNDER REVIEW
+
 // Updates the leds according to the information from the panel and the flags.
 // panel[]: The array containing the information from the panel.
 // &sbt: the status blinking timer. It contains the last time (millisecs) in which the led status changed it's status.
@@ -500,7 +502,7 @@ void printTimesArray(unsigned long ta[]){
 //   Disabled if the flag is false and the time has passed.
 void updateLeds(uint8_t panel[],unsigned long &sbt, boolean &hpf, unsigned long &hpt){
 
-  // Blinking procedure - STATUS LED
+  // BLINKING PROCEDURE - STATUS LED
   // Note: Consider taking out this variable
   unsigned long timer=((panel[ID_SWAUTO]==VALUE_INPUT_SW_ENABLED)?VALUE_TIME_BLINKING_AUTO:VALUE_TIME_BLINKING_MANUAL);
   unsigned long presentTime=millis();
@@ -513,19 +515,12 @@ void updateLeds(uint8_t panel[],unsigned long &sbt, boolean &hpf, unsigned long 
     delay(5000);
   }
   if (presentTime > sbt+timer){
-//      if (DEBUG_LED_MODE){Serial.println("LED STATUS IS GONNA BE UPDATED");delay(1000);}
-//      value=pinDigitalValueIs(PIN_LED_STATUS, VALUE_INPUT_READ_DELAY);
-//      value1=revertDigitalSignalValue(value);
-//      if(DEBUG_LED_MODE){
-//        Serial.print("Digital value read from LED STATUS: ");Serial.println(value);
-//        Serial.print("Digital value that will be written to LED STATUS: ");Serial.println(value1);
-//      }
       digitalWrite(PIN_LED_STATUS,revertDigitalSignalValue(pinDigitalValueIs(PIN_LED_STATUS, VALUE_INPUT_READ_DELAY)) );
       sbt=presentTime;
       if (DEBUG_LED_MODE){Serial.println("LED STATUS HAS BEEN UPDATED"); delay(1000);}
   }
 
-  // Blinking procedure - HIGH PRESSURE LED
+  // BLINKING PROCEDURE - HIGH PRESSURE LED
   if (DEBUG_LED_MODE){
     Serial.print("hpt: ");Serial.println(hpt);
     Serial.print("VALUE_TIME_BLINKING_HIGH_PRESSURE: ");Serial.println(VALUE_TIME_BLINKING_HIGH_PRESSURE);
@@ -558,9 +553,6 @@ void updateLeds(uint8_t panel[],unsigned long &sbt, boolean &hpf, unsigned long 
   }
 }
 
-// **** END OF - READ && SHOW FUNCTIONS
-
-// *** DOWN FROM HERE - FUNCTIONS UNDER REVIEW
 // *** UP FROM HERE - FUNCTIONS UNDER REVIEW
 
 // *****************************
@@ -608,6 +600,7 @@ void setup() {
     digitalWrite(PIN_POTM, HIGH);
     digitalWrite(PIN_POTD, HIGH);
 
+    // Initial setup for loop() variables
     stage=FAILSAFE_STAGE;
     substage=0;
     blinkingStatusTimer=millis();
@@ -618,8 +611,7 @@ void setup() {
     testModeCylinderPin=VALUE_PIN_NULL;
     movementTimer=VALUE_TIMER_NULL;
     auxTimer=VALUE_TIMER_NULL;
-//    mainCylinderTimingMode=false;
-    
+
     Serial.begin(9600);
 }
 
@@ -663,30 +655,26 @@ void loop() {
       }else digitalWrite(PIN_SOLS,VALUE_SOL_DISABLED);
 
       switch(stage){
+
         case FAILSAFE_STAGE:    // FAILSAFE_STAGE: Startup procedure
     
             if (substage==0 && !flagHighPressure){
-
               setSolenoids(VALUE_SOL_DISABLED);                                   // switch off the solenoids - as described in the documentation.
                 // Release pressure from SOLU if neccesary.
               if (digitalInputs[ID_PRESSURE]==VALUE_HP_ENABLED) {
                 auxTimer=releasePressure(PIN_SOLU,flagHighPressure); // TODO: Implement a releaseHighPressureOnAllSolenoids().
-                
               }
               substage++;
 
             }else if (substage==1 && !flagHighPressure){
-      
               moveCylinderUntilHighPressure(PIN_SOLL, flagHighPressure);          // Clean the platform and goes to the initial position.
               if (flagHighPressure) substage++;
 
             }else if (substage==2 && !flagHighPressure){
-    
                 moveCylinderUntilHighPressure(PIN_SOLU, flagHighPressure);
-    
                 if (flagHighPressure) substage++;
+
             }else if (substage==3 && !flagHighPressure){
-    
               moveCylinderUntilHighPressure(PIN_SOLR, flagHighPressure);
               if (flagHighPressure) substage++;
 
@@ -695,8 +683,8 @@ void loop() {
               substage=0;
             }
           break;
-        case CALIBRATE_SOLENOIDS:       // Get the times we need
 
+        case CALIBRATE_SOLENOIDS:       // Get the times we need
             if (substage==0){            // Note: Consider to encapsulate the next feature (chronometer).
               if (!chronoIsRunning){
                 timer=millis();
@@ -710,17 +698,12 @@ void loop() {
                 timer=VALUE_TIMER_NULL;
                 substage++;
               }
-              
-
             }else if (substage==1){
-              
               if (!chronoIsRunning){
                 timer=millis();
                 chronoIsRunning=true;
               }
-
               moveCylinderUntilHighPressure(PIN_SOLL,flagHighPressure);
-
               if (flagHighPressure){
                 timesArray[ID_TIME_SOLL] = millis() - timer;
                 if (DEBUG_MODE) {Serial.print("The for SOLL has been: ");Serial.println(timesArray[ID_TIME_SOLL]);}
@@ -729,9 +712,9 @@ void loop() {
                 substage=0;
                 stage=EJECT_BRICK;
               }
-              
             }
           break;
+
         // BRICK SEQUENCE
         case EJECT_BRICK: // Open the chamber
             //timesArray[ID_TIME_SOLU] = moveCylinderUntilHighPressureBecomes(PIN_SOLU, flagHighPressure,VALUE_HP_ENABLED);  // This value is not needed right now
@@ -752,9 +735,7 @@ void loop() {
             if (analogInputs[ID_POTM]/VALUE_MAX_POTM < 0.95){ // Go into timing mode
   
               movementTimer = timesArray[ID_TIME_SOLD] * (analogInputs[ID_POTM]/VALUE_MAX_POTM);
-              if (DEBUG_MODE){Serial.print("Time applied to SOLD and SOLS: ");Serial.println(movementTimer) ;}//delay(1000);
-              
-              //moveBothCylinderDuring(PIN_SOLD, PIN_SOLS, (timesArray[ID_TIME_SOLD])*(digitalInputs[ID_POTM]/VALUE_MAX_POTM));
+              if (DEBUG_MODE){Serial.print("Time applied to SOLD and SOLS: ");Serial.println(movementTimer) ;}
               if (!chronoIsRunning){
                 timer=millis();
                 chronoIsRunning=true;
@@ -765,33 +746,24 @@ void loop() {
             moveCylinderUntilHighPressure(PIN_SOLS, flagHighPressure);
 
             if ( (flagHighPressure) || (movementTimer<millis()-timer) ){
-
               setSolenoids(VALUE_SOL_DISABLED);                
               timer=VALUE_TIMER_NULL;
               chronoIsRunning=false;
               movementTimer=VALUE_TIMER_NULL;
               stage=CLOSE_CHAMBER;
-
-              if (DEBUG_MODE){Serial.println("Stage LOAD_SOIL finished. Stop moving SOLS and SOLD.");};
+              if (DEBUG_MODE){Serial.println("LOAD_SOIL stage finished. Stop moving SOLS and SOLD.");};
             }
-
 
           break;
 
         case CLOSE_CHAMBER:  // Moves the drawer on the main cylinder
-//            moveCylinderDuring(PIN_SOLL, (timesArray[ID_TIME_SOLL])*(digitalInputs[ID_POTD]/VALUE_MAX_POTD), flagHighPressure);
-            //movementTimer=timesArray[ID_TIME_SOLL]*(digitalInputs[ID_POTD]/VALUE_MAX_POTD);
-            //movementTimer=getTimeFromPotentiometer(timesArray[ID_TIME_SOLL],digitalInputs[ID_POTD],VALUE_MAX_POTD);
             movementTimer =  ( (1/4)*timesArray[ID_TIME_SOLL]) + ( (1/2) * timesArray[ID_TIME_SOLL] * (analogInputs[ID_POTD]/VALUE_MAX_POTD) );
-            
             if (!chronoIsRunning){
               if (DEBUG_MODE){Serial.print("Time applied to SOLL: ");Serial.println(movementTimer) ;}//delay(1000);
               timer=millis();
               chronoIsRunning=true;
             }
-
             moveCylinderUntilHighPressure(PIN_SOLL, flagHighPressure);
-
             if ( (flagHighPressure) || (movementTimer<millis()-timer) ){
 
               timer=VALUE_TIMER_NULL;
@@ -803,34 +775,31 @@ void loop() {
 
         case COMPRESS_SOIL: // Compression stage
             moveCylinderUntilHighPressure(PIN_SOLU, flagHighPressure);
-    //        moveCylinderDuring(PIN_SOLD,(timesArray[ID_TIME_SOLD])*(digitalInputs[ID_POTM]/VALUE_MAX_POTM), hpf);
             if (flagHighPressure) stage=OPEN_CHAMBER;
             break;
+
         case OPEN_CHAMBER: // Open the chamber
             moveCylinderUntilHighPressure(PIN_SOLL, flagHighPressure);
             if (flagHighPressure) stage=EJECT_BRICK;    // Going to stage 0 to get full calibration before each press.
           break;
+
         default:
             stage=FAILSAFE_STAGE;
           break;
       }
-
     }
-  
-  }else{                              // SWON is Disabled -> TEST MODE
+
+  }else{       // SWON is Disabled -> TEST MODE
     if (DEBUG_MODE) Serial.println("SWON is DISABLED -> I'm on TEST-MODE!");
 
     // Apply test-mode.
     if (testModeCylinderPin==VALUE_PIN_NULL){
-      // Init default values for the other modes
-      setSolenoids(VALUE_SOL_DISABLED);
+      setSolenoids(VALUE_SOL_DISABLED);      // Init default values for the other modes
       stage=FAILSAFE_STAGE;
       substage=0;
-
-      testModeCylinderPin = getActiveCylinder(digitalInputs);
+      testModeCylinderPin = getEnabledCylinder(digitalInputs);
     }else{
       moveCylinderUntilHighPressure(testModeCylinderPin,flagHighPressure);
-//      delay(1000);
       if (flagHighPressure){
         auxTimer= releasePressure(testModeCylinderPin,flagHighPressure);
         testModeCylinderPin=VALUE_PIN_NULL;
