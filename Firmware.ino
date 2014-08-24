@@ -131,7 +131,7 @@ uint8_t digitalInputs[AMOUNT_DIGITAL_INPUTS];  // The array which contains all t
 const int ID_POTD=0;
 const int ID_POTM=1;
 const int AMOUNT_ANALOG_INPUTS=2;
-float analogInputs[AMOUNT_ANALOG_INPUTS];
+int analogInputs[AMOUNT_ANALOG_INPUTS];
 
 // TIMESARRAY
 unsigned long timesArray[]={VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL};
@@ -423,7 +423,7 @@ void applyManualMode(uint8_t digitalInputs[], boolean &hpf){
 // **** READ && SHOW FUNCTIONS
 
 // Reads all the values of the panel, adding a check protection against rebounce, with a delay.
-void readPanel(uint8_t digitalInputs[], float analogInputs[], const int d){  
+void readPanel(uint8_t digitalInputs[], int analogInputs[], const int d){  
   
   // read and delay for digital inputs
   uint8_t vU0 = digitalRead(PIN_BUTTON_UP);
@@ -461,7 +461,7 @@ void readPanel(uint8_t digitalInputs[], float analogInputs[], const int d){
 }
 
 // Prints the content of the digital and analog inputs.
-void printPanel(uint8_t panel[], float analogInputs[]){
+void printPanel(uint8_t panel[], int analogInputs[]){
 
   Serial.println("********************************************");  
   Serial.print("Switch ON: "); Serial.println(panel[ID_SWON],DEC);
@@ -739,19 +739,18 @@ void loop() {
           break;
         case LOAD_SOIL: // Push down the main cilinder and load the room with soil.
 
+            if (DEBUG_MODE){
+              Serial.println("Starting LOAD SOIL stage.");
+            }
+
             // MAIN CYLINDER - POTM behaviour: we want all the time travel
             // Two behaviours dependending on the potM value:
             // digitalInputs[ID_POTM]/VALUE_MAX_POTM < 0.95 ( close to the maximum) we want to move it until High pressure.
             // In other case: go into timed mode.
 
-            if (DEBUG_MODE){
-              Serial.println("Starting LOAD SOIL stage.");
-            }
+            // We can't use a coefficient with unsigned long because every result between 0 and 1 will be rounded to 0.
+            //if ( (analogInputs[ID_POTM])/(VALUE_MAX_POTM) < 0.95){ // Go into timing mode
 
-                timer=millis();
-                chronoIsRunning=true;
-              }
-              
             if ( analogInputs[ID_POTM] < 950 ){ // Go into timing mode
   
               // We can't operate with numbers below 1 with unsigned long. So we write the operation in another way. The next two expression should be equal.
