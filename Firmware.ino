@@ -32,6 +32,9 @@ unsigned long blinkingHighPressureTimer;  // Timer to track the timing for the b
 unsigned long timer;          // Timer to track times.
 unsigned long movementTimer;          // Used to calculate the time that is being applied to move the main and the drawer cylinder.
 unsigned long auxTimer;  // used to store times for debug purposes at any time in the code. 
+unsigned long startingPoint;
+unsigned long variableTravelTime;
+unsigned long drawerCoefficient=0.25;
 //boolean mainCylinderTimingMode=false;
 
 // Debug mode
@@ -617,6 +620,14 @@ void setup() {
 
 void loop() {
 
+    startingPoint=VALUE_TIMER_NULL;
+    variableTravelTime=VALUE_TIMER_NULL;
+
+
+    Serial.begin(9600);
+}
+
+
   readPanel(digitalInputs, analogInputs, VALUE_INPUT_READ_DELAY);
   updateLeds(digitalInputs, blinkingStatusTimer, flagHighPressure, blinkingHighPressureTimer);
   if (DEBUG_MODE){ printPanel(digitalInputs,analogInputs); printTimesArray(timesArray);};
@@ -732,15 +743,37 @@ void loop() {
             // Two behaviours dependending on the potM value:
             // digitalInputs[ID_POTM]/VALUE_MAX_POTM < 0.95 ( close to the maximum) we want to move it until High pressure.
             // In other case: go into timed mode.
-            if (analogInputs[ID_POTM]/VALUE_MAX_POTM < 0.95){ // Go into timing mode
+
+            if (DEBUG_MODE){
+              Serial.println("Starting LOAD SOIL stage.");
+            }
+
+                timer=millis();
+                chronoIsRunning=true;
+              }
+              
+            if ( analogInputs[ID_POTM] < 950 ){ // Go into timing mode
   
-              movementTimer = timesArray[ID_TIME_SOLD] * (analogInputs[ID_POTM]/VALUE_MAX_POTM);
-              if (DEBUG_MODE){Serial.print("Time applied to SOLD and SOLS: ");Serial.println(movementTimer) ;}
+              // We can't operate with numbers below 1 with unsigned long. So we write the operation in another way. The next two expression should be equal.
+              // So what we do is group all the multiplications, group all the divisors together, and then we do the division.
+              //  movementTimer = timesArray[ID_TIME_SOLD] * (analogInputs[ID_POTM]/VALUE_MAX_POTM);
+              movementTimer = (timesArray[ID_TIME_SOLD] * analogInputs[ID_POTM])/VALUE_MAX_POTM;
+              if (DEBUG_MODE){
+                Serial.println("Timing mode.");
+                Serial.print("Time applied to SOLD and SOLS: ");Serial.println(movementTimer) ;
+                //delay(20000);
+              }
               if (!chronoIsRunning){
                 timer=millis();
                 chronoIsRunning=true;
               }
               
+            }else{    // Go into until-high-pressure mode
+              if (DEBUG_MODE){
+                Serial.print("Until-high-pressure-mode.");
+              }
+              movementTimer = timesArray[ID_TIME_SOLD] * 2; // We double the value of the timer for this solenoid to reach the high pressure point.
+              chronoIsRunning=false;
             }
             moveCylinderUntilHighPressure(PIN_SOLD, flagHighPressure);
             moveCylinderUntilHighPressure(PIN_SOLS, flagHighPressure);
@@ -757,9 +790,22 @@ void loop() {
           break;
 
         case CLOSE_CHAMBER:  // Moves the drawer on the main cylinder
-            movementTimer =  ( (1/4)*timesArray[ID_TIME_SOLL]) + ( (1/2) * timesArray[ID_TIME_SOLL] * (analogInputs[ID_POTD]/VALUE_MAX_POTD) );
+
+            // We can't operate with numbers below 1 with unsigned long. So we write the operation in another way. The next two expression should be equal.
+            //variableTravelTime = ( (1/2) * timesArray[ID_TIME_SOLL] * (analogInputs[ID_POTD] / VALUE_MAX_POTD * 2) );
+            variableTravelTime = ( (timesArray[ID_TIME_SOLL] * analogInputs[ID_POTD]) / (VALUE_MAX_POTD * 2) );
+            //startingPoint = ((1/4)*timesArray[ID_TIME_SOLL]);
+            startingPoint = (timesArray[ID_TIME_SOLL]/4);
+            // Maximun value for drawer movementTimer = 3/4 * drawerTravelTime
+            movementTimer =  ( startingPoint + variableTravelTime);
+
             if (!chronoIsRunning){
-              if (DEBUG_MODE){Serial.print("Time applied to SOLL: ");Serial.println(movementTimer) ;}//delay(1000);
+              if (DEBUG_MODE){
+                Serial.print("Drawer travel time: ");Serial.println(timesArray[ID_TIME_SOLL]);
+                Serial.print("Drawer starting time: ");Serial.println(startingPoint);
+                Serial.print("Drawer variable time: ");Serial.println(variableTravelTime);
+                Serial.print("Time that will be applied to SOLL: ");Serial.println(movementTimer) ;
+              }
               timer=millis();
               chronoIsRunning=true;
             }
@@ -784,7 +830,11 @@ void loop() {
           break;
 
         default:
+            Serial.print("ERROR: Stage not defined. Value of stage = ");Serial.print(stage);
+            Serial.print("Going into FAILSAFE_STAGE");
+            delay(4000);
             stage=FAILSAFE_STAGE;
+
           break;
       }
     }
@@ -808,8 +858,7 @@ void loop() {
     } 
 
   }
-//  if (DEBUG_MODE) delay(1000);
 
-}
+  if (DEBUG_MODE) delay(1000);
 
 
