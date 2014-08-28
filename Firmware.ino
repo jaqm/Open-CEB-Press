@@ -615,11 +615,6 @@ void setup() {
     movementTimer=VALUE_TIMER_NULL;
     auxTimer=VALUE_TIMER_NULL;
 
-    Serial.begin(9600);
-}
-
-void loop() {
-
     startingPoint=VALUE_TIMER_NULL;
     variableTravelTime=VALUE_TIMER_NULL;
 
@@ -627,6 +622,7 @@ void loop() {
     Serial.begin(9600);
 }
 
+void loop() {
 
   readPanel(digitalInputs, analogInputs, VALUE_INPUT_READ_DELAY);
   updateLeds(digitalInputs, blinkingStatusTimer, flagHighPressure, blinkingHighPressureTimer);
