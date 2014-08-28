@@ -774,10 +774,11 @@ void loop() {
               movementTimer = timesArray[ID_TIME_SOLD] * 2; // We double the value of the timer for this solenoid to reach the high pressure point.
               chronoIsRunning=false;
             }
+            
             moveCylinderUntilHighPressure(PIN_SOLD, flagHighPressure);
             moveCylinderUntilHighPressure(PIN_SOLS, flagHighPressure);
 
-            if ( (flagHighPressure) || (movementTimer<millis()-timer) ){
+            if ( (flagHighPressure) || (millis()-timer > movementTimer) ){
               setSolenoids(VALUE_SOL_DISABLED);                
               timer=VALUE_TIMER_NULL;
               chronoIsRunning=false;
@@ -808,13 +809,16 @@ void loop() {
               timer=millis();
               chronoIsRunning=true;
             }
-            moveCylinderUntilHighPressure(PIN_SOLL, flagHighPressure);
-            if ( (flagHighPressure) || (movementTimer<millis()-timer) ){
+            //delay(20000);
 
+            moveCylinderUntilHighPressure(PIN_SOLL, flagHighPressure);
+
+            if ( (flagHighPressure) || (millis()-timer > movementTimer) ){
               timer=VALUE_TIMER_NULL;
               chronoIsRunning=false;
               stage=COMPRESS_SOIL;
               if (DEBUG_MODE){Serial.println("Stage CLOSE_CHAMBER finished.");}
+              //delay(10000);
             }
           break;
 
