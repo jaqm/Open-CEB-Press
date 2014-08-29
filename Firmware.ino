@@ -1,6 +1,6 @@
   //******************
   // ** TODO **
-  // - Review the blinking procedure. Specially for auto, manual and test mode.
+  // - Review the blinking procedure. Pending: auto, manual and test mode.
   // *****************
   // ** DONE **
   // - SHAKER: we want to be able to move the shaker when the cylinders are NOT moving under timing. (<- Beginning of the auto-mode)
@@ -13,9 +13,9 @@
 //***********************************
 // NOTES:
 // * untilHighPressure functions always release pressure
-// * Every mode, stage and substage must release pressure after reaching the high pressure point.
+// * Every mode except the manual-mode, each stage and substage must release pressure after reaching the high pressure point.
 //     This is a must and will be applied using the releasePressure() function,
-//     which is a non-stop function that runs until the high pressure pressure reaches the disabled status.
+//     which is a non-stop function that runs until the high pressure sensor reaches the disabled status.
 //***********************************
 
 // loop() variables - general purpose
@@ -34,7 +34,7 @@ unsigned long movementTimer;          // Used to calculate the time that is bein
 unsigned long auxTimer;  // used to store times for debug purposes at any time in the code. 
 unsigned long startingPoint;
 unsigned long variableTravelTime;
-unsigned long drawerCoefficient=0.25;
+//unsigned long drawerCoefficient=0.25;
 //boolean mainCylinderTimingMode=false;
 
 // Debug mode
@@ -46,18 +46,16 @@ const boolean DEBUG_LED_MODE=false;
 // inputs :: UP-LEFT-RIGHT-DOWN-SHAKER
 const uint8_t VALUE_INPUT_ENABLED = LOW;
 const uint8_t VALUE_INPUT_DISABLED = HIGH;
-
 // inputs :: SWON - SWAUTO
 const uint8_t VALUE_INPUT_SW_ENABLED = HIGH;
 const uint8_t VALUE_INPUT_SW_DISABLED = LOW;
-
 // inputs - high pressure sensor
 //// Real values
 const uint8_t VALUE_HP_ENABLED = HIGH;
 const uint8_t VALUE_HP_DISABLED = LOW;
-//// For testing auto-mode purpose.
-//const uint8_t VALUE_HP_ENABLED = HIGH;
-//const uint8_t VALUE_HP_DISABLED = LOW;
+// For testing auto-mode purpose.
+//const uint8_t VALUE_HP_ENABLED = LOW;
+//const uint8_t VALUE_HP_DISABLED = HIGH;
 // outputs - Solenoids
 const uint8_t VALUE_SOL_ENABLED=HIGH;
 const uint8_t VALUE_SOL_DISABLED=LOW;
