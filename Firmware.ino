@@ -395,21 +395,25 @@ void moveCylinderUntilHighPressure(int cylinderPin, boolean &hpf){
 // &hpf: flag to track the high pressure sensor.
 void applyManualMode(uint8_t digitalInputs[], boolean &hpf){
 
-  if (pinDigitalValueIs(PIN_PRESSURE, VALUE_INPUT_READ_DELAY)==VALUE_HP_DISABLED){
+//// Uncomment the next "if" if you want to check the high pressure sensor beofre applying the manual mode.
+//// NOTE: Consider to add a configurable constant to be able to configure this behaviour at the beginning of the code.
+//  if (pinDigitalValueIs(PIN_PRESSURE, VALUE_INPUT_READ_DELAY)==VALUE_HP_DISABLED){
+
     if (DEBUG_MODE){Serial.println("Applying movement data to solenoids..");}
-    digitalWrite(PIN_SOLU,(digitalInputs[ID_BUTTON_UP]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
-    digitalWrite(PIN_SOLD,(digitalInputs[ID_BUTTON_DOWN]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
-    digitalWrite(PIN_SOLL,(digitalInputs[ID_BUTTON_LEFT]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
-    digitalWrite(PIN_SOLR,(digitalInputs[ID_BUTTON_RIGHT]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
-    digitalWrite(PIN_SOLS,(digitalInputs[ID_BUTTON_SHAKER]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));  
-  }else {
-    if (DEBUG_MODE){Serial.println("Warning: high pressure signal detected. Switching off solenoids.");}
-    hpf=true;
-    setSolenoids(VALUE_SOL_DISABLED);
-    // Uncomment the next line to enable the release pressure procedure for manual mode. This is NOT RECOMENDED because it would cause
-    // vibrations in the machine.
-    //releasePressureManualMode(digitalInputs);
+      digitalWrite(PIN_SOLU,(digitalInputs[ID_BUTTON_UP]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
+      digitalWrite(PIN_SOLD,(digitalInputs[ID_BUTTON_DOWN]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
+      digitalWrite(PIN_SOLL,(digitalInputs[ID_BUTTON_LEFT]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
+      digitalWrite(PIN_SOLR,(digitalInputs[ID_BUTTON_RIGHT]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
+      digitalWrite(PIN_SOLS,(digitalInputs[ID_BUTTON_SHAKER]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));  
   }
+//  else {
+//    if (DEBUG_MODE){Serial.println("Warning: high pressure signal detected. Switching off solenoids.");}
+//    hpf=true;
+//    setSolenoids(VALUE_SOL_DISABLED);
+//    // Uncomment the next line to enable the release pressure procedure for manual mode. This is NOT RECOMENDED because it would cause
+//    // vibrations in the machine.
+//    //releasePressureManualMode(digitalInputs);
+//  }
 }
 
 // Applies the auto-mode.
