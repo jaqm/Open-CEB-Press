@@ -71,10 +71,11 @@ const uint8_t VALUE_LED_HIGHPRESSURE_DISABLED = LOW;
 const unsigned long VALUE_TIME_BLINKING_MANUAL=1000;
 const unsigned long VALUE_TIME_BLINKING_AUTO=250;
 const unsigned long VALUE_TIME_BLINKING_HIGH_PRESSURE=500;
-//CONST
+//CONST - timers
 const unsigned long VALUE_INPUT_READ_DELAY = 5;  // Delay (milliseconds) used to consider a stable input read.
 const unsigned long VALUE_HP_READ_DELAY = 3;
 const unsigned long VALUE_TIME_RELEASE_PRESSURE_STAGE = 100;
+const unsigned long VALUE_MAX_TIME_RELEASE_PRESSURE = 1000;
 // CONST - STATES OF THE AUTO-MODE
 const short FAILSAFE_STAGE=0;
 const short CALIBRATE_SOLENOIDS = 1;
@@ -271,7 +272,7 @@ uint8_t revertDigitalSignalValue(uint8_t val){
 unsigned long releasePressure(int cylinderPin, boolean &hpf){
   unsigned long auxT=VALUE_TIMER_NULL;
   if (DEBUG_MODE) Serial.println("Releasing pressure");
-  auxT = moveCylinderUntilHighPressureBecomes( getOppositeSolenoid(cylinderPin),hpf,VALUE_HP_DISABLED);  // Release pressure
+  auxT = moveCylinderUntilHighPressureBecomes( getOppositeSolenoid(cylinderPin),hpf,VALUE_HP_DISABLED, VALUE_MAX_TIME_RELEASE_PRESSURE);  // Release pressure
   if (DEBUG_MODE) Serial.print("Time measured to release pressure: ");Serial.println(auxT);
   return auxT;
 }
@@ -280,8 +281,9 @@ unsigned long releasePressure(int cylinderPin, boolean &hpf){
 // cylinderPin: the pin assigned to the cylinder we want to move.
 // &hpf: high pressure flag.
 // hpv: the High Pressure Value we want to reach.
+// maxTime: Maximum time we want to be moving the cylinder (safety mechanism).
 // Return: time used to reach the desired high pressure value.
-unsigned long moveCylinderUntilHighPressureBecomes(int cylinderPin, boolean &hpf, uint8_t hpv){
+unsigned long moveCylinderUntilHighPressureBecomes(int cylinderPin, boolean &hpf, uint8_t hpv, unsigned long maxTime){
 
   unsigned long timestamp=millis();
 
@@ -291,7 +293,7 @@ unsigned long moveCylinderUntilHighPressureBecomes(int cylinderPin, boolean &hpf
     Serial.print("CylinderPin: "); Serial.println(cylinderPin);
   }
 
-  while(pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)!=hpv){
+  while( (pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)!=hpv) && (timestamp + maxTime > millis()) ){
     digitalWrite(cylinderPin,VALUE_SOL_ENABLED);                // Cilinder movement.
   }
   if (pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)==VALUE_HP_ENABLED){hpf=true;}
