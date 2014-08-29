@@ -379,7 +379,6 @@ void moveCylinderUntilHighPressure(int cylinderPin, boolean &hpf){
   if(pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)==VALUE_HP_ENABLED){
     hpf=true;
     digitalWrite(cylinderPin,VALUE_SOL_DISABLED);
-    //    moveCylinderUntilHighPressureBecomes( getOppositeSolenoid(cylinderPin),hpf,VALUE_HP_DISABLED);  // Release pressure
     releasePressure(cylinderPin,hpf);
   }
 }
@@ -409,7 +408,9 @@ void applyManualMode(uint8_t digitalInputs[], boolean &hpf){
     if (DEBUG_MODE){Serial.println("Warning: high pressure signal detected. Switching off solenoids.");}
     hpf=true;
     setSolenoids(VALUE_SOL_DISABLED);
-    releasePressureManualMode(digitalInputs);
+    // Uncomment the next line to enable the release pressure procedure for manual mode. This is NOT RECOMENDED because it would cause
+    // vibrations in the machine.
+    //releasePressureManualMode(digitalInputs);
   }
 }
 
