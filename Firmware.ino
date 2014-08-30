@@ -678,31 +678,34 @@ void loop() {
       switch(stage){
 
         case FAILSAFE_STAGE:    // FAILSAFE_STAGE: Startup procedure
-    
-            if (substage==0 && !flagHighPressure){
-              setSolenoids(VALUE_SOL_DISABLED);                                   // switch off the solenoids - as described in the documentation.
-                // Release pressure from SOLU if neccesary.
-              if (digitalInputs[ID_PRESSURE]==VALUE_HP_ENABLED) {
-                auxTimer=releasePressure(PIN_SOLU,flagHighPressure); // TODO: Implement a releaseHighPressureOnAllSolenoids().
-              }
-              substage++;
 
-            }else if (substage==1 && !flagHighPressure){
-              moveCylinderUntilHighPressure(PIN_SOLL, flagHighPressure);          // Clean the platform and goes to the initial position.
-              if (flagHighPressure) substage++;
-
-            }else if (substage==2 && !flagHighPressure){
-                moveCylinderUntilHighPressure(PIN_SOLU, flagHighPressure);
+            if (!flagHighPressure){
+              if (substage==0){
+                setSolenoids(VALUE_SOL_DISABLED);                                   // switch off the solenoids - as described in the documentation.
+                  // Release pressure from SOLU if neccesary.
+                if (digitalInputs[ID_PRESSURE]==VALUE_HP_ENABLED) {
+                  auxTimer=releasePressure(PIN_SOLU,flagHighPressure); // TODO: Implement a releaseHighPressureOnAllSolenoids().
+                }
+                substage++;
+  
+              }else if (substage==1){
+                moveCylinderUntilHighPressure(PIN_SOLL, flagHighPressure);          // Clean the platform and goes to the initial position.
                 if (flagHighPressure) substage++;
-
-            }else if (substage==3 && !flagHighPressure){
-              moveCylinderUntilHighPressure(PIN_SOLR, flagHighPressure);
-              if (flagHighPressure) substage++;
-
-            }else if (substage==4 && !flagHighPressure){
-              stage=CALIBRATE_SOLENOIDS;
-              substage=0;
+  
+              }else if (substage==2){
+                  moveCylinderUntilHighPressure(PIN_SOLU, flagHighPressure);
+                  if (flagHighPressure) substage++;
+  
+              }else if (substage==3){
+                moveCylinderUntilHighPressure(PIN_SOLR, flagHighPressure);
+                if (flagHighPressure) substage++;
+  
+              }else if (substage==4){
+                stage=CALIBRATE_SOLENOIDS;
+                substage=0;
+              }
             }
+
           break;
 
         case CALIBRATE_SOLENOIDS:       // Get the times we need
