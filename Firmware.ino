@@ -281,11 +281,13 @@ unsigned long moveCylinderUntilHighPressureBecomes(int cylinderPin, boolean &hpf
     Serial.print("Value: "); Serial.println(hpv);
   }
 
+  if (DEBUG_VERBOSE_MODE){Serial.println("Entering the non stop loop.."):}
   while( (pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)!=hpv) && (timestamp + maxTime > millis()) ){
     digitalWrite(cylinderPin,VALUE_SOL_ENABLED);                // Cilinder movement.
   }
   if (pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)==VALUE_HP_ENABLED){hpf=true;}
   digitalWrite(cylinderPin,VALUE_SOL_DISABLED);
+  if (DEBUG_VERBOSE_MODE){Serial.println("DONE"):}
 
   return (millis()-timestamp);
 }
