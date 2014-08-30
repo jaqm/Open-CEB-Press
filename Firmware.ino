@@ -234,6 +234,12 @@ uint8_t revertDigitalSignalValue(uint8_t val){
  }else if (val==LOW){
    oppositeValue=HIGH;
  }
+
+  if (DEBUG_VERBOSE_MODE){
+    Serial.print("revertDigitalSignalValue() received the value ");Serial.print(val);
+    Serial.print(" and is going to return ");Serial.println(oppositeValue);
+  }
+
  return oppositeValue;
 }
 
