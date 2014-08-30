@@ -409,7 +409,7 @@ void applyManualMode(uint8_t digitalInputs[], boolean &hpf){
       digitalWrite(PIN_SOLL,(digitalInputs[ID_BUTTON_LEFT]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
       digitalWrite(PIN_SOLR,(digitalInputs[ID_BUTTON_RIGHT]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
       digitalWrite(PIN_SOLS,(digitalInputs[ID_BUTTON_SHAKER]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));  
-  }
+//  }
 //  else {
 //    if (DEBUG_MODE){Serial.println("Warning: high pressure signal detected. Switching off solenoids.");}
 //    hpf=true;
@@ -870,6 +870,6 @@ void loop() {
 
   }
 
-  if (DEBUG_MODE) delay(1000);
+//  if (DEBUG_MODE) delay(1000);
 
-
+  }
