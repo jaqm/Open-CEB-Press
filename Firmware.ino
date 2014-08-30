@@ -799,10 +799,10 @@ void loop() {
         case CLOSE_CHAMBER:  // Moves the drawer on the main cylinder
 
             // We can't operate with numbers below 1 with unsigned long. So we write the operation in another way. The next two expression should be equal.
-            //variableTravelTime = ( (1/2) * timesArray[ID_TIME_SOLL] * (analogInputs[ID_POTD] / VALUE_MAX_POTD * 2) );
-            variableTravelTime = ( (timesArray[ID_TIME_SOLL] * analogInputs[ID_POTD]) / (VALUE_MAX_POTD * 2) );
             //startingPoint = ((1/4)*timesArray[ID_TIME_SOLL]);
             startingPoint = (timesArray[ID_TIME_SOLL]/4);
+            //variableTravelTime = ( (1/2) * timesArray[ID_TIME_SOLL] * (analogInputs[ID_POTD] / VALUE_MAX_POTD * 2) );
+            variableTravelTime = ( (timesArray[ID_TIME_SOLL] * analogInputs[ID_POTD]) / (VALUE_MAX_POTD * 2) );
             // Maximun value for drawer movementTimer = 3/4 * drawerTravelTime
             movementTimer =  ( startingPoint + variableTravelTime);
 
