@@ -619,6 +619,7 @@ void setup() {
     blinkingHighPressureTimer=VALUE_TIMER_NULL;
     flagHighPressure=false;
     timer=millis();
+    timestamp=millis();
     chronoIsRunning=false;
     testModeCylinderPin=VALUE_PIN_NULL;
     movementTimer=VALUE_TIMER_NULL;
@@ -764,9 +765,10 @@ void loop() {
               movementTimer = (timesArray[ID_TIME_SOLD] * analogInputs[ID_POTM])/VALUE_MAX_POTM;
               if (DEBUG_MODE){
                 Serial.println("Timing mode.");
-                Serial.print("Time applied to SOLD and SOLS: ");Serial.println(movementTimer) ;
-                //delay(20000);
+                Serial.print("Time that is gonna be applied to SOLD and SOLS: ");Serial.println(movementTimer) ;
+                //delay(10000);
               }
+
               if (!chronoIsRunning){
                 timer=millis();
                 chronoIsRunning=true;
@@ -811,15 +813,16 @@ void loop() {
                 Serial.print("Drawer variable time: ");Serial.println(variableTravelTime);
                 Serial.print("Time that will be applied to SOLL: ");Serial.println(movementTimer) ;
               }
-              timer=millis();
+              timestamp=millis();
               chronoIsRunning=true;
             }
             //delay(20000);
 
             moveCylinderUntilHighPressure(PIN_SOLL, flagHighPressure);
 
-            if ( (flagHighPressure) || (millis()-timer > movementTimer) ){
-              timer=VALUE_TIMER_NULL;
+            if ( (flagHighPressure) || (millis()-timestamp > movementTimer) ){
+              digitalWrite(PIN_SOLL,VALUE_SOL_DISABLED);
+              timestamp=VALUE_TIMER_NULL;
               chronoIsRunning=false;
               stage=COMPRESS_SOIL;
               if (DEBUG_MODE){Serial.println("Stage CLOSE_CHAMBER finished.");}
