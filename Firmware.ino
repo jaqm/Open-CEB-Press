@@ -404,7 +404,7 @@ void applyManualMode(uint8_t digitalInputs[], boolean &hpf){
 //// NOTE: Consider to add a configurable constant to be able to configure this behaviour at the beginning of the code.
 //  if (pinDigitalValueIs(PIN_PRESSURE, VALUE_INPUT_READ_DELAY)==VALUE_HP_DISABLED){
 
-    if (DEBUG_MODE){Serial.println("Applying movement data to solenoids..");}
+      if (DEBUG_MODE){Serial.println("Applying movement data to solenoids..");}
       digitalWrite(PIN_SOLU,(digitalInputs[ID_BUTTON_UP]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
       digitalWrite(PIN_SOLD,(digitalInputs[ID_BUTTON_DOWN]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
       digitalWrite(PIN_SOLL,(digitalInputs[ID_BUTTON_LEFT]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
