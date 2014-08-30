@@ -629,7 +629,6 @@ void setup() {
     startingPoint=VALUE_TIMER_NULL;
     variableTravelTime=VALUE_TIMER_NULL;
 
-
     Serial.begin(9600);
 }
 
@@ -660,7 +659,11 @@ void loop() {
     }else{                            // AUTO MODE
 
       if (DEBUG_MODE){
-        Serial.println("I'm on AUTO MODE!"); Serial.print("Stage: ");Serial.println(stage); Serial.print(" SubStage: ");Serial.println(substage);
+        Serial.println("**************");
+        Serial.println("* AUTO MODE *");
+        Serial.println("**************");
+        Serial.print("Stage: ");Serial.println(stage); 
+        Serial.print(" SubStage: ");Serial.println(substage);
       }
       // Set the proper initial values
       // Checks, if needed.
