@@ -141,8 +141,6 @@ unsigned long movementTimer;          // Used to calculate the time that is bein
 unsigned long auxTimer;  // used to store times for debug purposes at any time in the code. 
 unsigned long startingPoint;
 unsigned long variableTravelTime;
-//unsigned long drawerCoefficient=0.25;
-//boolean mainCylinderTimingMode=false;
 
 // *** END OF CONSTANTS && VARIABLES
 //**********************************
