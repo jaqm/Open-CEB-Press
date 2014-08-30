@@ -247,28 +247,6 @@ uint8_t revertDigitalSignalValue(uint8_t val){
 // **********************
 // **** MACHINE MOVEMENTS
 
-//// Moves the cylinder until high pressure sensor reaches the value secified and returns the time itgets to reach that place.
-//// cylinderPin: the pin assigned to the cylinder we want to move.
-//// &hpf: high pressure flag.
-//unsigned long moveCylinderUntilHPtakeTime(int cylinderPin, boolean &hpf){
-//
-//  // Variable used to compare 
-//  unsigned long timestamp=millis();
-//
-//  // Debug Mode
-//  if (DEBUG_MODE){
-//    Serial.println("moveCylinderUntilHPtakeTime: ");
-//    Serial.print("CylinderPin: "); Serial.println(cylinderPin);
-//  }
-//
-//  digitalWrite(cylinderPin,VALUE_SOL_ENABLED);                // Cilinder movement.
-//  while(pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)!=VALUE_HP_ENABLED){}
-//  hpf=true;
-//  digitalWrite(cylinderPin,VALUE_SOL_DISABLED);
-//
-//  return (millis()-timestamp);
-//}
-
 // ** MACHINE MOVEMENTS -- NON-STOP FUNCTIONS
 
 // Description: Moves the opposite cylinder during a short period of time. Used to release pressure.
