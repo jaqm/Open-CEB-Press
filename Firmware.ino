@@ -189,10 +189,12 @@ uint8_t getOppositeSolenoid(uint8_t pinSol){
   else if (pinSol==PIN_SOLR){opposite=PIN_SOLL;}
   else if (pinSol==PIN_SOLS){opposite=PIN_SOLS;}
   else Serial.println("ERROR: Unexpected pin value received by getOppositeSolenoid()");
+
   if (DEBUG_VERBOSE_MODE){
     Serial.print("getOpposite() received the pin ");Serial.print(pinSol);
     Serial.print(" and is going to return ");Serial.println(opposite);
   }
+
   return opposite;
 }
 
@@ -212,7 +214,7 @@ int getEnabledCylinder(uint8_t array[]){
   }else if (array[ID_BUTTON_RIGHT]==VALUE_INPUT_ENABLED){
     activePin=PIN_SOLR;
   }
-  if (DEBUG_MODE) {Serial.print("The enabled solenoid pin is: ");Serial.println(activePin);}
+  if (DEBUG_VERBOSE_MODE) {Serial.print("The enabled solenoid pin is: ");Serial.println(activePin);}
   return activePin;
 }
 
