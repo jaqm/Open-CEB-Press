@@ -281,13 +281,13 @@ unsigned long moveCylinderUntilHighPressureBecomes(int cylinderPin, boolean &hpf
     Serial.print("Value: "); Serial.println(hpv);
   }
 
-  if (DEBUG_VERBOSE_MODE){Serial.println("Entering the non stop loop.."):}
+  if (DEBUG_VERBOSE_MODE){Serial.println("Entering the non stop loop..");}
   while( (pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)!=hpv) && (timestamp + maxTime > millis()) ){
     digitalWrite(cylinderPin,VALUE_SOL_ENABLED);                // Cilinder movement.
   }
   if (pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)==VALUE_HP_ENABLED){hpf=true;}
   digitalWrite(cylinderPin,VALUE_SOL_DISABLED);
-  if (DEBUG_VERBOSE_MODE){Serial.println("DONE"):}
+  if (DEBUG_VERBOSE_MODE){Serial.println("DONE");}
 
   return (millis()-timestamp);
 }
@@ -305,7 +305,7 @@ void moveCylinderDuring(uint8_t cylinderPin,unsigned long time, boolean &hpf){
   unsigned long timestamp=millis();
 
   if (DEBUG_VERBOSE_MODE){
-    Serial.print("MOVE CYLINDER DURING: "):Serial.println(time);
+    Serial.print("MOVE CYLINDER DURING: ");Serial.println(time);
   }
 
   if (DEBUG_VERBOSE_MODE){
@@ -316,24 +316,26 @@ void moveCylinderDuring(uint8_t cylinderPin,unsigned long time, boolean &hpf){
 //      Serial.print("");Serial.println("");
   }
 
-  if (DEBUG_VERBOSE_MODE){Serial.print("Entering the non stop loop.."):}
+  if (DEBUG_VERBOSE_MODE){Serial.print("Entering the non stop loop..");}
   while ( (pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)==VALUE_HP_DISABLED)  && (timestamp+time > millis()) ){
     digitalWrite(cylinderPin,VALUE_SOL_ENABLED);                // Cylinder movement.
   }
   if (pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)) hpf=true;
   digitalWrite(cylinderPin,VALUE_SOL_DISABLED);
-  if (DEBUG_VERBOSE_MODE){Serial.println("DONE"):}
+  if (DEBUG_VERBOSE_MODE){Serial.println("DONE");}
   
 }
 
+// * This function is not being used right now. *
 // Moves both cylinders during the specified time or until HIGH PRESSURE.
-void moveBothCylinderDuring(uint8_t cylinderPin1, uint8_t cylinderPin2, unsigned long timeMoving){
+void moveBothCylinderDuring(uint8_t cylinderPin1, uint8_t cylinderPin2, unsigned long timeMoving, boolean &hpf){
 
   unsigned long timestamp=millis();
   
   digitalWrite(cylinderPin1,VALUE_SOL_ENABLED);
   digitalWrite(cylinderPin2,VALUE_SOL_ENABLED);
   while ( (pinDigitalValueIs(PIN_PRESSURE,VALUE_INPUT_READ_DELAY)==VALUE_HP_DISABLED) && (timestamp+timeMoving > millis())){}
+  if (pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)) hpf=true;
   digitalWrite(cylinderPin1,VALUE_SOL_DISABLED);
   digitalWrite(cylinderPin2,VALUE_SOL_DISABLED);
 
