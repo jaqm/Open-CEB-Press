@@ -283,6 +283,8 @@ unsigned long releasePressure(int cylinderPin, boolean &hpf){
 //  moveCylinderDuring(getOppositeSolenoid(cylinderPin), VALUE_MIN_TIME_RELEASE_PRESSURE, hpf);
   auxT = moveCylinderUntilHighPressureBecomes( getOppositeSolenoid(cylinderPin),hpf,VALUE_HP_DISABLED, VALUE_MAX_TIME_RELEASE_PRESSURE);  // Release pressure
 
+  moveCylinderDuring(getOppositeSolenoid(cylinderPin), VALUE_MIN_TIME_RELEASE_PRESSURE - auxT, hpf);
+
   if (DEBUG_MODE){
     Serial.println("ReleasePressure() stage FINISHED.");
     Serial.print("Time measured to release pressure: ");Serial.println(auxT);
