@@ -162,8 +162,8 @@ void setSolenoids(uint8_t mode){
 // Return: the status as it is.
 uint8_t pinDigitalValueIs(int pin, int d){
 
-    uint8_t value0 = HIGH;
-    uint8_t value1 = LOW;
+    uint8_t value0 = VALUE_INPUT_ENABLED;
+    uint8_t value1 = VALUE_INPUT_DISABLED;
 
     do{
 	value0 = digitalRead(pin);
@@ -182,7 +182,7 @@ uint8_t pinDigitalValueIs(int pin, int d){
 // Receiving a pin, it returns the pin of the cylinder in charge of the opposite movement.
 uint8_t getOppositeSolenoid(uint8_t pinSol){
   
-  uint8_t opposite=-1;
+  uint8_t opposite=VALUE_PIN_NULL;
   if (pinSol==PIN_SOLU){opposite=PIN_SOLD;}
   else if (pinSol==PIN_SOLD){opposite=PIN_SOLU;}
   else if (pinSol==PIN_SOLL){opposite=PIN_SOLR;}
