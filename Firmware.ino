@@ -147,6 +147,27 @@ unsigned long variableTravelTime;
 //**********************************
 
 // ******* GETTERS && SETTERS *****
+
+// returns the name of the solenoid
+char* getSolenoidName(int pin){
+  
+  char* value;
+
+  if (pin==PIN_SOLL){
+    value="LEFT";  
+  }else if (pin==PIN_SOLR){
+    value="RIGHT";
+  }else if (pin==PIN_SOLD){
+    value="DOWN";
+  }else if (pin==PIN_SOLU){
+    value="UP";
+  }else if (pin==PIN_SOLS){
+     value="SHAKER";
+  }else value="UNKNOWN";
+
+  return value;
+}
+
 // Description: Sets all solenoids into mode.
 // mode: HIGH or LOW values expected.
 void setSolenoids(uint8_t mode){
@@ -193,6 +214,7 @@ uint8_t getOppositeSolenoid(uint8_t pinSol){
 
   if (DEBUG_VERBOSE_MODE){
     Serial.print("getOpposite() received the pin ");Serial.print(pinSol);
+    Serial.print("getOpposite() received the cylinder ");Serial.print(getSolenoidName(pinSol));
     Serial.print(" and is going to return ");Serial.println(opposite);
   }
 
@@ -216,6 +238,7 @@ int getEnabledCylinder(uint8_t array[]){
     activePin=PIN_SOLR;
   }
   if (DEBUG_VERBOSE_MODE) {Serial.print("The enabled solenoid pin is: ");Serial.println(activePin);}
+  if (DEBUG_VERBOSE_MODE) {Serial.print("The enabled solenoid: ");Serial.println(getSolenoidName(activePin));}
   return activePin;
 }
 
@@ -281,6 +304,7 @@ unsigned long moveCylinderUntilHighPressureBecomes(int cylinderPin, boolean &hpf
   if (DEBUG_VERBOSE_MODE){
     Serial.println("moveCylinderUntilHighPressureBecomes:");
     Serial.print("CylinderPin: "); Serial.println(cylinderPin);
+    Serial.print("CylinderName: "); Serial.println(getSolenoidName(cylinderPin));
     Serial.print("Value: "); Serial.println(hpv);
   }
 
@@ -375,6 +399,7 @@ void moveCylinderUntilHighPressure(int cylinderPin, boolean &hpf){
   if (DEBUG_MODE){
     Serial.print("moveCylinderUntilHighPressure: ");
     Serial.print("CylinderPin: "); Serial.println(cylinderPin);
+    Serial.print("CylinderName: "); Serial.println(getSolenoidName(cylinderPin));
   }
 
   digitalWrite(cylinderPin,VALUE_SOL_ENABLED);
