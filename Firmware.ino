@@ -222,15 +222,6 @@ int getEnabledCylinder(uint8_t array[]){
 
 // **** DATA HANDLING
 
-//// DEPRECATED
-//// Receiving the values related to the potentiometer and the total time, returns the value that should be applied to the cylinder.
-//unsigned long getTimeFromPotentiometer(unsigned long totalTime, uint8_t potValue,uint8_t maxPotValue){
-//
-//  unsigned long result=( (3/4) * totalTime * (potValue/maxPotValue) );
-//  if (DEBUG_MODE) {Serial.print("The time calculated is: ");Serial.println(result);}
-//  return result;
-//}
-
 // This function inverts a digital value read from a pin like HIGH or LOW.
 // val: HIGH or LOW
 // return: if val=HGH then return LOW, if val=LOW then return HIGH. Default: B00001111.
