@@ -1,6 +1,6 @@
   //******************
   // ** TODO **
-  // - Review the blinking procedure. Pending: auto, manual and test mode.
+  // - Review the blinking procedure. Specially for auto, manual and test mode.
   // *****************
   // ** DONE **
   // - SHAKER: we want to be able to move the shaker when the cylinders are NOT moving under timing. (<- Beginning of the auto-mode)
@@ -13,34 +13,27 @@
 //***********************************
 // NOTES:
 // * untilHighPressure functions always release pressure
-// * Every mode except the manual-mode, each stage and substage must release pressure after reaching the high pressure point.
+// * Every mode, stage and substage must release pressure after reaching the high pressure point.
 //     This is a must and will be applied using the releasePressure() function,
-//     which is a non-stop function that runs until the high pressure sensor reaches the disabled status.
+//     which is a non-stop function that runs until the high pressure pressure reaches the disabled status.
 //***********************************
 
-// loop() variables - general purpose
-boolean flagHighPressure=false; // Flag to track if it was received a highPressure signal.
-boolean chronoIsRunning=false;  // Flag to know if we are running the chrono.
-// loop() variables - auto-mode
-short stage;       // Defines the stage for the auto-mode.
-short substage;    // Defines the substage for the auto-mode.
-// loop() variables - test-mode
-int testModeCylinderPin;  // test mode pin
-// loop() variables - Timers
-unsigned long blinkingStatusTimer;  // Timer to track the blinking procedure.
-unsigned long blinkingHighPressureTimer;  // Timer to track the timing for the blinking procedure of the pressure sensor led.
-unsigned long timer;          // Timer to track times.
-unsigned long movementTimer;          // Used to calculate the time that is being applied to move the main and the drawer cylinder.
-unsigned long auxTimer;  // used to store times for debug purposes at any time in the code. 
-unsigned long startingPoint;
-unsigned long variableTravelTime;
-//unsigned long drawerCoefficient=0.25;
-//boolean mainCylinderTimingMode=false;
 
+// -- CONFIG
 // Debug mode
 const boolean DEBUG_MODE=true;
 const boolean DEBUG_VERBOSE_MODE=false;
 const boolean DEBUG_LED_MODE=false;
+// CONST - LED timing for blinking
+const unsigned long VALUE_TIME_BLINKING_MANUAL=1000;
+const unsigned long VALUE_TIME_BLINKING_AUTO=250;
+const unsigned long VALUE_TIME_BLINKING_HIGH_PRESSURE=500;
+//CONST - timers
+const unsigned long VALUE_INPUT_READ_DELAY = 5;  // Delay (milliseconds) used to consider a stable input read.
+const unsigned long VALUE_HP_READ_DELAY = 5;
+const unsigned long VALUE_TIME_RELEASE_PRESSURE_STAGE = 200;
+const unsigned long VALUE_MAX_TIME_RELEASE_PRESSURE = 1000;
+// -- END OF CONFIG
 
 // STANDARD VALUES
 // inputs :: UP-LEFT-RIGHT-DOWN-SHAKER
@@ -65,15 +58,6 @@ const uint8_t VALUE_LED_DISABLED = HIGH;
 const uint8_t VALUE_LED_HIGHPRESSURE_ENABLED = HIGH;
 const uint8_t VALUE_LED_HIGHPRESSURE_DISABLED = LOW;
 
-// CONST - LED timing for blinking
-const unsigned long VALUE_TIME_BLINKING_MANUAL=1000;
-const unsigned long VALUE_TIME_BLINKING_AUTO=250;
-const unsigned long VALUE_TIME_BLINKING_HIGH_PRESSURE=500;
-//CONST - timers
-const unsigned long VALUE_INPUT_READ_DELAY = 5;  // Delay (milliseconds) used to consider a stable input read.
-const unsigned long VALUE_HP_READ_DELAY = 3;
-const unsigned long VALUE_TIME_RELEASE_PRESSURE_STAGE = 100;
-const unsigned long VALUE_MAX_TIME_RELEASE_PRESSURE = 1000;
 // CONST - STATES OF THE AUTO-MODE
 const short FAILSAFE_STAGE=0;
 const short CALIBRATE_SOLENOIDS = 1;
@@ -92,27 +76,27 @@ const int VALUE_MAX_POTM=1023;
 const int VALUE_MAX_POTD=VALUE_MAX_POTM;
 
 // INPUTS
-int PIN_SWON=PIN_C7;    //on/off switch
-int PIN_SWAUTO=PIN_C6;    //auto/manual switch
-int PIN_BUTTON_UP=PIN_C5;    //button for up
-int PIN_BUTTON_DOWN=PIN_C4;    //button for down
-int PIN_BUTTON_LEFT=PIN_C3;    //button for left
-int PIN_BUTTON_RIGHT=PIN_C2;    //button for right
 int PIN_BUTTON_SHAKER=PIN_C1;    //button for shaker
-int PIN_POTD=PIN_F2;    //potentiometer for the drawer
-int PIN_POTM=PIN_F1;    //potentiometer for the main cylinder
+int PIN_BUTTON_RIGHT=PIN_C2;    //button for right
+int PIN_BUTTON_LEFT=PIN_C3;    //button for left
+int PIN_BUTTON_DOWN=PIN_C4;    //button for down
+int PIN_BUTTON_UP=PIN_C5;    //button for up
+int PIN_SWAUTO=PIN_C6;    //auto/manual switch
+int PIN_SWON=PIN_C7;    //on/off switch
 int PIN_PRESSURE=PIN_F0;
+int PIN_POTM=PIN_F1;    //potentiometer for the main cylinder
+int PIN_POTD=PIN_F2;    //potentiometer for the drawer
 
 // OUTPUTS - Solenoids
-int PIN_SOLU=PIN_B6;    //solenoid for cylinder up
-int PIN_SOLD=PIN_B5;    //solenoid for cylinder down
-int PIN_SOLL=PIN_B4;    //solenoid for drawer left
-int PIN_SOLR=PIN_B3;    //solenoid for drawer right
 int PIN_SOLS=PIN_B2;    //solenoid for shaker motor 
+int PIN_SOLR=PIN_B3;    //solenoid for drawer right
+int PIN_SOLL=PIN_B4;    //solenoid for drawer left
+int PIN_SOLD=PIN_B5;    //solenoid for cylinder down
+int PIN_SOLU=PIN_B6;    //solenoid for cylinder up
 
 // OUTPUTS - leds
-int PIN_LED_STATUS=PIN_E1;
 int PIN_LED_HIGH_PRESSURE=PIN_E0;
+int PIN_LED_STATUS=PIN_E1;
 
 // PANEL ARRAY - it contains all the input panel values.
 const int ID_SWON=0;
@@ -139,6 +123,26 @@ const int ID_TIME_SOLD=1;
 const int ID_TIME_SOLL=2;
 const int ID_TIME_SOLR=3;
 const int ID_TIME_SOLS=4;
+
+// loop() variables - general purpose
+boolean flagHighPressure=false; // Flag to track if it was received a highPressure signal.
+boolean chronoIsRunning=false;  // Flag to know if we are running the chrono.
+// loop() variables - auto-mode
+short stage;       // Defines the stage for the auto-mode.
+short substage;    // Defines the substage for the auto-mode.
+// loop() variables - test-mode
+int testModeCylinderPin;  // test mode pin
+// loop() variables - Timers
+unsigned long blinkingStatusTimer;  // Timer to track the blinking procedure.
+unsigned long blinkingHighPressureTimer;  // Timer to track the timing for the blinking procedure of the pressure sensor led.
+unsigned long timer;          // Timer to track times.
+unsigned long timestamp;
+unsigned long movementTimer;          // Used to calculate the time that is being applied to move the main and the drawer cylinder.
+unsigned long auxTimer;  // used to store times for debug purposes at any time in the code. 
+unsigned long startingPoint;
+unsigned long variableTravelTime;
+//unsigned long drawerCoefficient=0.25;
+//boolean mainCylinderTimingMode=false;
 
 // *** END OF CONSTANTS && VARIABLES
 //**********************************
