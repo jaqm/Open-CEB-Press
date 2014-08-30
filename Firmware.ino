@@ -263,7 +263,6 @@ unsigned long releasePressure(int cylinderPin, boolean &hpf){
   }
   
   return auxT;
-
 }
 
 // Moves the cylinder until high pressure sensor reaches the value secified and returns the time itgets to reach that place.
@@ -276,10 +275,10 @@ unsigned long moveCylinderUntilHighPressureBecomes(int cylinderPin, boolean &hpf
 
   unsigned long timestamp=millis();
 
-  // Debug Mode
-  if (DEBUG_MODE){
-    Serial.print("moveCylinderUntilHighPressureBecomes: ");Serial.println(hpv);
+  if (DEBUG_VERBOSE_MODE){
+    Serial.println("moveCylinderUntilHighPressureBecomes:");
     Serial.print("CylinderPin: "); Serial.println(cylinderPin);
+    Serial.print("Value: "); Serial.println(hpv);
   }
 
   while( (pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)!=hpv) && (timestamp + maxTime > millis()) ){
