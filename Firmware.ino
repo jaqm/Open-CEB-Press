@@ -473,7 +473,7 @@ void applyManualMode(uint8_t digitalInputs[], boolean &hpf){
 // panel[]: the information readed from the machine.
 // stage: which stage of the auto-mode do we want to run.
 // &hpf: high pressure flag.
-void applyAutoMode(uint8_t digitalInputs[], int analogInputs[], unsigned long times[], short autoModeFlags[], boolean flags[]){
+void applyAutoMode(uint8_t digitalInputs[], int analogInputs[], unsigned long solenoidTimes[], unsigned long autoModeTimers[], short autoModeFlags[], boolean flags[]){
   
   if (DEBUG_MODE){
       Serial.println("**************");
@@ -908,7 +908,7 @@ void loop() {
     }else{                            // AUTO MODE
 
         //applyAutoMode();
-        applyAutoMode(digitalInputs, analogInputs, solenoidTimes, autoModeFlags, flags);
+        applyAutoMode(digitalInputs, analogInputs, solenoidTimes, autoModeTimers, autoModeFlags, flags);
     }
   }else{       // SWON is Disabled -> TEST MODE
     if (DEBUG_MODE) Serial.println("SWON is DISABLED -> I'm on TEST-MODE!");
