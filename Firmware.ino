@@ -18,7 +18,6 @@
 //     which is a non-stop function that runs until the high pressure pressure reaches the disabled status.
 //***********************************
 
-
 // -- CONFIG
 // Debug mode
 const boolean DEBUG_MODE=true;
@@ -31,7 +30,7 @@ const unsigned long VALUE_TIME_BLINKING_HIGH_PRESSURE=500;
 //CONST - timers
 const unsigned long VALUE_INPUT_READ_DELAY = 5;  // Delay (milliseconds) used to consider a stable input read.
 const unsigned long VALUE_HP_READ_DELAY = 5;
-const unsigned long VALUE_TIME_RELEASE_PRESSURE_STAGE = 200;
+//const unsigned long VALUE_TIME_RELEASE_PRESSURE_STAGE = 200;
 const unsigned long VALUE_MIN_TIME_RELEASE_PRESSURE = 400;
 const unsigned long VALUE_MAX_TIME_RELEASE_PRESSURE = 1000;
 // -- END OF CONFIG
@@ -402,7 +401,7 @@ void releasePressureManualMode(uint8_t digitalInputs[]){
     digitalWrite(PIN_SOLR,(digitalInputs[ID_BUTTON_LEFT]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
     digitalWrite(PIN_SOLL,(digitalInputs[ID_BUTTON_RIGHT]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
 //    digitalWrite(PIN_SOLS,(array[ID_BUTTON_SHAKER]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));  
-    delay(VALUE_TIME_RELEASE_PRESSURE_STAGE);
+    delay(VALUE_MIN_TIME_RELEASE_PRESSURE);
     setSolenoids(VALUE_SOL_DISABLED);
 
   }
