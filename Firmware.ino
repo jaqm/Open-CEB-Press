@@ -148,9 +148,9 @@ unsigned long blinkingHighPressureTimer;  // Timer to track the timing for the b
 unsigned long timer;          // Timer to track times.
 unsigned long timestamp;
 unsigned long movementTimer;          // Used to calculate the time that is being applied to move the main and the drawer cylinder.
-unsigned long auxTimer;  // used to store times for debug purposes at any time in the code. 
-unsigned long startingPoint;
-unsigned long variableTravelTime;
+//unsigned long auxTimer;  // used to store times for debug purposes at any time in the code. 
+//unsigned long startingPoint;
+//unsigned long variableTravelTime;
 
 // *** END OF CONSTANTS && VARIABLES
 //**********************************
@@ -491,7 +491,8 @@ void applyAutoMode(uint8_t digitalInputs[], int analogInputs[], unsigned long ti
               setSolenoids(VALUE_SOL_DISABLED);                                   // switch off the solenoids - as described in the documentation.
                 // Release pressure from SOLU if neccesary.
               if (digitalInputs[ID_PRESSURE]==VALUE_HP_ENABLED) {
-                auxTimer=releasePressure(PIN_SOLU,flags[ID_FLAG_HP]); // TODO: Implement a releaseHighPressureOnAllSolenoids().
+                //auxTimer=
+                releasePressure(PIN_SOLU,flags[ID_FLAG_HP]); // TODO: Implement a releaseHighPressureOnAllSolenoids().
               }
               autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE]++;
 
@@ -612,19 +613,19 @@ void applyAutoMode(uint8_t digitalInputs[], int analogInputs[], unsigned long ti
 
       case CLOSE_CHAMBER:  // Moves the drawer on the main cylinder
 
-          // We can't operate with numbers below 1 with unsigned long. So we write the operation in another way. The next two expression should be equal.
-          //startingPoint = ((1/4)*timesArray[ID_TIME_SOLL]);
-          startingPoint = (timesArray[ID_TIME_SOLL]/4);
-          //variableTravelTime = ( (1/2) * timesArray[ID_TIME_SOLL] * (analogInputs[ID_POTD] / VALUE_MAX_POTD * 2) );
-          variableTravelTime = ( (timesArray[ID_TIME_SOLL] * analogInputs[ID_POTD]) / (VALUE_MAX_POTD * 2) );
+          //// We can't operate with numbers below 1 with unsigned long. So we write the operation in another way. The next two expression should be equal.
+          ////startingPoint = ((1/4)*timesArray[ID_TIME_SOLL]); // == (timesArray[ID_TIME_SOLL]/4)
+          //startingPoint = (timesArray[ID_TIME_SOLL]/4);
+          ////variableTravelTime = ( (1/2) * timesArray[ID_TIME_SOLL] * (analogInputs[ID_POTD] / VALUE_MAX_POTD * 2) ); // == ( (timesArray[ID_TIME_SOLL] * analogInputs[ID_POTD]) / (VALUE_MAX_POTD * 2) )
+          //variableTravelTime = ( (timesArray[ID_TIME_SOLL] * analogInputs[ID_POTD]) / (VALUE_MAX_POTD * 2) );
           // Maximun value for drawer movementTimer = 3/4 * drawerTravelTime
-          movementTimer =  ( startingPoint + variableTravelTime);
+          movementTimer =  ( (timesArray[ID_TIME_SOLL]/4) + ( (timesArray[ID_TIME_SOLL] * analogInputs[ID_POTD]) / (VALUE_MAX_POTD * 2) ));
 
           if (!flags[ID_FLAG_CHRONO_IS_RUNNING]){
             if (DEBUG_MODE){
               Serial.print("Drawer travel time: ");Serial.println(timesArray[ID_TIME_SOLL]);
-              Serial.print("Drawer starting time: ");Serial.println(startingPoint);
-              Serial.print("Drawer variable time: ");Serial.println(variableTravelTime);
+              //Serial.print("Drawer starting time: ");Serial.println(startingPoint);
+              //Serial.print("Drawer variable time: ");Serial.println(variableTravelTime);
               Serial.print("Time that will be applied to SOLL: ");Serial.println(movementTimer) ;
             }
             timestamp=millis();
@@ -860,10 +861,10 @@ void setup() {
 //    chronoIsRunning=false;
     testModeCylinderPin=VALUE_PIN_NULL;
     movementTimer=VALUE_TIMER_NULL;
-    auxTimer=VALUE_TIMER_NULL;
+//    auxTimer=VALUE_TIMER_NULL;
 
-    startingPoint=VALUE_TIMER_NULL;
-    variableTravelTime=VALUE_TIMER_NULL;
+//    startingPoint=VALUE_TIMER_NULL;
+//    variableTravelTime=VALUE_TIMER_NULL;
 
     Serial.begin(9600);
 }
@@ -909,9 +910,10 @@ void loop() {
     }else{
       moveCylinderUntilHighPressure(testModeCylinderPin,flags[ID_FLAG_HP]);
       if (flags[ID_FLAG_HP]){
-        auxTimer= releasePressure(testModeCylinderPin,flags[ID_FLAG_HP]);
+        //auxTimer= 
+        releasePressure(testModeCylinderPin,flags[ID_FLAG_HP]);
         testModeCylinderPin=VALUE_PIN_NULL;
-        if (DEBUG_MODE) {Serial.print("It took ");Serial.print(auxTimer); Serial.print(" to relase th pressure from pin ");Serial.println(testModeCylinderPin);}
+        //if (DEBUG_MODE) {Serial.print("It took ");Serial.print(auxTimer); Serial.print(" to relase th pressure from pin ");Serial.println(testModeCylinderPin);}
       }
     } 
 
