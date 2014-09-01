@@ -36,7 +36,7 @@ const unsigned long VALUE_TIME_BLINKING_HIGH_PRESSURE=500;
 //CONST - timers
 const unsigned long VALUE_INPUT_READ_DELAY = 5;  // Delay (milliseconds) used to consider a stable digital input read.
 const unsigned long VALUE_HP_READ_DELAY = 5;
-const unsigned long VALUE_MIN_TIME_RELEASE_PRESSURE = 400;  // Minimum time we are releasing pressure.
+const unsigned long VALUE_MIN_TIME_RELEASE_PRESSURE = 130;  // Minimum time we are releasing pressure.
 const unsigned long VALUE_MAX_TIME_RELEASE_PRESSURE = 1000;  // Maximum time we are releasing pressure. 
 
 // STANDARD INPUT VALUES
