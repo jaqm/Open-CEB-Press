@@ -321,6 +321,7 @@ unsigned long releasePressure(int cylinderPin, boolean &hpf){
 //void releasePressure(int cylinderPin, boolean &hpf){  
 
   unsigned long auxT=VALUE_TIMER_NULL;
+  
   if (DEBUG_MODE) Serial.println("Starting to ReleasePressure()..");
 
   // Release pressure
@@ -420,13 +421,10 @@ void releasePressureManualMode(uint8_t digitalInputs[]){
   if (pinDigitalValueIs(PIN_PRESSURE, VALUE_INPUT_READ_DELAY)==VALUE_HP_ENABLED){
     if (DEBUG_MODE){Serial.println("Applying reversal movement on solenoids..");}
 
-    digitalWrite(PIN_SOLD,(digitalInputs[ID_BUTTON_UP]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
-    digitalWrite(PIN_SOLU,(digitalInputs[ID_BUTTON_DOWN]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
-    digitalWrite(PIN_SOLR,(digitalInputs[ID_BUTTON_LEFT]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
-    digitalWrite(PIN_SOLL,(digitalInputs[ID_BUTTON_RIGHT]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));
-//    digitalWrite(PIN_SOLS,(array[ID_BUTTON_SHAKER]==VALUE_INPUT_ENABLED ? VALUE_SOL_ENABLED:VALUE_SOL_DISABLED));  
-    delay(VALUE_MIN_TIME_RELEASE_PRESSURE);
-    setSolenoids(VALUE_SOL_DISABLED);
+    int pin = getOppositeSolenoid(getEnabledCylinder(digitalInputs));
+    digitalWrite(pin,VALUE_SOL_ENABLED);
+    delay(getReleasePressureTime(pin));
+    digitalWrite(pin,VALUE_SOL_DISABLED);
 
   }
 }
