@@ -128,8 +128,12 @@ const int ID_TIME_SOLR=3;
 unsigned long timesArray[]={VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL};
 
 // loop() flags - general purpose
-boolean flagHighPressure=false; // Flag to track if it was received a highPressure signal.
-boolean chronoIsRunning=false;  // Flag to know if we are running the chrono.
+//boolean flagHighPressure=false; // Flag to track if it was received a highPressure signal.
+//boolean chronoIsRunning=false;  // Flag to know if we are running the chrono.
+const int ID_FLAG_HP=0;
+const int ID_FLAG_CHRONO_IS_RUNNING=1;
+boolean flags[]={false,false};
+
 // loop() flags - auto-mode
 short stage;       // Defines the stage for the auto-mode.
 short substage;    // Defines the substage for the auto-mode.
@@ -649,10 +653,10 @@ void setup() {
     substage=0;
     blinkingStatusTimer=millis();
     blinkingHighPressureTimer=VALUE_TIMER_NULL;
-    flagHighPressure=false;
+    flags[ID_FLAG_HP]=false;
     timer=millis();
     timestamp=millis();
-    chronoIsRunning=false;
+//    chronoIsRunning=false;
     testModeCylinderPin=VALUE_PIN_NULL;
     movementTimer=VALUE_TIMER_NULL;
     auxTimer=VALUE_TIMER_NULL;
@@ -666,7 +670,7 @@ void setup() {
 void loop() {
 
   readPanel(digitalInputs, analogInputs, VALUE_INPUT_READ_DELAY);
-  updateLeds(digitalInputs, blinkingStatusTimer, flagHighPressure, blinkingHighPressureTimer);
+  updateLeds(digitalInputs, blinkingStatusTimer, flags[ID_FLAG_HP], blinkingHighPressureTimer);
   if (DEBUG_MODE){ printPanel(digitalInputs,analogInputs); printTimesArray(timesArray);};
 
   if (digitalInputs[ID_SWON]==VALUE_INPUT_SW_ENABLED){  // Power ON
@@ -685,7 +689,7 @@ void loop() {
       movementTimer=VALUE_TIMER_NULL;
 
       // Apply manual-mode.
-      applyManualMode(digitalInputs,flagHighPressure);
+      applyManualMode(digitalInputs,flags[ID_FLAG_HP]);
       
     }else{                            // AUTO MODE
 
@@ -699,10 +703,10 @@ void loop() {
       // Set the proper initial values
       // Checks, if needed.
 
-//      applyAutoMode(digitalInputs, timesArray, stage, substage, flagHighPressure);
+//      applyAutoMode(digitalInputs, timesArray, stage, substage, flags[ID_FLAG_HP]);
 
       // Being able to move the shaker at any time in auto-mode if the !chronoIsRunning
-      if (digitalInputs[ID_BUTTON_SHAKER]==VALUE_INPUT_ENABLED && !chronoIsRunning){
+      if (digitalInputs[ID_BUTTON_SHAKER]==VALUE_INPUT_ENABLED && !flags[ID_FLAG_CHRONO_IS_RUNNING]){
         digitalWrite(PIN_SOLS,VALUE_SOL_ENABLED);
       }else digitalWrite(PIN_SOLS,VALUE_SOL_DISABLED);
 
@@ -710,26 +714,26 @@ void loop() {
 
         case FAILSAFE_STAGE:    // FAILSAFE_STAGE: Startup procedure: Clean the platform and go to the initial position.
 
-            if (!flagHighPressure){
+            if (!flags[ID_FLAG_HP]){
               if (substage==0){
                 setSolenoids(VALUE_SOL_DISABLED);                                   // switch off the solenoids - as described in the documentation.
                   // Release pressure from SOLU if neccesary.
                 if (digitalInputs[ID_PRESSURE]==VALUE_HP_ENABLED) {
-                  auxTimer=releasePressure(PIN_SOLU,flagHighPressure); // TODO: Implement a releaseHighPressureOnAllSolenoids().
+                  auxTimer=releasePressure(PIN_SOLU,flags[ID_FLAG_HP]); // TODO: Implement a releaseHighPressureOnAllSolenoids().
                 }
                 substage++;
   
               }else if (substage==1){
-                moveCylinderUntilHighPressure(PIN_SOLL, flagHighPressure);
-                if (flagHighPressure) substage++;
+                moveCylinderUntilHighPressure(PIN_SOLL, flags[ID_FLAG_HP]);
+                if (flags[ID_FLAG_HP]) substage++;
   
               }else if (substage==2){
-                  moveCylinderUntilHighPressure(PIN_SOLU, flagHighPressure);
-                  if (flagHighPressure) substage++;
+                  moveCylinderUntilHighPressure(PIN_SOLU, flags[ID_FLAG_HP]);
+                  if (flags[ID_FLAG_HP]) substage++;
   
               }else if (substage==3){
-                moveCylinderUntilHighPressure(PIN_SOLR, flagHighPressure);
-                if (flagHighPressure) substage++;
+                moveCylinderUntilHighPressure(PIN_SOLR, flags[ID_FLAG_HP]);
+                if (flags[ID_FLAG_HP]) substage++;
   
               }else if (substage==4){
                 stage=CALIBRATE_SOLENOIDS;
@@ -741,28 +745,28 @@ void loop() {
 
         case CALIBRATE_SOLENOIDS:       // Get the times we need
             if (substage==0){            // Note: Consider to encapsulate the next feature (chronometer).
-              if (!chronoIsRunning){
+              if (!flags[ID_FLAG_CHRONO_IS_RUNNING]){
                 timer=millis();
-                chronoIsRunning=true;
+                flags[ID_FLAG_CHRONO_IS_RUNNING]=true;
               }
-              moveCylinderUntilHighPressure(PIN_SOLD,flagHighPressure);
-              if (flagHighPressure){
+              moveCylinderUntilHighPressure(PIN_SOLD,flags[ID_FLAG_HP]);
+              if (flags[ID_FLAG_HP]){
                 timesArray[ID_TIME_SOLD] = millis() - timer;
                 if (DEBUG_MODE) {Serial.print("The for SOLD has been: ");Serial.println(timesArray[ID_TIME_SOLD]);}
-                chronoIsRunning=false;
+                flags[ID_FLAG_CHRONO_IS_RUNNING]=false;
                 timer=VALUE_TIMER_NULL;
                 substage++;
               }
             }else if (substage==1){
-              if (!chronoIsRunning){
+              if (!flags[ID_FLAG_CHRONO_IS_RUNNING]){
                 timer=millis();
-                chronoIsRunning=true;
+                flags[ID_FLAG_CHRONO_IS_RUNNING]=true;
               }
-              moveCylinderUntilHighPressure(PIN_SOLL,flagHighPressure);
-              if (flagHighPressure){
+              moveCylinderUntilHighPressure(PIN_SOLL,flags[ID_FLAG_HP]);
+              if (flags[ID_FLAG_HP]){
                 timesArray[ID_TIME_SOLL] = millis() - timer;
                 if (DEBUG_MODE) {Serial.print("The for SOLL has been: ");Serial.println(timesArray[ID_TIME_SOLL]);}
-                chronoIsRunning=false;
+                flags[ID_FLAG_CHRONO_IS_RUNNING]=false;
                 timer=VALUE_TIMER_NULL;
                 substage=0;
                 stage=EJECT_BRICK;
@@ -772,14 +776,14 @@ void loop() {
 
         // BRICK SEQUENCE
         case EJECT_BRICK: // Open the chamber
-            //timesArray[ID_TIME_SOLU] = moveCylinderUntilHighPressureBecomes(PIN_SOLU, flagHighPressure,VALUE_HP_ENABLED);  // This value is not needed right now
-            moveCylinderUntilHighPressure(PIN_SOLU, flagHighPressure);
-            if (flagHighPressure) stage=PUSH_BRICK;
+            //timesArray[ID_TIME_SOLU] = moveCylinderUntilHighPressureBecomes(PIN_SOLU, flags[ID_FLAG_HP],VALUE_HP_ENABLED);  // This value is not needed right now
+            moveCylinderUntilHighPressure(PIN_SOLU, flags[ID_FLAG_HP]);
+            if (flags[ID_FLAG_HP]) stage=PUSH_BRICK;
           break;
         case PUSH_BRICK:
-            //timesArray[ID_TIME_SOLR] = moveCylinderUntilHighPressureBecomes(PIN_SOLR, flagHighPressure,VALUE_HP_ENABLED);  // This value is not needed, right now.
-            moveCylinderUntilHighPressure(PIN_SOLR, flagHighPressure);
-            if (flagHighPressure) stage=LOAD_SOIL;
+            //timesArray[ID_TIME_SOLR] = moveCylinderUntilHighPressureBecomes(PIN_SOLR, flags[ID_FLAG_HP],VALUE_HP_ENABLED);  // This value is not needed, right now.
+            moveCylinderUntilHighPressure(PIN_SOLR, flags[ID_FLAG_HP]);
+            if (flags[ID_FLAG_HP]) stage=LOAD_SOIL;
           break;
         case LOAD_SOIL: // Push down the main cilinder and load the room with soil.
 
@@ -807,9 +811,9 @@ void loop() {
                 //delay(10000);
               }
 
-              if (!chronoIsRunning){
+              if (!flags[ID_FLAG_CHRONO_IS_RUNNING]){
                 timer=millis();
-                chronoIsRunning=true;
+                flags[ID_FLAG_CHRONO_IS_RUNNING]=true;
               }
               
             }else{    // Go into until-high-pressure mode
@@ -817,16 +821,16 @@ void loop() {
                 Serial.print("Until-high-pressure-mode.");
               }
               movementTimer = timesArray[ID_TIME_SOLD] * 2; // We double the value of the timer for this solenoid to reach the high pressure point.
-              chronoIsRunning=false;
+              flags[ID_FLAG_CHRONO_IS_RUNNING]=false;
             }
             
-            moveCylinderUntilHighPressure(PIN_SOLD, flagHighPressure);
-            moveCylinderUntilHighPressure(PIN_SOLS, flagHighPressure);
+            moveCylinderUntilHighPressure(PIN_SOLD, flags[ID_FLAG_HP]);
+            moveCylinderUntilHighPressure(PIN_SOLS, flags[ID_FLAG_HP]);
 
-            if ( (flagHighPressure) || (millis()-timer > movementTimer) ){
+            if ( (flags[ID_FLAG_HP]) || (millis()-timer > movementTimer) ){
               setSolenoids(VALUE_SOL_DISABLED);                
               timer=VALUE_TIMER_NULL;
-              chronoIsRunning=false;
+              flags[ID_FLAG_CHRONO_IS_RUNNING]=false;
               movementTimer=VALUE_TIMER_NULL;
               stage=CLOSE_CHAMBER;
               if (DEBUG_MODE){Serial.println("LOAD_SOIL stage finished. Stop moving SOLS and SOLD.");};
@@ -844,7 +848,7 @@ void loop() {
             // Maximun value for drawer movementTimer = 3/4 * drawerTravelTime
             movementTimer =  ( startingPoint + variableTravelTime);
 
-            if (!chronoIsRunning){
+            if (!flags[ID_FLAG_CHRONO_IS_RUNNING]){
               if (DEBUG_MODE){
                 Serial.print("Drawer travel time: ");Serial.println(timesArray[ID_TIME_SOLL]);
                 Serial.print("Drawer starting time: ");Serial.println(startingPoint);
@@ -852,16 +856,16 @@ void loop() {
                 Serial.print("Time that will be applied to SOLL: ");Serial.println(movementTimer) ;
               }
               timestamp=millis();
-              chronoIsRunning=true;
+              flags[ID_FLAG_CHRONO_IS_RUNNING]=true;
             }
             //delay(20000);
 
-            moveCylinderUntilHighPressure(PIN_SOLL, flagHighPressure);
+            moveCylinderUntilHighPressure(PIN_SOLL, flags[ID_FLAG_HP]);
 
-            if ( (flagHighPressure) || (millis()-timestamp > movementTimer) ){
+            if ( (flags[ID_FLAG_HP]) || (millis()-timestamp > movementTimer) ){
               digitalWrite(PIN_SOLL,VALUE_SOL_DISABLED);
               timestamp=VALUE_TIMER_NULL;
-              chronoIsRunning=false;
+              flags[ID_FLAG_CHRONO_IS_RUNNING]=false;
               stage=COMPRESS_SOIL;
               if (DEBUG_MODE){Serial.println("Stage CLOSE_CHAMBER finished.");}
               //delay(10000);
@@ -869,13 +873,13 @@ void loop() {
           break;
 
         case COMPRESS_SOIL: // Compression stage
-            moveCylinderUntilHighPressure(PIN_SOLU, flagHighPressure);
-            if (flagHighPressure) stage=OPEN_CHAMBER;
+            moveCylinderUntilHighPressure(PIN_SOLU, flags[ID_FLAG_HP]);
+            if (flags[ID_FLAG_HP]) stage=OPEN_CHAMBER;
             break;
 
         case OPEN_CHAMBER: // Open the chamber
-            moveCylinderUntilHighPressure(PIN_SOLL, flagHighPressure);
-            if (flagHighPressure) stage=EJECT_BRICK;    // Going to stage 0 to get full calibration before each press.
+            moveCylinderUntilHighPressure(PIN_SOLL, flags[ID_FLAG_HP]);
+            if (flags[ID_FLAG_HP]) stage=EJECT_BRICK;    // Going to stage 0 to get full calibration before each press.
           break;
 
         default:
@@ -898,9 +902,9 @@ void loop() {
       substage=0;
       testModeCylinderPin = getEnabledCylinder(digitalInputs);
     }else{
-      moveCylinderUntilHighPressure(testModeCylinderPin,flagHighPressure);
-      if (flagHighPressure){
-        auxTimer= releasePressure(testModeCylinderPin,flagHighPressure);
+      moveCylinderUntilHighPressure(testModeCylinderPin,flags[ID_FLAG_HP]);
+      if (flags[ID_FLAG_HP]){
+        auxTimer= releasePressure(testModeCylinderPin,flags[ID_FLAG_HP]);
         testModeCylinderPin=VALUE_PIN_NULL;
         if (DEBUG_MODE) {Serial.print("It took ");Serial.print(auxTimer); Serial.print(" to relase th pressure from pin ");Serial.println(testModeCylinderPin);}
       }
