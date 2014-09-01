@@ -493,11 +493,6 @@ void applyAutoMode(uint8_t digitalInputs[], int analogInputs[], unsigned long so
       Serial.print(" SubStage: ");Serial.println(autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE]);
     }
 
-    // Being able to move the shaker at any time in auto-mode if the !chronoIsRunning
-    if (digitalInputs[ID_BUTTON_SHAKER]==VALUE_INPUT_ENABLED && !flags[ID_FLAG_CHRONO_IS_RUNNING]){
-      digitalWrite(PIN_SOLS,VALUE_SOL_ENABLED);
-    }else digitalWrite(PIN_SOLS,VALUE_SOL_DISABLED);
-
     switch(autoModeFlags[ID_AUTOMODEFLAG_STAGE]){
 
       case FAILSAFE:    // FAILSAFE: Startup procedure: Clean the platform and go to the initial position.
@@ -893,6 +888,11 @@ void loop() {
   readPanel(digitalInputs, analogInputs, VALUE_INPUT_READ_DELAY);
   updateLeds(digitalInputs, blinkingTimers[ID_BLINKING_TIMER_STATUS_LED], flags[ID_FLAG_HP], blinkingTimers[ID_BLINKING_TIMER_HIGH_PRESSURE_LED]);
   if (DEBUG_MODE){ printPanel(digitalInputs,analogInputs); printTimesArray(solenoidTimes);};
+
+  // Being able to move the shaker at any time in every mode if the !chronoIsRunning
+  if (digitalInputs[ID_BUTTON_SHAKER]==VALUE_INPUT_ENABLED && !flags[ID_FLAG_CHRONO_IS_RUNNING]){
+    digitalWrite(PIN_SOLS,VALUE_SOL_ENABLED);
+  }else digitalWrite(PIN_SOLS,VALUE_SOL_DISABLED);
 
   if (digitalInputs[ID_SWON]==VALUE_INPUT_SW_ENABLED){  // Power ON
 
