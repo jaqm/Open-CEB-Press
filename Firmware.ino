@@ -81,10 +81,10 @@ int PIN_POTD=PIN_F2;             //potentiometer for the drawer
 
 // OUTPUTS - Solenoids
 int PIN_SOLS=PIN_B2;    //solenoid for shaker motor 
-int PIN_SOLR=PIN_B3;    //solenoid for drawer right
-int PIN_SOLL=PIN_B4;    //solenoid for drawer left
-int PIN_SOLD=PIN_B5;    //solenoid for cylinder down
-int PIN_SOLU=PIN_B6;    //solenoid for cylinder up
+int PIN_SOLL=PIN_B3;    //solenoid for drawer left
+int PIN_SOLR=PIN_B4;    //solenoid for drawer right
+int PIN_SOLU=PIN_B5;    //solenoid for cylinder up
+int PIN_SOLD=PIN_B6;    //solenoid for cylinder down
 
 // OUTPUTS - leds
 int PIN_LED_HIGH_PRESSURE=PIN_E0;
