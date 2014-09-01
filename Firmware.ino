@@ -110,25 +110,25 @@ const int ID_BUTTON_RIGHT=5;
 const int ID_BUTTON_SHAKER=6;
 const int ID_PRESSURE=7;
 const int AMOUNT_DIGITAL_INPUTS=8;
-uint8_t digitalInputs[AMOUNT_DIGITAL_INPUTS];  // The array which contains all the digital input panel variables.
+uint8_t digitalInputs[AMOUNT_DIGITAL_INPUTS];  // Contains all the digital input panel variables.
 
 // ANALOG INPUTS ARRAY - contains all the analog input panel values
 const int ID_POTD=0;
 const int ID_POTM=1;
 const int AMOUNT_ANALOG_INPUTS=2;
-int analogInputs[AMOUNT_ANALOG_INPUTS];
+int analogInputs[AMOUNT_ANALOG_INPUTS];  // Contains all the analog input panel variables.
 
-// TIMESARRAY - contains the time it take each solenoid to complete a complete travel
+// SOLENOIDTIMES - contains the time that takes to each solenoid to complete a complete travel
 const int ID_TIME_SOLU=0;
 const int ID_TIME_SOLD=1;
 const int ID_TIME_SOLL=2;
 const int ID_TIME_SOLR=3;
 //const int ID_TIME_SOLS=4;  // The shaker can't do a complete travel
 //unsigned long solenoidTimes[]={VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL};
-unsigned long solenoidTimes[]={VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL};
+unsigned long solenoidTimes[]={VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL};  // Contains the times of a complete travel for each solenoid.
 
 // loop() flags - general purpose
-//boolean flagHighPressure=false; // Flag to track if it was received a highPressure signal.
+//boolean flagHighPressure=false; // Flag to track if a highPressure signal was received.
 //boolean chronoIsRunning=false;  // Flag to know if we are running the chrono.
 const int ID_FLAG_HP=0;
 const int ID_FLAG_CHRONO_IS_RUNNING=1;
@@ -140,8 +140,6 @@ boolean flags[]={false,false};
 const int ID_AUTOMODEFLAG_STAGE=0;
 const int ID_AUTOMODEFLAG_SUBSTAGE=1;
 short autoModeFlags[]={FAILSAFE_STAGE,0};
-// loop() variables - test-mode
-int testModeCylinderPin;  // test mode pin
 // loop() variables - Blink Timers
 //unsigned long blinkingStatusTimer;
 //unsigned long blinkingHighPressureTimer;
@@ -161,6 +159,9 @@ unsigned long autoModeTimers[]={0,0,0,0};
 //unsigned long auxTimer;  // used to store times for debug purposes at any time in the code. 
 //unsigned long startingPoint;
 //unsigned long variableTravelTime;
+
+// loop() variables - test-mode
+int testModeCylinderPin;  // test mode pin
 
 // *** END OF CONSTANTS && VARIABLES
 //**********************************
