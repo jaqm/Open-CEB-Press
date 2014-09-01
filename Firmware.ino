@@ -345,7 +345,6 @@ uint8_t revertDigitalSignalValue(uint8_t val){
 void recalibrateSolenoidTimesBasedOnSolr(unsigned long solenoidTimes[], unsigned long newSolrTime){
 
   if (solenoidTimes[ID_TIME_SOLR]!=VALUE_TIME_NULL){
-    
     for (int i=0; i++; i<SOLENOID_TIMES_SIZE){
       if (i!=ID_TIME_SOLR){
         solenoidTimes[i]=( (solenoidTimes[i]*solenoidTimes[i])/newSolrTime );
@@ -353,7 +352,6 @@ void recalibrateSolenoidTimesBasedOnSolr(unsigned long solenoidTimes[], unsigned
     }
   }
   solenoidTimes[ID_TIME_SOLR]=newSolrTime;
-
 }
 
 
@@ -633,9 +631,10 @@ void applyAutoMode(uint8_t digitalInputs[], int analogInputs[], unsigned long so
           moveCylinderUntilHighPressure(PIN_SOLR, flags[ID_FLAG_HP]);
           if (flags[ID_FLAG_HP]){
             unsigned long time = millis() - autoModeTimers[ID_AUTOMODETIMER_TIMESTAMP];  // Stop the chrono and recalibrate times based on SOLR if we have a previous reference.
+            autoModeTimers[ID_AUTOMODETIMER_TIMESTAMP] = VALUE_TIME_NULL;
             flags[ID_FLAG_CHRONO_IS_RUNNING]=false;
             recalibrateSolenoidTimesBasedOnSolr(solenoidTimes, time);
-            solenoidTimes[ID_TIME_SOLR] = time;
+            solenoidTimes[ID_TIME_SOLR] = time;  // Not needed, it's already being done in recalibrateSolenoidTimesBasedOnSolr().
             
             autoModeFlags[ID_AUTOMODEFLAG_STAGE]=LOAD_SOIL;
           }
