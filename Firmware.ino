@@ -32,7 +32,7 @@ const unsigned long VALUE_TIME_BLINKING_HIGH_PRESSURE=500;
 const unsigned long VALUE_INPUT_READ_DELAY = 5;  // Delay (milliseconds) used to consider a stable input read.
 const unsigned long VALUE_HP_READ_DELAY = 5;
 const unsigned long VALUE_TIME_RELEASE_PRESSURE_STAGE = 200;
-const unsigned long VALUE_MIN_TIME_RELEASE_PRESSURE = 100;
+const unsigned long VALUE_MIN_TIME_RELEASE_PRESSURE = 400;
 const unsigned long VALUE_MAX_TIME_RELEASE_PRESSURE = 1000;
 // -- END OF CONFIG
 
