@@ -1,6 +1,7 @@
   //******************
   // ** TODO **
   // - Review the blinking procedure. Specially for auto, manual and test mode.
+  // - Review the use of the ID_AUTOMODETIMER_TIMER and ID_AUTOMODETIMER_TIMESTAMP. Consider: replacing TIMER with TIMESTAMP.
   // *****************
   // ** DONE **
   // - SHAKER: we want to be able to move the shaker when the cylinders are NOT moving under timing. (<- Beginning of the auto-mode)
@@ -12,34 +13,35 @@
   
 //***********************************
 // NOTES:
-// * untilHighPressure functions always release pressure
-// * Every mode, stage and substage must release pressure after reaching the high pressure point.
-//     This is a must and will be applied using the releasePressure() function,
+// * untilHighPressure functions always release pressure.
+// * Every mode (except the manual mode), stage and substage, release pressure after reaching the high pressure point.
+//     This must be applied using the releasePressure() function,
 //     which is a non-stop function that runs until the high pressure pressure reaches the disabled status.
 //***********************************
 
-// -- CONFIG
+// ** CONFIG **
 // Debug mode
 const boolean DEBUG_MODE=true;
 const boolean DEBUG_VERBOSE_MODE=false;
-const boolean DEBUG_LED_MODE=false;
-// CONST - LED timing for blinking
-const unsigned long VALUE_TIME_BLINKING_MANUAL=1000;
+const boolean DEBUG_LED_MODE=false;  // Caution: DEBUG_LED_MODE and DEBUG_DELAYED_MODE should be used only with the CEB Press unplugged. To test the controller board only.
+const boolean DEBUG_DELAYED_MODE=false;
+// CONST - STATUS LED blinking times for each mode.
+const unsigned long VALUE_TIME_BLINKING_MANUAL=1000;  // DEPRECATED: On manual mode the status led will be always on.
 const unsigned long VALUE_TIME_BLINKING_AUTO=250;
+const unsigned long VALUE_TIME_BLINKING_TEST=500;
+// CONST - HIGH PRESSURE LED blinking time.
 const unsigned long VALUE_TIME_BLINKING_HIGH_PRESSURE=500;
 //CONST - timers
-const unsigned long VALUE_INPUT_READ_DELAY = 5;  // Delay (milliseconds) used to consider a stable input read.
+const unsigned long VALUE_INPUT_READ_DELAY = 5;  // Delay (milliseconds) used to consider a stable digital input read.
 const unsigned long VALUE_HP_READ_DELAY = 5;
-//const unsigned long VALUE_TIME_RELEASE_PRESSURE_STAGE = 200;
-const unsigned long VALUE_MIN_TIME_RELEASE_PRESSURE = 400;
-const unsigned long VALUE_MAX_TIME_RELEASE_PRESSURE = 1000;
-// -- END OF CONFIG
+const unsigned long VALUE_MIN_TIME_RELEASE_PRESSURE = 400;  // Minimum time we are releasing pressure.
+const unsigned long VALUE_MAX_TIME_RELEASE_PRESSURE = 1000;  // Maximum time we are releasing pressure. 
 
-// STANDARD VALUES
-// inputs :: UP-LEFT-RIGHT-DOWN-SHAKER
+// STANDARD INPUT VALUES
+// inputs buttons :: UP-LEFT-RIGHT-DOWN-SHAKER
 const uint8_t VALUE_INPUT_ENABLED = LOW;
 const uint8_t VALUE_INPUT_DISABLED = HIGH;
-// inputs :: SWON - SWAUTO
+// inputs switches:: SWON - SWAUTO
 const uint8_t VALUE_INPUT_SW_ENABLED = HIGH;
 const uint8_t VALUE_INPUT_SW_DISABLED = LOW;
 // inputs - high pressure sensor
@@ -49,6 +51,8 @@ const uint8_t VALUE_HP_DISABLED = LOW;
 //// For testing purpose.
 //const uint8_t VALUE_HP_ENABLED = LOW;
 //const uint8_t VALUE_HP_DISABLED = HIGH;
+
+// STANDARD OUTPUT VALUES
 // outputs - Solenoids
 const uint8_t VALUE_SOL_ENABLED=HIGH;
 const uint8_t VALUE_SOL_DISABLED=LOW;
@@ -58,25 +62,20 @@ const uint8_t VALUE_LED_DISABLED = HIGH;
 const uint8_t VALUE_LED_HIGHPRESSURE_ENABLED = HIGH;
 const uint8_t VALUE_LED_HIGHPRESSURE_DISABLED = LOW;
 
-//CONST - NULL VALUES
-const int VALUE_PIN_NULL=-1;
-const unsigned long VALUE_TIMER_NULL=0;
+// ** END OF CONFIG **
 
-// VALUE_MAX_POTM=2^10=1024 so the range is 0-1023
-const int VALUE_MAX_POTM=1023;
-const int VALUE_MAX_POTD=VALUE_MAX_POTM;
-
+// ** PINS **
 // INPUTS
 int PIN_BUTTON_SHAKER=PIN_C1;    //button for shaker
-int PIN_BUTTON_RIGHT=PIN_C2;    //button for right
-int PIN_BUTTON_LEFT=PIN_C3;    //button for left
-int PIN_BUTTON_DOWN=PIN_C4;    //button for down
-int PIN_BUTTON_UP=PIN_C5;    //button for up
-int PIN_SWAUTO=PIN_C6;    //auto/manual switch
-int PIN_SWON=PIN_C7;    //on/off switch
-int PIN_PRESSURE=PIN_F0;
-int PIN_POTM=PIN_F1;    //potentiometer for the main cylinder
-int PIN_POTD=PIN_F2;    //potentiometer for the drawer
+int PIN_BUTTON_RIGHT=PIN_C2;     //button for right
+int PIN_BUTTON_LEFT=PIN_C3;      //button for left
+int PIN_BUTTON_DOWN=PIN_C4;      //button for down
+int PIN_BUTTON_UP=PIN_C5;        //button for up
+int PIN_SWAUTO=PIN_C6;           //auto/manual switch
+int PIN_SWON=PIN_C7;             //on/off switch
+int PIN_PRESSURE=PIN_F0;         // high pressure sensor
+int PIN_POTM=PIN_F1;             //potentiometer for the main cylinder
+int PIN_POTD=PIN_F2;             //potentiometer for the drawer
 
 // OUTPUTS - Solenoids
 int PIN_SOLS=PIN_B2;    //solenoid for shaker motor 
@@ -89,8 +88,24 @@ int PIN_SOLU=PIN_B6;    //solenoid for cylinder up
 int PIN_LED_HIGH_PRESSURE=PIN_E0;
 int PIN_LED_STATUS=PIN_E1;
 
-// CONST - STATES OF THE AUTO-MODE
-const short FAILSAFE_STAGE=0;
+// ** END OF PINS **
+
+// ***********************************************************+++++************************
+// *** From now on, don't change anything if you don't know exactly what you are doing. ***
+// ***********************************************************+++++************************
+
+// ** CONSTANT && VARIABLES **
+
+// Maximum potentiometer value == 2^10 == 1024 so the range is 0-1023
+const int VALUE_MAX_POTM=1023;
+const int VALUE_MAX_POTD=VALUE_MAX_POTM;
+
+//CONST - NULL VALUES
+const int VALUE_PIN_NULL=-1;
+const unsigned long VALUE_TIMER_NULL=0;
+
+// CONST - AUTO-MODE STAGES
+const short FAILSAFE=0;
 const short CALIBRATE_SOLENOIDS = 1;
 const short EJECT_BRICK = 2;
 const short PUSH_BRICK = 3;
@@ -109,62 +124,50 @@ const int ID_BUTTON_RIGHT=5;
 const int ID_BUTTON_SHAKER=6;
 const int ID_PRESSURE=7;
 const int AMOUNT_DIGITAL_INPUTS=8;
-uint8_t digitalInputs[AMOUNT_DIGITAL_INPUTS];  // Contains all the digital input panel variables.
+uint8_t digitalInputs[AMOUNT_DIGITAL_INPUTS];
 
 // ANALOG INPUTS ARRAY - contains all the analog input panel values
 const int ID_POTD=0;
 const int ID_POTM=1;
 const int AMOUNT_ANALOG_INPUTS=2;
-int analogInputs[AMOUNT_ANALOG_INPUTS];  // Contains all the analog input panel variables.
+int analogInputs[AMOUNT_ANALOG_INPUTS];
 
-// SOLENOIDTIMES - contains the time that takes to each solenoid to complete a complete travel
+// flags - general purpose
+const int ID_FLAG_HP=0;                   // ID of the flag used to track if a highPressure signal was received.
+const int ID_FLAG_CHRONO_IS_RUNNING=1;    // ID of the flag used to know if we are running the chrono.
+boolean flags[]={false,false};
+// flags - auto-mode
+const int ID_AUTOMODEFLAG_STAGE=0;        // ID of the auto-mode stage.
+const int ID_AUTOMODEFLAG_SUBSTAGE=1;     // ID of the auto-mode substage.
+short autoModeFlags[]={FAILSAFE,0};
+
+// solenoidTimes - contains the time that takes to each solenoid to do a complete travel
 const int ID_TIME_SOLU=0;
 const int ID_TIME_SOLD=1;
 const int ID_TIME_SOLL=2;
 const int ID_TIME_SOLR=3;
 //const int ID_TIME_SOLS=4;  // The shaker can't do a complete travel
 //unsigned long solenoidTimes[]={VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL};
-unsigned long solenoidTimes[]={VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL};  // Contains the times of a complete travel for each solenoid.
+unsigned long solenoidTimes[]={VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL};
 
-// loop() flags - general purpose
-//boolean flagHighPressure=false; // Flag to track if a highPressure signal was received.
-//boolean chronoIsRunning=false;  // Flag to know if we are running the chrono.
-const int ID_FLAG_HP=0;
-const int ID_FLAG_CHRONO_IS_RUNNING=1;
-boolean flags[]={false,false};
-
-// loop() flags - auto-mode
-//short stage;       // Defines the stage for the auto-mode.
-//short substage;    // Defines the substage for the auto-mode.
-const int ID_AUTOMODEFLAG_STAGE=0;
-const int ID_AUTOMODEFLAG_SUBSTAGE=1;
-short autoModeFlags[]={FAILSAFE_STAGE,0};
-// loop() variables - Blink Timers
-//unsigned long blinkingStatusTimer;
-//unsigned long blinkingHighPressureTimer;
-const int ID_BLINKING_TIMER_STATUS_LED=0;  // ID of the timer used to track the status led blinking procedure.
-const int ID_BLINKING_TIMER_HIGH_PRESSURE_LED=1;  // ID of the timer used to track the high pressure led blinking procedure.
-unsigned long blinkingTimers[]={0,0};
+// Blinking Timers
+const int ID_BLINKING_TIMER_STATUS_LED=0;          // ID of the timer used to track the status led blinking procedure.
+const int ID_BLINKING_TIMER_HIGH_PRESSURE_LED=1;   // ID of the timer used to track the high pressure led blinking procedure.
+unsigned long blinkingTimers[]={millis(),millis()};
 // autoMode timers
-//unsigned long timer;          // Timer to track times.
-//unsigned long timestamp;
-//unsigned long movementTimer;          // Used to calculate the time that is being applied to move the main and the drawer cylinder.
-const int ID_AUTOMODETIMER_TIMESTAMP=0;
-const int ID_AUTOMODETIMER_MAIN_CYLINDER=1;
-const int ID_AUTOMODETIMER_DRAWER_CYLINDER=2;
-const int ID_AUTOMODETIMER_TIMER=3;
+const int ID_AUTOMODETIMER_TIMESTAMP=0;        // ID of the timestamp variable
+const int ID_AUTOMODETIMER_MAIN_CYLINDER=1;    // ID of the time calculated to move the main cylinder.
+const int ID_AUTOMODETIMER_DRAWER_CYLINDER=2;  // ID of the time calculated to move the drawer cylinder.
+const int ID_AUTOMODETIMER_TIMER=3;            // ID of the timer used to temporarily store times.
 unsigned long autoModeTimers[]={0,0,0,0};
 
-//unsigned long auxTimer;  // used to store times for debug purposes at any time in the code. 
-//unsigned long startingPoint;
-//unsigned long variableTravelTime;
-
-// loop() variables - test-mode
+// test-mode variables
 int testModeCylinderPin;  // test mode pin
 
 // *** END OF CONSTANTS && VARIABLES
 //**********************************
 
+// ********************************
 // ******* GETTERS && SETTERS *****
 
 // returns the name of the solenoid
@@ -286,9 +289,9 @@ uint8_t revertDigitalSignalValue(uint8_t val){
  return oppositeValue;
 }
 
-// **** END of DATA HANDLING
-// **********************
-// **** MACHINE MOVEMENTS
+// *** END of DATA HANDLING
+// *******
+// *** MACHINE MOVEMENTS
 
 // ** MACHINE MOVEMENTS -- NON-STOP FUNCTIONS
 
@@ -439,8 +442,8 @@ void moveCylinderUntilHighPressure(int cylinderPin, boolean &hpf){
 // ** MACHINE MOVEMENTS -- STATUS FUNCTIONS
 // ** MACHINE MOVEMENTS -- END of STATUS FUNCTIONS
 
-// **** END OF MACHINE MOVEMENTS
-
+// *** END OF MACHINE MOVEMENTS
+// *******
 // **** MACHINE MODES
 
 // Applies the actions expected in manual mode following the data stored in digitalInputs.
@@ -482,10 +485,6 @@ void applyAutoMode(uint8_t digitalInputs[], int analogInputs[], unsigned long so
       Serial.print("Stage: ");Serial.println(autoModeFlags[ID_AUTOMODEFLAG_STAGE]); 
       Serial.print(" SubStage: ");Serial.println(autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE]);
     }
-    // Set the proper initial values
-    // Checks, if needed.
-
-//      applyAutoMode(digitalInputs, solenoidTimes, stage, autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE], flags[ID_FLAG_HP]);
 
     // Being able to move the shaker at any time in auto-mode if the !chronoIsRunning
     if (digitalInputs[ID_BUTTON_SHAKER]==VALUE_INPUT_ENABLED && !flags[ID_FLAG_CHRONO_IS_RUNNING]){
@@ -494,7 +493,7 @@ void applyAutoMode(uint8_t digitalInputs[], int analogInputs[], unsigned long so
 
     switch(autoModeFlags[ID_AUTOMODEFLAG_STAGE]){
 
-      case FAILSAFE_STAGE:    // FAILSAFE_STAGE: Startup procedure: Clean the platform and go to the initial position.
+      case FAILSAFE:    // FAILSAFE: Startup procedure: Clean the platform and go to the initial position.
 
           if (!flags[ID_FLAG_HP]){
             if (autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE]==0){
@@ -667,17 +666,17 @@ void applyAutoMode(uint8_t digitalInputs[], int analogInputs[], unsigned long so
 
       default:
           Serial.print("ERROR: Stage not defined. Value of stage = ");Serial.print(autoModeFlags[ID_AUTOMODEFLAG_STAGE]);
-          Serial.print("Going into FAILSAFE_STAGE");
+          Serial.print("Going into FAILSAFE");
           delay(4000);
-          autoModeFlags[ID_AUTOMODEFLAG_STAGE]=FAILSAFE_STAGE;
+          autoModeFlags[ID_AUTOMODEFLAG_STAGE]=FAILSAFE;
 
         break;
   }
 }
 
-// **** END OF MACHINE MODES
-// **********************
-// **** READ && SHOW FUNCTIONS
+// *** END OF MACHINE MODES
+// *******
+// *** READ && PRINT FUNCTIONS
 
 // Reads all the values of the panel, adding a check protection against rebounce, with a delay.
 void readPanel(uint8_t digitalInputs[], int analogInputs[], const int d){  
@@ -748,8 +747,9 @@ void printTimesArray(unsigned long ta[]){
 
 }
 
-// **** END OF - READ && SHOW FUNCTIONS
-// **** DOWN FROM HERE - FUNCTIONS UNDER REVIEW
+// *** END OF - READ && SHOW FUNCTIONS
+// *******
+// *** DOWN FROM HERE - FUNCTIONS UNDER REVIEW
 
 // Updates the leds according to the information from the panel and the flags.
 // panel[]: The array containing the information from the panel.
@@ -816,6 +816,7 @@ void updateLeds(uint8_t panel[],unsigned long &sbt, boolean &hpf, unsigned long 
 // *** UP FROM HERE - FUNCTIONS UNDER REVIEW
 
 // *****************************
+// ******* SETUP && LOOP *******
 
 void setup() {
     // Define Inputs/Outputs
@@ -861,7 +862,7 @@ void setup() {
     digitalWrite(PIN_POTD, HIGH);
 
     // Initial setup for loop() variables
-    autoModeFlags[ID_AUTOMODEFLAG_STAGE]=FAILSAFE_STAGE;
+    autoModeFlags[ID_AUTOMODEFLAG_STAGE]=FAILSAFE;
     autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE]=0;
     blinkingTimers[ID_BLINKING_TIMER_STATUS_LED]=millis();
     blinkingTimers[ID_BLINKING_TIMER_HIGH_PRESSURE_LED]=VALUE_TIMER_NULL;
@@ -893,11 +894,11 @@ void loop() {
     // Set test-mode values to the default
     testModeCylinderPin=VALUE_PIN_NULL;
     
-    if (digitalInputs[ID_SWAUTO]==VALUE_INPUT_SW_DISABLED){ // Manual mode
+    if (digitalInputs[ID_SWAUTO]==VALUE_INPUT_SW_DISABLED){ // MANUAL MODE
       if (DEBUG_MODE) Serial.println("I'm on MANUAL MODE!");
 
       // Set auto-mode values to the default
-      autoModeFlags[ID_AUTOMODEFLAG_STAGE]=FAILSAFE_STAGE;
+      autoModeFlags[ID_AUTOMODEFLAG_STAGE]=FAILSAFE;
       autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE]=0;
       autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER]=VALUE_TIMER_NULL;
       autoModeTimers[ID_AUTOMODETIMER_DRAWER_CYLINDER]=VALUE_TIMER_NULL;
@@ -906,17 +907,16 @@ void loop() {
       applyManualMode(digitalInputs,flags[ID_FLAG_HP]);
       
     }else{                            // AUTO MODE
-
-        //applyAutoMode();
         applyAutoMode(digitalInputs, analogInputs, solenoidTimes, autoModeTimers, autoModeFlags, flags);
     }
+
   }else{       // SWON is Disabled -> TEST MODE
     if (DEBUG_MODE) Serial.println("SWON is DISABLED -> I'm on TEST-MODE!");
 
     // Apply test-mode.
     if (testModeCylinderPin==VALUE_PIN_NULL){
       setSolenoids(VALUE_SOL_DISABLED);      // Init default values for the other modes
-      autoModeFlags[ID_AUTOMODEFLAG_STAGE]=FAILSAFE_STAGE;
+      autoModeFlags[ID_AUTOMODEFLAG_STAGE]=FAILSAFE;
       autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE]=0;
       testModeCylinderPin = getEnabledCylinder(digitalInputs);
     }else{
@@ -931,6 +931,9 @@ void loop() {
 
   }
 
-//  if (DEBUG_MODE) delay(1000);
+  if (DEBUG_DELAYED_MODE) delay(1000);
 
-  }
+}
+// ******* END OF SETUP && LOOP *******
+// ************************************
+// EOF
