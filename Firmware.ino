@@ -1,9 +1,11 @@
   //******************
   // ** TODO **
+  // - Review the documentation of every function.
   // - Review the blinking procedure. Specially for auto, manual and test mode.
   // - Review the use of the ID_AUTOMODETIMER_TIMER and ID_AUTOMODETIMER_TIMESTAMP. Consider: replacing TIMER with TIMESTAMP.
   // *****************
   // ** DONE **
+  // - Review the documentation of the initial variables and constants.
   // - SHAKER: we want to be able to move the shaker when the cylinders are NOT moving under timing. (<- Beginning of the auto-mode)
   // - Added Test mode.
   // - MAIN CYLINDER: we want all the time travel
