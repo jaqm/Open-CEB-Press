@@ -47,7 +47,7 @@ const uint8_t VALUE_INPUT_SW_DISABLED = LOW;
 //// Real values
 const uint8_t VALUE_HP_ENABLED = HIGH;
 const uint8_t VALUE_HP_DISABLED = LOW;
-// For testing auto-mode purpose.
+//// For testing purpose.
 //const uint8_t VALUE_HP_ENABLED = LOW;
 //const uint8_t VALUE_HP_DISABLED = HIGH;
 // outputs - Solenoids
@@ -59,15 +59,6 @@ const uint8_t VALUE_LED_DISABLED = HIGH;
 const uint8_t VALUE_LED_HIGHPRESSURE_ENABLED = HIGH;
 const uint8_t VALUE_LED_HIGHPRESSURE_DISABLED = LOW;
 
-// CONST - STATES OF THE AUTO-MODE
-const short FAILSAFE_STAGE=0;
-const short CALIBRATE_SOLENOIDS = 1;
-const short EJECT_BRICK = 2;
-const short PUSH_BRICK = 3;
-const short LOAD_SOIL = 4;
-const short CLOSE_CHAMBER = 5;
-const short COMPRESS_SOIL = 6;
-const short OPEN_CHAMBER = 7;
 //CONST - NULL VALUES
 const int VALUE_PIN_NULL=-1;
 const unsigned long VALUE_TIMER_NULL=0;
@@ -99,7 +90,17 @@ int PIN_SOLU=PIN_B6;    //solenoid for cylinder up
 int PIN_LED_HIGH_PRESSURE=PIN_E0;
 int PIN_LED_STATUS=PIN_E1;
 
-// PANEL ARRAY - it contains all the input panel values.
+// CONST - STATES OF THE AUTO-MODE
+const short FAILSAFE_STAGE=0;
+const short CALIBRATE_SOLENOIDS = 1;
+const short EJECT_BRICK = 2;
+const short PUSH_BRICK = 3;
+const short LOAD_SOIL = 4;
+const short CLOSE_CHAMBER = 5;
+const short COMPRESS_SOIL = 6;
+const short OPEN_CHAMBER = 7;
+
+// PANEL ARRAY - contains all the digital input panel values.
 const int ID_SWON=0;
 const int ID_SWAUTO=1;
 const int ID_BUTTON_UP=2;
@@ -111,24 +112,25 @@ const int ID_PRESSURE=7;
 const int AMOUNT_DIGITAL_INPUTS=8;
 uint8_t digitalInputs[AMOUNT_DIGITAL_INPUTS];  // The array which contains all the digital input panel variables.
 
-// ANALOG INPUTS ARRAY
+// ANALOG INPUTS ARRAY - contains all the analog input panel values
 const int ID_POTD=0;
 const int ID_POTM=1;
 const int AMOUNT_ANALOG_INPUTS=2;
 int analogInputs[AMOUNT_ANALOG_INPUTS];
 
-// TIMESARRAY
-unsigned long timesArray[]={VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL};
+// TIMESARRAY - contains the time it take each solenoid to complete a complete travel
 const int ID_TIME_SOLU=0;
 const int ID_TIME_SOLD=1;
 const int ID_TIME_SOLL=2;
 const int ID_TIME_SOLR=3;
-const int ID_TIME_SOLS=4;
+//const int ID_TIME_SOLS=4;  // The shaker can't do a complete travel
+//unsigned long timesArray[]={VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL};
+unsigned long timesArray[]={VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL};
 
-// loop() variables - general purpose
+// loop() flags - general purpose
 boolean flagHighPressure=false; // Flag to track if it was received a highPressure signal.
 boolean chronoIsRunning=false;  // Flag to know if we are running the chrono.
-// loop() variables - auto-mode
+// loop() flags - auto-mode
 short stage;       // Defines the stage for the auto-mode.
 short substage;    // Defines the substage for the auto-mode.
 // loop() variables - test-mode
@@ -525,7 +527,7 @@ void printTimesArray(unsigned long ta[]){
   Serial.print("Time SOLD: "); Serial.println(ta[ID_TIME_SOLD],DEC);
   Serial.print("Time SOLL: "); Serial.println(ta[ID_TIME_SOLL],DEC);
   Serial.print("Time SOLR: "); Serial.println(ta[ID_TIME_SOLR],DEC);
-  Serial.print("Time SOLS: "); Serial.println(ta[ID_TIME_SOLS],DEC);
+//  Serial.print("Time SOLS: "); Serial.println(ta[ID_TIME_SOLS],DEC);
   Serial.println("********************************************"); 
 
 }
