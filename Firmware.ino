@@ -124,8 +124,8 @@ const int ID_TIME_SOLD=1;
 const int ID_TIME_SOLL=2;
 const int ID_TIME_SOLR=3;
 //const int ID_TIME_SOLS=4;  // The shaker can't do a complete travel
-//unsigned long timesArray[]={VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL};
-unsigned long timesArray[]={VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL};
+//unsigned long solenoidTimes[]={VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL};
+unsigned long solenoidTimes[]={VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL};
 
 // loop() flags - general purpose
 //boolean flagHighPressure=false; // Flag to track if it was received a highPressure signal.
@@ -485,7 +485,7 @@ void applyAutoMode(uint8_t digitalInputs[], int analogInputs[], unsigned long ti
     // Set the proper initial values
     // Checks, if needed.
 
-//      applyAutoMode(digitalInputs, timesArray, stage, autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE], flags[ID_FLAG_HP]);
+//      applyAutoMode(digitalInputs, solenoidTimes, stage, autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE], flags[ID_FLAG_HP]);
 
     // Being able to move the shaker at any time in auto-mode if the !chronoIsRunning
     if (digitalInputs[ID_BUTTON_SHAKER]==VALUE_INPUT_ENABLED && !flags[ID_FLAG_CHRONO_IS_RUNNING]){
@@ -534,8 +534,8 @@ void applyAutoMode(uint8_t digitalInputs[], int analogInputs[], unsigned long ti
             }
             moveCylinderUntilHighPressure(PIN_SOLD,flags[ID_FLAG_HP]);
             if (flags[ID_FLAG_HP]){
-              timesArray[ID_TIME_SOLD] = millis() - autoModeTimers[ID_AUTOMODETIMER_TIMER];
-              if (DEBUG_MODE) {Serial.print("The for SOLD has been: ");Serial.println(timesArray[ID_TIME_SOLD]);}
+              solenoidTimes[ID_TIME_SOLD] = millis() - autoModeTimers[ID_AUTOMODETIMER_TIMER];
+              if (DEBUG_MODE) {Serial.print("The for SOLD has been: ");Serial.println(solenoidTimes[ID_TIME_SOLD]);}
               flags[ID_FLAG_CHRONO_IS_RUNNING]=false;
               autoModeTimers[ID_AUTOMODETIMER_TIMER]=VALUE_TIMER_NULL;
               autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE]++;
@@ -547,8 +547,8 @@ void applyAutoMode(uint8_t digitalInputs[], int analogInputs[], unsigned long ti
             }
             moveCylinderUntilHighPressure(PIN_SOLL,flags[ID_FLAG_HP]);
             if (flags[ID_FLAG_HP]){
-              timesArray[ID_TIME_SOLL] = millis() - autoModeTimers[ID_AUTOMODETIMER_TIMER];
-              if (DEBUG_MODE) {Serial.print("The for SOLL has been: ");Serial.println(timesArray[ID_TIME_SOLL]);}
+              solenoidTimes[ID_TIME_SOLL] = millis() - autoModeTimers[ID_AUTOMODETIMER_TIMER];
+              if (DEBUG_MODE) {Serial.print("The for SOLL has been: ");Serial.println(solenoidTimes[ID_TIME_SOLL]);}
               flags[ID_FLAG_CHRONO_IS_RUNNING]=false;
               autoModeTimers[ID_AUTOMODETIMER_TIMER]=VALUE_TIMER_NULL;
               autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE]=0;
@@ -559,12 +559,12 @@ void applyAutoMode(uint8_t digitalInputs[], int analogInputs[], unsigned long ti
 
       // BRICK SEQUENCE
       case EJECT_BRICK: // Open the chamber
-          //timesArray[ID_TIME_SOLU] = moveCylinderUntilHighPressureBecomes(PIN_SOLU, flags[ID_FLAG_HP],VALUE_HP_ENABLED);  // This value is not needed right now
+          //solenoidTimes[ID_TIME_SOLU] = moveCylinderUntilHighPressureBecomes(PIN_SOLU, flags[ID_FLAG_HP],VALUE_HP_ENABLED);  // This value is not needed right now
           moveCylinderUntilHighPressure(PIN_SOLU, flags[ID_FLAG_HP]);
           if (flags[ID_FLAG_HP]) autoModeFlags[ID_AUTOMODEFLAG_STAGE]=PUSH_BRICK;
         break;
       case PUSH_BRICK:
-          //timesArray[ID_TIME_SOLR] = moveCylinderUntilHighPressureBecomes(PIN_SOLR, flags[ID_FLAG_HP],VALUE_HP_ENABLED);  // This value is not needed, right now.
+          //solenoidTimes[ID_TIME_SOLR] = moveCylinderUntilHighPressureBecomes(PIN_SOLR, flags[ID_FLAG_HP],VALUE_HP_ENABLED);  // This value is not needed, right now.
           moveCylinderUntilHighPressure(PIN_SOLR, flags[ID_FLAG_HP]);
           if (flags[ID_FLAG_HP]) autoModeFlags[ID_AUTOMODEFLAG_STAGE]=LOAD_SOIL;
         break;
@@ -586,8 +586,8 @@ void applyAutoMode(uint8_t digitalInputs[], int analogInputs[], unsigned long ti
 
             // We can't operate with numbers below 1 with unsigned long. So we write the operation in another way. The next two expression should be equal.
             // So what we do is group all the multiplications, group all the divisors together, and then we do the division.
-            //  autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER] = timesArray[ID_TIME_SOLD] * (analogInputs[ID_POTM]/VALUE_MAX_POTM);
-            autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER] = (timesArray[ID_TIME_SOLD] * analogInputs[ID_POTM])/VALUE_MAX_POTM;
+            //  autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER] = solenoidTimes[ID_TIME_SOLD] * (analogInputs[ID_POTM]/VALUE_MAX_POTM);
+            autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER] = (solenoidTimes[ID_TIME_SOLD] * analogInputs[ID_POTM])/VALUE_MAX_POTM;
             if (DEBUG_MODE){
               Serial.println("Timing mode.");
               Serial.print("Time that is gonna be applied to SOLD and SOLS: ");Serial.println(autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER]) ;
@@ -603,7 +603,7 @@ void applyAutoMode(uint8_t digitalInputs[], int analogInputs[], unsigned long ti
             if (DEBUG_MODE){
               Serial.print("Until-high-pressure-mode.");
             }
-            autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER] = timesArray[ID_TIME_SOLD] * 2; // We double the value of the autoModeTimers[ID_AUTOMODETIMER_TIMER] for this solenoid to reach the high pressure point.
+            autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER] = solenoidTimes[ID_TIME_SOLD] * 2; // We double the value of the autoModeTimers[ID_AUTOMODETIMER_TIMER] for this solenoid to reach the high pressure point.
             flags[ID_FLAG_CHRONO_IS_RUNNING]=false;
           }
           
@@ -624,16 +624,16 @@ void applyAutoMode(uint8_t digitalInputs[], int analogInputs[], unsigned long ti
       case CLOSE_CHAMBER:  // Moves the drawer on the main cylinder
 
           //// We can't operate with numbers below 1 with unsigned long. So we write the operation in another way. The next two expression should be equal.
-          ////startingPoint = ((1/4)*timesArray[ID_TIME_SOLL]); // == (timesArray[ID_TIME_SOLL]/4)
-          //startingPoint = (timesArray[ID_TIME_SOLL]/4);
-          ////variableTravelTime = ( (1/2) * timesArray[ID_TIME_SOLL] * (analogInputs[ID_POTD] / VALUE_MAX_POTD * 2) ); // == ( (timesArray[ID_TIME_SOLL] * analogInputs[ID_POTD]) / (VALUE_MAX_POTD * 2) )
-          //variableTravelTime = ( (timesArray[ID_TIME_SOLL] * analogInputs[ID_POTD]) / (VALUE_MAX_POTD * 2) );
+          ////startingPoint = ((1/4)*solenoidTimes[ID_TIME_SOLL]); // == (solenoidTimes[ID_TIME_SOLL]/4)
+          //startingPoint = (solenoidTimes[ID_TIME_SOLL]/4);
+          ////variableTravelTime = ( (1/2) * solenoidTimes[ID_TIME_SOLL] * (analogInputs[ID_POTD] / VALUE_MAX_POTD * 2) ); // == ( (solenoidTimes[ID_TIME_SOLL] * analogInputs[ID_POTD]) / (VALUE_MAX_POTD * 2) )
+          //variableTravelTime = ( (solenoidTimes[ID_TIME_SOLL] * analogInputs[ID_POTD]) / (VALUE_MAX_POTD * 2) );
           // Maximun value for drawer autoModeTimers[ID_AUTOMODETIMER_DRAWER_CYLINDER] = 3/4 * drawerTravelTime
-          autoModeTimers[ID_AUTOMODETIMER_DRAWER_CYLINDER] =  ( (timesArray[ID_TIME_SOLL]/4) + ( (timesArray[ID_TIME_SOLL] * analogInputs[ID_POTD]) / (VALUE_MAX_POTD * 2) ));
+          autoModeTimers[ID_AUTOMODETIMER_DRAWER_CYLINDER] =  ( (solenoidTimes[ID_TIME_SOLL]/4) + ( (solenoidTimes[ID_TIME_SOLL] * analogInputs[ID_POTD]) / (VALUE_MAX_POTD * 2) ));
 
           if (!flags[ID_FLAG_CHRONO_IS_RUNNING]){
             if (DEBUG_MODE){
-              Serial.print("Drawer travel time: ");Serial.println(timesArray[ID_TIME_SOLL]);
+              Serial.print("Drawer travel time: ");Serial.println(solenoidTimes[ID_TIME_SOLL]);
               //Serial.print("Drawer starting time: ");Serial.println(startingPoint);
               //Serial.print("Drawer variable time: ");Serial.println(variableTravelTime);
               Serial.print("Time that will be applied to SOLL: ");Serial.println(autoModeTimers[ID_AUTOMODETIMER_DRAWER_CYLINDER]) ;
@@ -735,7 +735,7 @@ void printPanel(uint8_t panel[], int analogInputs[]){
 
 }
 
-// Shows the content of the timesArray
+// Shows the content of the solenoidTimes
 void printTimesArray(unsigned long ta[]){
 
   Serial.println("********************************************");
@@ -884,7 +884,7 @@ void loop() {
 
   readPanel(digitalInputs, analogInputs, VALUE_INPUT_READ_DELAY);
   updateLeds(digitalInputs, blinkingTimers[ID_BLINKING_TIMER_STATUS_LED], flags[ID_FLAG_HP], blinkingTimers[ID_BLINKING_TIMER_HIGH_PRESSURE_LED]);
-  if (DEBUG_MODE){ printPanel(digitalInputs,analogInputs); printTimesArray(timesArray);};
+  if (DEBUG_MODE){ printPanel(digitalInputs,analogInputs); printTimesArray(solenoidTimes);};
 
   if (digitalInputs[ID_SWON]==VALUE_INPUT_SW_ENABLED){  // Power ON
 
@@ -908,7 +908,7 @@ void loop() {
     }else{                            // AUTO MODE
 
         //applyAutoMode();
-        applyAutoMode(digitalInputs, analogInputs, timesArray, autoModeFlags, flags);
+        applyAutoMode(digitalInputs, analogInputs, solenoidTimes, autoModeFlags, flags);
     }
   }else{       // SWON is Disabled -> TEST MODE
     if (DEBUG_MODE) Serial.println("SWON is DISABLED -> I'm on TEST-MODE!");
