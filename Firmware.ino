@@ -5,9 +5,9 @@
   // - We want to measure the drawer cylinder travel.
   // - Review the documentation of every function.
   // - Review the blinking procedure. Specially for auto, manual and test mode.
-  // - Review the use of the ID_AUTOMODETIMER_TIMER and ID_AUTOMODETIMER_TIMESTAMP. Consider: replacing TIMER with TIMESTAMP.
   // *****************
   // ** DONE **
+  // - Review the use of the ID_AUTOMODETIMER_TIMER and ID_AUTOMODETIMER_TIMESTAMP. Done: replacing TIMER with TIMESTAMP.
   // - We want to be able to move the shaker at any time in any mode.
   // - We don't want to move the shaker automatically in auto-mode. Bu twe want to be able to move automatically.
   // - Review the documentation of the initial variables and constants.
@@ -167,8 +167,7 @@ unsigned long blinkingTimers[]={millis(),millis()};
 const int ID_AUTOMODETIMER_TIMESTAMP=0;        // ID of the timestamp variable
 const int ID_AUTOMODETIMER_MAIN_CYLINDER=1;    // ID of the time calculated to move the main cylinder.
 const int ID_AUTOMODETIMER_DRAWER_CYLINDER=2;  // ID of the time calculated to move the drawer cylinder.
-const int ID_AUTOMODETIMER_TIMER=3;            // ID of the timer used to temporarily store times.
-unsigned long autoModeTimers[]={0,0,0,0};
+unsigned long autoModeTimers[]={0,0,0};
 
 // test-mode variables
 int testModeCylinderPin;  // test mode pin
@@ -532,28 +531,28 @@ void applyAutoMode(uint8_t digitalInputs[], int analogInputs[], unsigned long so
       case CALIBRATE_SOLENOIDS:       // Get the times we need
           if (autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE]==0){            // Note: Consider to encapsulate the next feature (chronometer).
             if (!flags[ID_FLAG_CHRONO_IS_RUNNING]){
-              autoModeTimers[ID_AUTOMODETIMER_TIMER]=millis();
+              autoModeTimers[ID_AUTOMODETIMER_TIMESTAMP]=millis();
               flags[ID_FLAG_CHRONO_IS_RUNNING]=true;
             }
             moveCylinderUntilHighPressure(PIN_SOLD,flags[ID_FLAG_HP]);
             if (flags[ID_FLAG_HP]){
-              solenoidTimes[ID_TIME_SOLD] = millis() - autoModeTimers[ID_AUTOMODETIMER_TIMER];
+              solenoidTimes[ID_TIME_SOLD] = millis() - autoModeTimers[ID_AUTOMODETIMER_TIMESTAMP];
               if (DEBUG_MODE) {Serial.print("The for SOLD has been: ");Serial.println(solenoidTimes[ID_TIME_SOLD]);}
               flags[ID_FLAG_CHRONO_IS_RUNNING]=false;
-              autoModeTimers[ID_AUTOMODETIMER_TIMER]=VALUE_TIMER_NULL;
+              autoModeTimers[ID_AUTOMODETIMER_TIMESTAMP]=VALUE_TIMER_NULL;
               autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE]++;
             }
           }else if (autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE]==1){
             if (!flags[ID_FLAG_CHRONO_IS_RUNNING]){
-              autoModeTimers[ID_AUTOMODETIMER_TIMER]=millis();
+              autoModeTimers[ID_AUTOMODETIMER_TIMESTAMP]=millis();
               flags[ID_FLAG_CHRONO_IS_RUNNING]=true;
             }
             moveCylinderUntilHighPressure(PIN_SOLL,flags[ID_FLAG_HP]);
             if (flags[ID_FLAG_HP]){
-              solenoidTimes[ID_TIME_SOLL] = millis() - autoModeTimers[ID_AUTOMODETIMER_TIMER];
+              solenoidTimes[ID_TIME_SOLL] = millis() - autoModeTimers[ID_AUTOMODETIMER_TIMESTAMP];
               if (DEBUG_MODE) {Serial.print("The for SOLL has been: ");Serial.println(solenoidTimes[ID_TIME_SOLL]);}
               flags[ID_FLAG_CHRONO_IS_RUNNING]=false;
-              autoModeTimers[ID_AUTOMODETIMER_TIMER]=VALUE_TIMER_NULL;
+              autoModeTimers[ID_AUTOMODETIMER_TIMESTAMP]=VALUE_TIMER_NULL;
               autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE]=0;
               autoModeFlags[ID_AUTOMODEFLAG_STAGE]=EJECT_BRICK;
             }
@@ -601,7 +600,7 @@ void applyAutoMode(uint8_t digitalInputs[], int analogInputs[], unsigned long so
             }
 
             if (!flags[ID_FLAG_CHRONO_IS_RUNNING]){
-              autoModeTimers[ID_AUTOMODETIMER_TIMER]=millis();
+              autoModeTimers[ID_AUTOMODETIMER_TIMESTAMP]=millis();
               flags[ID_FLAG_CHRONO_IS_RUNNING]=true;
             }
             
@@ -609,16 +608,16 @@ void applyAutoMode(uint8_t digitalInputs[], int analogInputs[], unsigned long so
             if (DEBUG_MODE){
               Serial.print("Until-high-pressure-mode.");
             }
-            autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER] = solenoidTimes[ID_TIME_SOLD] * 2; // We double the value of the autoModeTimers[ID_AUTOMODETIMER_TIMER] for this solenoid to reach the high pressure point.
+            autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER] = solenoidTimes[ID_TIME_SOLD] * 2; // We double the value of the solenoidTimes[ID_TIME_SOLD] for this solenoid to reach the high pressure point.
             flags[ID_FLAG_CHRONO_IS_RUNNING]=false;
           }
           
           moveCylinderUntilHighPressure(PIN_SOLD, flags[ID_FLAG_HP]);
           if (MOVE_SHAKER_AUTOMATICALLY_ON_AUTO_MODE) moveCylinderUntilHighPressure(PIN_SOLS, flags[ID_FLAG_HP]);
 
-          if ( (flags[ID_FLAG_HP]) || (millis()-autoModeTimers[ID_AUTOMODETIMER_TIMER] > autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER]) ){
+          if ( (flags[ID_FLAG_HP]) || (millis()-autoModeTimers[ID_AUTOMODETIMER_TIMESTAMP] > autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER]) ){
             setSolenoids(VALUE_SOL_DISABLED);                
-            autoModeTimers[ID_AUTOMODETIMER_TIMER]=VALUE_TIMER_NULL;
+            autoModeTimers[ID_AUTOMODETIMER_TIMESTAMP]=VALUE_TIMER_NULL;
             flags[ID_FLAG_CHRONO_IS_RUNNING]=false;
             autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER]=VALUE_TIMER_NULL;    // NOTE: Consider to remove this step
             autoModeFlags[ID_AUTOMODEFLAG_STAGE]=CLOSE_CHAMBER;
@@ -874,7 +873,6 @@ void setup() {
     blinkingTimers[ID_BLINKING_TIMER_STATUS_LED]=millis();
     blinkingTimers[ID_BLINKING_TIMER_HIGH_PRESSURE_LED]=VALUE_TIMER_NULL;
     flags[ID_FLAG_HP]=false;
-    autoModeTimers[ID_AUTOMODETIMER_TIMER]=millis();
     autoModeTimers[ID_AUTOMODETIMER_TIMESTAMP]=millis();
 //    chronoIsRunning=false;
     testModeCylinderPin=VALUE_PIN_NULL;
