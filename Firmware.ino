@@ -113,7 +113,7 @@ const int VALUE_MAX_POTD=VALUE_MAX_POTM;
 
 //CONST - NULL VALUES
 const int VALUE_PIN_NULL=-1;
-const unsigned long VALUE_TIMER_NULL=0;
+const unsigned long VALUE_TIME_NULL=0;
 
 // CONST - AUTO-MODE STAGES
 const short FAILSAFE=0;
@@ -158,8 +158,9 @@ const int ID_TIME_SOLD=1;
 const int ID_TIME_SOLL=2;
 const int ID_TIME_SOLR=3;
 //const int ID_TIME_SOLS=4;  // The shaker can't do a complete travel
-//unsigned long solenoidTimes[]={VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL};
-unsigned long solenoidTimes[]={VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL,VALUE_TIMER_NULL};
+//unsigned long solenoidTimes[]={VALUE_TIME_NULL,VALUE_TIME_NULL,VALUE_TIME_NULL,VALUE_TIME_NULL,VALUE_TIME_NULL};
+const int SOLENOID_TIMES_SIZE=4;
+unsigned long solenoidTimes[]={VALUE_TIME_NULL,VALUE_TIME_NULL,VALUE_TIME_NULL,VALUE_TIME_NULL};
 
 // Blinking Timers
 const int ID_BLINKING_TIMER_STATUS_LED=0;          // ID of the timer used to track the status led blinking procedure.
@@ -178,11 +179,41 @@ int testModeCylinderPin;  // test mode pin
 //**********************************
 
 // ********************************
+// **** INITIALIZERS
+// Initialize the autoModeTimers array.
+void intializeAutoModeTimers(unsigned long autoModeTimers[]){
+  autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER]=VALUE_TIME_NULL;
+  autoModeTimers[ID_AUTOMODETIMER_DRAWER_CYLINDER]=VALUE_TIME_NULL;
+}
+
+void initializeAutoModeFlags(short flags[]){
+  flags[ID_AUTOMODEFLAG_STAGE]=FAILSAFE;
+  flags[ID_AUTOMODEFLAG_SUBSTAGE]=0;
+};
+
+// Initialize the solenoid times array
+void initializeSolenoidTimes(unsigned long solenoidTimes[]){
+  for (int i = 0; i++; i<SOLENOID_TIMES_SIZE){
+    solenoidTimes[i]=VALUE_TIME_NULL;
+  }
+}
+
+// Initialize all the arrays related to the auto-mode.
+void initializeAutoMode(short autoModeFlags[], unsigned long solenoidTimes[],unsigned long autoModeTimers[]){
+  initializeAutoModeFlags(autoModeFlags);
+  intializeAutoModeTimers(autoModeTimers);
+  initializeSolenoidTimes(solenoidTimes);
+};
+
+// *** END OF INITIALIZERS
+
 // *** BOOLEAN FUNCTIONS
 // Return true is cylinderPin is a main cylinder movement pin.
 boolean isMainCylinder(int cylinderPin){
   return (cylinderPin==PIN_SOLU || cylinderPin==PIN_SOLD);
 }
+// *** END OF BOOLEAN FUNCTIONS
+
 
 // ******* GETTERS && SETTERS *****
 
@@ -310,6 +341,22 @@ uint8_t revertDigitalSignalValue(uint8_t val){
  return oppositeValue;
 }
 
+// Recalibrates the solenoid times based on the newSolrTime and updates the solR time.
+void recalibrateSolenoidTimesBasedOnSolr(unsigned long solenoidTimes[], unsigned long newSolrTime){
+
+  if (solenoidTimes[ID_TIME_SOLR]!=VALUE_TIME_NULL){
+    
+    for (int i=0; i++; i<SOLENOID_TIMES_SIZE){
+      if (i!=ID_TIME_SOLR){
+        solenoidTimes[i]=( (solenoidTimes[i]*solenoidTimes[i])/newSolrTime );
+      }
+    }
+  }
+  solenoidTimes[ID_TIME_SOLR]=newSolrTime;
+
+}
+
+
 // *** END of DATA HANDLING
 // *******
 // *** MACHINE MOVEMENTS
@@ -320,7 +367,7 @@ uint8_t revertDigitalSignalValue(uint8_t val){
 unsigned long releasePressure(int cylinderPin, boolean &hpf){
 //void releasePressure(int cylinderPin, boolean &hpf){  
 
-  unsigned long auxT=VALUE_TIMER_NULL;
+  unsigned long auxT=VALUE_TIME_NULL;
   
   if (DEBUG_MODE) Serial.println("Starting to ReleasePressure()..");
 
@@ -550,7 +597,7 @@ void applyAutoMode(uint8_t digitalInputs[], int analogInputs[], unsigned long so
               solenoidTimes[ID_TIME_SOLD] = millis() - autoModeTimers[ID_AUTOMODETIMER_TIMESTAMP];
               if (DEBUG_MODE) {Serial.print("The for SOLD has been: ");Serial.println(solenoidTimes[ID_TIME_SOLD]);}
               flags[ID_FLAG_CHRONO_IS_RUNNING]=false;
-              autoModeTimers[ID_AUTOMODETIMER_TIMESTAMP]=VALUE_TIMER_NULL;
+              autoModeTimers[ID_AUTOMODETIMER_TIMESTAMP]=VALUE_TIME_NULL;
               autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE]++;
             }
           }else if (autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE]==1){
@@ -563,7 +610,7 @@ void applyAutoMode(uint8_t digitalInputs[], int analogInputs[], unsigned long so
               solenoidTimes[ID_TIME_SOLL] = millis() - autoModeTimers[ID_AUTOMODETIMER_TIMESTAMP];
               if (DEBUG_MODE) {Serial.print("The for SOLL has been: ");Serial.println(solenoidTimes[ID_TIME_SOLL]);}
               flags[ID_FLAG_CHRONO_IS_RUNNING]=false;
-              autoModeTimers[ID_AUTOMODETIMER_TIMESTAMP]=VALUE_TIMER_NULL;
+              autoModeTimers[ID_AUTOMODETIMER_TIMESTAMP]=VALUE_TIME_NULL;
               autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE]=0;
               autoModeFlags[ID_AUTOMODEFLAG_STAGE]=EJECT_BRICK;
             }
@@ -577,9 +624,21 @@ void applyAutoMode(uint8_t digitalInputs[], int analogInputs[], unsigned long so
           if (flags[ID_FLAG_HP]) autoModeFlags[ID_AUTOMODEFLAG_STAGE]=PUSH_BRICK;
         break;
       case PUSH_BRICK:
-          //solenoidTimes[ID_TIME_SOLR] = moveCylinderUntilHighPressureBecomes(PIN_SOLR, flags[ID_FLAG_HP],VALUE_HP_ENABLED);  // This value is not needed, right now.
+          
+          if (!flags[ID_FLAG_CHRONO_IS_RUNNING]){
+            autoModeTimers[ID_AUTOMODETIMER_TIMESTAMP]=millis();
+            flags[ID_FLAG_CHRONO_IS_RUNNING]=true;
+          }
+
           moveCylinderUntilHighPressure(PIN_SOLR, flags[ID_FLAG_HP]);
-          if (flags[ID_FLAG_HP]) autoModeFlags[ID_AUTOMODEFLAG_STAGE]=LOAD_SOIL;
+          if (flags[ID_FLAG_HP]){
+            unsigned long time = millis() - autoModeTimers[ID_AUTOMODETIMER_TIMESTAMP];  // Stop the chrono and recalibrate times based on SOLR if we have a previous reference.
+            flags[ID_FLAG_CHRONO_IS_RUNNING]=false;
+            recalibrateSolenoidTimesBasedOnSolr(solenoidTimes, time);
+            solenoidTimes[ID_TIME_SOLR] = time;
+            
+            autoModeFlags[ID_AUTOMODEFLAG_STAGE]=LOAD_SOIL;
+          }
         break;
       case LOAD_SOIL: // Push down the main cilinder and load the room with soil.
 
@@ -628,9 +687,9 @@ void applyAutoMode(uint8_t digitalInputs[], int analogInputs[], unsigned long so
 
           if ( (flags[ID_FLAG_HP]) || (millis()-autoModeTimers[ID_AUTOMODETIMER_TIMESTAMP] > autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER]) ){
             setSolenoids(VALUE_SOL_DISABLED);                
-            autoModeTimers[ID_AUTOMODETIMER_TIMESTAMP]=VALUE_TIMER_NULL;
+            autoModeTimers[ID_AUTOMODETIMER_TIMESTAMP]=VALUE_TIME_NULL;
             flags[ID_FLAG_CHRONO_IS_RUNNING]=false;
-            autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER]=VALUE_TIMER_NULL;    // NOTE: Consider to remove this step
+            autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER]=VALUE_TIME_NULL;    // NOTE: Consider to remove this step
             autoModeFlags[ID_AUTOMODEFLAG_STAGE]=CLOSE_CHAMBER;
             if (DEBUG_MODE){Serial.println("LOAD_SOIL stage finished.");};
           }
@@ -663,7 +722,7 @@ void applyAutoMode(uint8_t digitalInputs[], int analogInputs[], unsigned long so
 
           if ( (flags[ID_FLAG_HP]) || (millis()-autoModeTimers[ID_AUTOMODETIMER_TIMESTAMP] > autoModeTimers[ID_AUTOMODETIMER_DRAWER_CYLINDER]) ){
             digitalWrite(PIN_SOLL,VALUE_SOL_DISABLED);
-            autoModeTimers[ID_AUTOMODETIMER_TIMESTAMP]=VALUE_TIMER_NULL;
+            autoModeTimers[ID_AUTOMODETIMER_TIMESTAMP]=VALUE_TIME_NULL;
             flags[ID_FLAG_CHRONO_IS_RUNNING]=false;
             autoModeFlags[ID_AUTOMODEFLAG_STAGE]=COMPRESS_SOIL;
             if (DEBUG_MODE){Serial.println("Stage CLOSE_CHAMBER finished.");}
@@ -882,17 +941,17 @@ void setup() {
     autoModeFlags[ID_AUTOMODEFLAG_STAGE]=FAILSAFE;
     autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE]=0;
     blinkingTimers[ID_BLINKING_TIMER_STATUS_LED]=millis();
-    blinkingTimers[ID_BLINKING_TIMER_HIGH_PRESSURE_LED]=VALUE_TIMER_NULL;
+    blinkingTimers[ID_BLINKING_TIMER_HIGH_PRESSURE_LED]=VALUE_TIME_NULL;
     flags[ID_FLAG_HP]=false;
     autoModeTimers[ID_AUTOMODETIMER_TIMESTAMP]=millis();
 //    chronoIsRunning=false;
     testModeCylinderPin=VALUE_PIN_NULL;
-    autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER]=VALUE_TIMER_NULL;
-    autoModeTimers[ID_AUTOMODETIMER_DRAWER_CYLINDER]=VALUE_TIMER_NULL;
-//    auxTimer=VALUE_TIMER_NULL;
+    autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER]=VALUE_TIME_NULL;
+    autoModeTimers[ID_AUTOMODETIMER_DRAWER_CYLINDER]=VALUE_TIME_NULL;
+//    auxTimer=VALUE_TIME_NULL;
 
-//    startingPoint=VALUE_TIMER_NULL;
-//    variableTravelTime=VALUE_TIMER_NULL;
+//    startingPoint=VALUE_TIME_NULL;
+//    variableTravelTime=VALUE_TIME_NULL;
 
     Serial.begin(9600);
 }
@@ -910,19 +969,22 @@ void loop() {
 
   if (digitalInputs[ID_SWON]==VALUE_INPUT_SW_ENABLED){  // Power ON
 
-    if (DEBUG_MODE) Serial.println("I'm ON!");
+    if (DEBUG_MODE){
+      Serial.println("* ON *");
+    }
 
     // Set test-mode values to the default
     testModeCylinderPin=VALUE_PIN_NULL;
     
     if (digitalInputs[ID_SWAUTO]==VALUE_INPUT_SW_DISABLED){ // MANUAL MODE
-      if (DEBUG_MODE) Serial.println("I'm on MANUAL MODE!");
+      if (DEBUG_MODE){
+        Serial.println("***************");
+        Serial.println("* MANUAL MODE *");
+        Serial.println("***************");
+      } 
 
       // Set auto-mode values to the default
-      autoModeFlags[ID_AUTOMODEFLAG_STAGE]=FAILSAFE;
-      autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE]=0;
-      autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER]=VALUE_TIMER_NULL;
-      autoModeTimers[ID_AUTOMODETIMER_DRAWER_CYLINDER]=VALUE_TIMER_NULL;
+      initializeAutoMode(autoModeFlags,solenoidTimes,autoModeTimers);
 
       // Apply manual-mode.
       applyManualMode(digitalInputs,flags[ID_FLAG_HP]);
