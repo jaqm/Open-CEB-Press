@@ -1,5 +1,10 @@
   //******************
   // ** TODO **
+  // - Redesign the test-mode to be able to work in timed and high pressure mode.
+  // - We want to recalibrate the time for the main cylinder based on the changed hapenned in the drawer cylinder. 
+  // - We want to measure the drawer cylinder travel.
+  // - We want to be able to move the shaker at any time in any mode.
+  // - We don't want to move the shaker automatically in auto-mode. Bu twe want to be able to move automatically.
   // - Review the documentation of every function.
   // - Review the blinking procedure. Specially for auto, manual and test mode.
   // - Review the use of the ID_AUTOMODETIMER_TIMER and ID_AUTOMODETIMER_TIMESTAMP. Consider: replacing TIMER with TIMESTAMP.
