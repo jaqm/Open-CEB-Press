@@ -139,7 +139,7 @@ boolean flags[]={false,false};
 //short substage;    // Defines the substage for the auto-mode.
 const int ID_AUTOMODEFLAG_STAGE=0;
 const int ID_AUTOMODEFLAG_SUBSTAGE=1;
-short autoModeFlags[]={0,0};
+short autoModeFlags[]={FAILSAFE_STAGE,0};
 // loop() variables - test-mode
 int testModeCylinderPin;  // test mode pin
 // loop() variables - Timers
