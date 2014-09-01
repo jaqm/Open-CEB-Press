@@ -178,6 +178,12 @@ int testModeCylinderPin;  // test mode pin
 // ********************************
 // ******* GETTERS && SETTERS *****
 
+// *** BOOLEAN FUNCTIONS
+// Return true is cylinderPin is a main cylinder movement pin.
+boolean isMainCylinder(int cylinderPin){
+  return (cylinderPin==PIN_SOLU || cylinderPin==PIN_SOLD);
+}
+
 // returns the name of the solenoid
 char* getSolenoidName(int pin){
   
