@@ -7,6 +7,7 @@
   // - Review the blinking procedure. Specially for auto, manual and test mode.
   // *****************
   // ** DONE **
+  // - We want to use different release pressure values for the main cylinder and the other cylinders.
   // - Review the use of the ID_AUTOMODETIMER_TIMER and ID_AUTOMODETIMER_TIMESTAMP. Done: replacing TIMER with TIMESTAMP.
   // - We want to be able to move the shaker at any time in any mode.
   // - We don't want to move the shaker automatically in auto-mode. Bu twe want to be able to move automatically.
@@ -43,7 +44,8 @@ const unsigned long VALUE_TIME_BLINKING_HIGH_PRESSURE=500;
 //CONST - timers
 const unsigned long VALUE_INPUT_READ_DELAY = 5;  // Delay (milliseconds) used to consider a stable digital input read.
 const unsigned long VALUE_HP_READ_DELAY = 5;
-const unsigned long VALUE_MIN_TIME_RELEASE_PRESSURE = 130;  // Minimum time we are releasing pressure.
+const unsigned long VALUE_MIN_TIME_MAIN_CYLINDER_RELEASE_PRESSURE = 200;  // Minimum time we are releasing pressure.
+const unsigned long VALUE_MIN_TIME_DEFAULT_CYLINDER_RELEASE_PRESSURE = 120;  // Minimum time we are releasing pressure.
 const unsigned long VALUE_MAX_TIME_RELEASE_PRESSURE = 1000;  // Maximum time we are releasing pressure. 
 
 // STANDARD INPUT VALUES
@@ -176,12 +178,17 @@ int testModeCylinderPin;  // test mode pin
 //**********************************
 
 // ********************************
-// ******* GETTERS && SETTERS *****
-
 // *** BOOLEAN FUNCTIONS
 // Return true is cylinderPin is a main cylinder movement pin.
 boolean isMainCylinder(int cylinderPin){
   return (cylinderPin==PIN_SOLU || cylinderPin==PIN_SOLD);
+}
+
+// ******* GETTERS && SETTERS *****
+
+// Returns the release pressure time defined for the solenoid defined for cylinderPin.
+unsigned long getReleasePressureTime(int cylinderPin){
+  return (isMainCylinder(cylinderPin)?VALUE_MIN_TIME_MAIN_CYLINDER_RELEASE_PRESSURE:VALUE_MIN_TIME_DEFAULT_CYLINDER_RELEASE_PRESSURE);
 }
 
 // returns the name of the solenoid
@@ -316,9 +323,9 @@ unsigned long releasePressure(int cylinderPin, boolean &hpf){
   unsigned long auxT=VALUE_TIMER_NULL;
   if (DEBUG_MODE) Serial.println("Starting to ReleasePressure()..");
 
-//  moveCylinderDuring(getOppositeSolenoid(cylinderPin), VALUE_MIN_TIME_RELEASE_PRESSURE, hpf);
-  auxT = moveCylinderUntilHighPressureBecomes( getOppositeSolenoid(cylinderPin),hpf,VALUE_HP_DISABLED, VALUE_MAX_TIME_RELEASE_PRESSURE);  // Release pressure
-  moveCylinderDuring(getOppositeSolenoid(cylinderPin), VALUE_MIN_TIME_RELEASE_PRESSURE - auxT, hpf);  // Move the cylinder to the VALUE_MIN_TIME_RELEASE point or until high pressure.
+  // Release pressure
+  auxT = moveCylinderUntilHighPressureBecomes( getOppositeSolenoid(cylinderPin),hpf,VALUE_HP_DISABLED,getReleasePressureTime(cylinderPin));
+  moveCylinderDuring(getOppositeSolenoid(cylinderPin), getReleasePressureTime(cylinderPin) - auxT, hpf);  // Move the cylinder to the rpTime point or until high pressure.
 
   if (DEBUG_MODE){
     Serial.println("ReleasePressure() stage FINISHED.");
