@@ -3,13 +3,13 @@
   // - Redesign the test-mode to be able to work in timed and high pressure mode.
   // - We want to recalibrate the time for the main cylinder based on the changed hapenned in the drawer cylinder. 
   // - We want to measure the drawer cylinder travel.
-  // - We want to be able to move the shaker at any time in any mode.
-  // - We don't want to move the shaker automatically in auto-mode. Bu twe want to be able to move automatically.
   // - Review the documentation of every function.
   // - Review the blinking procedure. Specially for auto, manual and test mode.
   // - Review the use of the ID_AUTOMODETIMER_TIMER and ID_AUTOMODETIMER_TIMESTAMP. Consider: replacing TIMER with TIMESTAMP.
   // *****************
   // ** DONE **
+  // - We want to be able to move the shaker at any time in any mode.
+  // - We don't want to move the shaker automatically in auto-mode. Bu twe want to be able to move automatically.
   // - Review the documentation of the initial variables and constants.
   // - SHAKER: we want to be able to move the shaker when the cylinders are NOT moving under timing. (<- Beginning of the auto-mode)
   // - Added Test mode.
@@ -32,6 +32,8 @@ const boolean DEBUG_MODE=true;
 const boolean DEBUG_VERBOSE_MODE=false;
 const boolean DEBUG_LED_MODE=false;  // Caution: DEBUG_LED_MODE and DEBUG_DELAYED_MODE should be used only with the CEB Press unplugged. To test the controller board only.
 const boolean DEBUG_DELAYED_MODE=false;
+// CONST - BEHAVIOUR CONFIG
+const boolean MOVE_SHAKER_AUTOMATICALLY_ON_AUTO_MODE=false;  // true if you want to move the shaker automatically in auto-mode.
 // CONST - STATUS LED blinking times for each mode.
 const unsigned long VALUE_TIME_BLINKING_MANUAL=1000;  // DEPRECATED: On manual mode the status led will be always on.
 const unsigned long VALUE_TIME_BLINKING_AUTO=250;
@@ -591,7 +593,10 @@ void applyAutoMode(uint8_t digitalInputs[], int analogInputs[], unsigned long so
             autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER] = (solenoidTimes[ID_TIME_SOLD] * analogInputs[ID_POTM])/VALUE_MAX_POTM;
             if (DEBUG_MODE){
               Serial.println("Timing mode.");
-              Serial.print("Time that is gonna be applied to SOLD and SOLS: ");Serial.println(autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER]) ;
+              Serial.print("Time that is gonna be applied to SOLD");
+              if (ID_AUTOMODETIMER_MAIN_CYLINDER) Serial.print(" and SOLS");
+              Serial.print(": ");
+              Serial.println(autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER]) ;
               //delay(10000);
             }
 
@@ -609,7 +614,7 @@ void applyAutoMode(uint8_t digitalInputs[], int analogInputs[], unsigned long so
           }
           
           moveCylinderUntilHighPressure(PIN_SOLD, flags[ID_FLAG_HP]);
-          moveCylinderUntilHighPressure(PIN_SOLS, flags[ID_FLAG_HP]);
+          if (MOVE_SHAKER_AUTOMATICALLY_ON_AUTO_MODE) moveCylinderUntilHighPressure(PIN_SOLS, flags[ID_FLAG_HP]);
 
           if ( (flags[ID_FLAG_HP]) || (millis()-autoModeTimers[ID_AUTOMODETIMER_TIMER] > autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER]) ){
             setSolenoids(VALUE_SOL_DISABLED);                
@@ -617,7 +622,7 @@ void applyAutoMode(uint8_t digitalInputs[], int analogInputs[], unsigned long so
             flags[ID_FLAG_CHRONO_IS_RUNNING]=false;
             autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER]=VALUE_TIMER_NULL;    // NOTE: Consider to remove this step
             autoModeFlags[ID_AUTOMODEFLAG_STAGE]=CLOSE_CHAMBER;
-            if (DEBUG_MODE){Serial.println("LOAD_SOIL stage finished. Stop moving SOLS and SOLD.");};
+            if (DEBUG_MODE){Serial.println("LOAD_SOIL stage finished.");};
           }
 
         break;
