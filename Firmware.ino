@@ -883,6 +883,15 @@ void printTimesArray(unsigned long ta[]){
 
 }
 
+void showErrorMessage(char * cadena){
+  if (DEBUG_MODE){
+    Serial.print("ERROR: ");
+    Serial.println(cadena);
+  } 
+  if (DEBUG_DELAYED_MODE) delay(4000);
+}
+
+
 // *** END OF - READ && SHOW FUNCTIONS
 // *******
 // *** DOWN FROM HERE - FUNCTIONS UNDER REVIEW
@@ -979,15 +988,6 @@ void setup() {
     // Set initial status - OUTPUTS
     digitalWrite(PIN_BUTTON_UP, HIGH);
     digitalWrite(PIN_BUTTON_DOWN, HIGH);
-void showErrorMessage(char * cadena){
-  if (DEBUG_MODE){
-    Serial.print("ERROR: ");
-    Serial.println(cadena);
-  } 
-  if (DEBUG_DELAYED_MODE) delay(4000);
-}
-
-
     digitalWrite(PIN_BUTTON_LEFT, HIGH);
     digitalWrite(PIN_BUTTON_RIGHT, HIGH);
     digitalWrite(PIN_BUTTON_SHAKER, HIGH);
@@ -1050,7 +1050,6 @@ void loop() {
 
       // Set auto-mode values to the default
       initializeAutoMode(autoModeFlags,solenoidTimes,autoModeTimers);
-
       // Apply manual-mode.
       applyManualMode(digitalInputs,flagHighPressure);
       
