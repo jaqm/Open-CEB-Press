@@ -489,13 +489,11 @@ uint8_t revertDigitalSignalValue(uint8_t val){
 void recalibrateSolenoidTimesBasedOnSolr(unsigned long solenoidTimes[], unsigned long newSolrTime){
 
   if (solenoidTimes[ID_TIME_SOLR]!=VALUE_TIME_NULL){
-    for (int i=0; i++; i<SOLENOID_TIMES_SIZE){
-      if (i!=ID_TIME_SOLR){
-        solenoidTimes[i]=( (solenoidTimes[i]*solenoidTimes[i])/newSolrTime );
-      }
-    }
-  }
-  solenoidTimes[ID_TIME_SOLR]=newSolrTime;
+    solenoidTimes[ID_TIME_SOLU]=( (solenoidTimes[ID_TIME_SOLU]*newSolrTime)/solenoidTimes[ID_TIME_SOLR] );
+    solenoidTimes[ID_TIME_SOLD]=( (solenoidTimes[ID_TIME_SOLD]*newSolrTime)/solenoidTimes[ID_TIME_SOLR] );
+    solenoidTimes[ID_TIME_SOLL]=( (solenoidTimes[ID_TIME_SOLL]*newSolrTime)/solenoidTimes[ID_TIME_SOLR] );
+    solenoidTimes[ID_TIME_SOLR]=newSolrTime;
+  }  
 }
 
 
