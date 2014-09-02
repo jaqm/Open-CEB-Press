@@ -1066,6 +1066,20 @@ void printSolenoidTimes(unsigned long st[]){
 void showErrorMessage(char * cadena){
   if (DEBUG_MODE){
     Serial.print("ERROR: ");
+// Shows the content of the solenoidTimes
+void printCalculatedTimes(unsigned long ct[]){
+
+  Serial.println("********************************************");
+  Serial.print("Calculated time SOLU: "); Serial.println(ct[ID_TIME_SOLU],DEC);
+  Serial.print("Calculated time SOLD: "); Serial.println(ct[ID_TIME_SOLD],DEC);
+  Serial.print("Calculated time SOLL: "); Serial.println(ct[ID_TIME_SOLL],DEC);
+  Serial.print("Calculated time SOLR: "); Serial.println(ct[ID_TIME_SOLR],DEC);
+//  Serial.print("Time SOLS: "); Serial.println(ta[ID_TIME_SOLS],DEC);
+  Serial.println("********************************************"); 
+
+}
+
+
     Serial.println(cadena);
   } 
   if (DEBUG_DELAYED_MODE) delay(4000);
