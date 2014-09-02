@@ -692,20 +692,10 @@ void applyAutoMode(uint8_t digitalInputs[], int analogInputs[], unsigned long so
           if (hpf) autoModeFlags[ID_AUTOMODEFLAG_STAGE]=PUSH_BRICK;
         break;
       case PUSH_BRICK:
-          
-          if (!flags[ID_FLAG_CHRONO_IS_RUNNING]){
-            autoModeTimers[ID_AUTOMODETIMER_TIMESTAMP]=millis();
-            flags[ID_FLAG_CHRONO_IS_RUNNING]=true;
-          }
-
-          moveCylinderUntilHighPressure(PIN_SOLR, flags[ID_FLAG_HP]);
-          if (flags[ID_FLAG_HP]){
-            unsigned long time = millis() - autoModeTimers[ID_AUTOMODETIMER_TIMESTAMP];  // Stop the chrono and recalibrate times based on SOLR if we have a previous reference.
-            autoModeTimers[ID_AUTOMODETIMER_TIMESTAMP] = VALUE_TIME_NULL;
-            flags[ID_FLAG_CHRONO_IS_RUNNING]=false;
-            recalibrateSolenoidTimesBasedOnSolr(solenoidTimes, time);
-            solenoidTimes[ID_TIME_SOLR] = time;  // Not needed, it's already being done in recalibrateSolenoidTimesBasedOnSolr().
-            
+          if (!chronoIsRunning) startChrono(chronoIsRunning,timestamp);
+          moveCylinderUntilHighPressure(PIN_SOLR, hpf);
+          if (hpf){
+            recalibrateSolenoidTimesBasedOnSolr(solenoidTimes, stopChrono(chronoIsRunning,timestamp));  // The time we get when we stop the chrono is the time for SOLR
             autoModeFlags[ID_AUTOMODEFLAG_STAGE]=LOAD_SOIL;
           }
         break;
@@ -779,7 +769,9 @@ void applyAutoMode(uint8_t digitalInputs[], int analogInputs[], unsigned long so
               Serial.print("Time that will be applied to SOLL: ");Serial.println(autoModeTimers[ID_AUTOMODETIMER_DRAWER_CYLINDER]) ;
             }
           }
+          if (!chronoIsRunning) startChrono(chronoIsRunning,timestamp);
           //delay(20000);
+          moveCylinderUntilHighPressure(PIN_SOLL, hpf);
 
           if ( (hpf) || (millis()-timestamp > autoModeTimers[ID_AUTOMODETIMER_DRAWER_CYLINDER]) ){
             digitalWrite(PIN_SOLL,VALUE_SOL_DISABLED);
