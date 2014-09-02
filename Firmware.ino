@@ -911,10 +911,8 @@ void applyAutoMode( uint8_t digitalInputs[], int analogInputs[], unsigned long s
 
           if ( analogInputs[ID_POTM] < 950 ){ // Go into timing mode
 
-            // We can't operate with numbers below 1 with unsigned long. So we write the operation in another way. The next two expression should be equal.
-            // So what we do is group all the multiplications, group all the divisors together, and then we do the division.
-            //  autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER] = solenoidTimes[ID_TIME_SOLD] * (analogInputs[ID_POTM]/VALUE_MAX_POTM);
-            autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER] = (solenoidTimes[ID_TIME_SOLD] * analogInputs[ID_POTM])/VALUE_MAX_POTM;
+            calculatedTimers[ID_TIME_CALCULATED_SOLD] = calculateMainCylinderTime(solenoidTimes[ID_TIME_SOLD], analogInputs[ID_POTM]);
+
             if (DEBUG_MODE){
               Serial.println("Timing mode.");
               Serial.print("Time that is gonna be applied to SOLD");
@@ -949,13 +947,7 @@ void applyAutoMode( uint8_t digitalInputs[], int analogInputs[], unsigned long s
 
       case CLOSE_CHAMBER:  // Moves the drawer on the main cylinder
 
-          //// We can't operate with numbers below 1 with unsigned long. So we write the operation in another way. The next two expression should be equal.
-          ////startingPoint = ((1/4)*solenoidTimes[ID_TIME_SOLL]); // == (solenoidTimes[ID_TIME_SOLL]/4)
-          //startingPoint = (solenoidTimes[ID_TIME_SOLL]/4);
-          ////variableTravelTime = ( (1/2) * solenoidTimes[ID_TIME_SOLL] * (analogInputs[ID_POTD] / VALUE_MAX_POTD * 2) ); // == ( (solenoidTimes[ID_TIME_SOLL] * analogInputs[ID_POTD]) / (VALUE_MAX_POTD * 2) )
-          //variableTravelTime = ( (solenoidTimes[ID_TIME_SOLL] * analogInputs[ID_POTD]) / (VALUE_MAX_POTD * 2) );
-          // Maximun value for drawer autoModeTimers[ID_AUTOMODETIMER_DRAWER_CYLINDER] = 3/4 * drawerTravelTime
-          autoModeTimers[ID_AUTOMODETIMER_DRAWER_CYLINDER] =  ( (solenoidTimes[ID_TIME_SOLL]/4) + ( (solenoidTimes[ID_TIME_SOLL] * analogInputs[ID_POTD]) / (VALUE_MAX_POTD * 2) ));
+          calculatedTimers[ID_TIME_CALCULATED_SOLL] =  calculateDrawerTime(solenoidTimes[ID_TIME_SOLL], analogInputs[ID_POTD]);
 
           if (!chronoIsRunning){
             if (DEBUG_MODE){
