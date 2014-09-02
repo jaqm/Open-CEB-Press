@@ -694,6 +694,14 @@ void applyTestMode( uint8_t digitalInputs[], unsigned long solenoidTimes[], int 
         initializeAutoModeFlags(autoModeFlags);
         initializeTestModeFlags(testModeFlags);
         testModeFlags[ID_TESTMODEFLAG_STAGE]=TESTMODE_CALIBRATION;
+  if (DEBUG_MODE){
+      Serial.println("**************");
+      Serial.println("* TEST MODE *");
+      Serial.println("**************");
+      Serial.print("Stage: ");Serial.println(testModeFlags[ID_TESTMODEFLAG_STAGE]); 
+      Serial.print(" SubStage: ");Serial.println(testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]);
+    }
+
       break;
       
     case TESTMODE_CALIBRATION:
