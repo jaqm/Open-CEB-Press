@@ -1,19 +1,20 @@
   //******************
   // ** TODO **
-  // - Reviewe the test-mode:
-  //  -- The timers used in the movement stage, substage 2. SolenoidTimes are the times for a complete travel. autoModeTimes are the calculated times.
-  //  -- Review the initialization of the variables related to the test-mode.
-  // - Reuse the times applied during the test mode in the auto-mode.
   // - Review the blinking procedure. Specially for auto, manual and test mode.
   // - Review the documentation of every function.
   // *****************
   // ** DONE **
+  // - If the solenoidTimes are calibrated, auto-mode starts inmediately pressing bricks.
+  // - Reuse the times applied during the test mode in the auto-mode.
+  // - Reviewe the test-mode:
+  //  -- The timers used in the movement stage, substage 2. SolenoidTimes are the times for a complete travel. autoModeTimes are the calculated times.
+  //  -- Review the initialization of the variables related to the test-mode.
   // - Redesign the test-mode to be able to work in timed and high pressure mode.
   // - We want to recalibrate the time for the main cylinder based on the changed hapenned in the drawer cylinder:
   //   - We want to measure the drawer cylinder travel.
   //   - This is happening in the PUSH_BRICK stage.
   // - We want to use different release pressure values for the main cylinder and the other cylinders.
-  // - Review the use of the ID_AUTOMODETIMER_TIMER and ID_AUTOMODETIMER_TIMESTAMP. Done: replacing TIMER with TIMESTAMP.
+  // - Review the use of the ID_TIME_CALCULATED_TIMER and ID_TIME_CALCULATED_TIMESTAMP. Done: replacing TIMER with TIMESTAMP.
   // - We want to be able to move the shaker at any time in any mode.
   // - We don't want to move the shaker automatically in auto-mode. Bu twe want to be able to move automatically.
   // - Review the documentation of the initial variables and constants.
