@@ -247,6 +247,20 @@ char* getSolenoidName(int pin){
 
   if (pin==PIN_SOLL){
     value="LEFT";  
+// Returns the solenoid time id for the cylinderPin
+unsigned long getSolenoidId(int cylinderPin){
+  
+  int idValue=VALUE_TIME_NULL;
+  if (cylinderPin==PIN_SOLU) idValue=ID_TIME_SOLU;
+  else if (cylinderPin==PIN_SOLD) idValue=ID_TIME_SOLD;    
+  else if (cylinderPin==PIN_SOLL) idValue=ID_TIME_SOLL;
+  else if (cylinderPin==PIN_SOLR) idValue=ID_TIME_SOLR;    
+  else if (cylinderPin==PIN_SOLS) showErrorMessage("getSolenoidTime: shaker pin received.");
+  else showErrorMessage("getSolenoidTime: unknown pin received.");
+  return idValue;
+  
+}
+
   }else if (pin==PIN_SOLR){
     value="RIGHT";
   }else if (pin==PIN_SOLD){
