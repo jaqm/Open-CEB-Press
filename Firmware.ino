@@ -119,13 +119,18 @@ const unsigned long VALUE_TIME_NULL=0;
 
 // CONST - AUTO-MODE STAGES
 const short FAILSAFE=0;
-const short CALIBRATE_SOLENOIDS = 1;
+const short AUTOMODE_CALIBRATION = 1;
 const short EJECT_BRICK = 2;
 const short PUSH_BRICK = 3;
 const short LOAD_SOIL = 4;
 const short CLOSE_CHAMBER = 5;
 const short COMPRESS_SOIL = 6;
 const short OPEN_CHAMBER = 7;
+
+// CONST - TEST-MODE STAGES
+const short INITIAL=0;
+const short TESTMODE_CALIBRATION = 1;
+const short MOVEMENT = 2;
 
 // PANEL ARRAY - contains all the digital input panel values.
 const int ID_SWON=0;
@@ -153,6 +158,10 @@ boolean flags[]={false,false};
 const int ID_AUTOMODEFLAG_STAGE=0;        // ID of the auto-mode stage.
 const int ID_AUTOMODEFLAG_SUBSTAGE=1;     // ID of the auto-mode substage.
 short autoModeFlags[]={FAILSAFE,0};
+// flags - test-mode
+const int ID_TESTMODEFLAG_STAGE=0;        // ID of the test-mode stage.
+const int ID_TESTMODEFLAG_SUBSTAGE=1;     // ID of the test-mode substage.
+short testModeFlags[]={FAILSAFE,0};
 
 // solenoidTimes - contains the time that takes to each solenoid to do a complete travel
 const int ID_TIME_SOLU=0;
@@ -579,14 +588,14 @@ void applyAutoMode(uint8_t digitalInputs[], int analogInputs[], unsigned long so
               if (flags[ID_FLAG_HP]) autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE]++;
 
             }else if (autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE]==4){
-              autoModeFlags[ID_AUTOMODEFLAG_STAGE]=CALIBRATE_SOLENOIDS;
+              autoModeFlags[ID_AUTOMODEFLAG_STAGE]=AUTOMODE_CALIBRATION;
               autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE]=0;
             }
           }
 
         break;
 
-      case CALIBRATE_SOLENOIDS:       // Get the times we need
+      case AUTOMODE_CALIBRATION:       // Get the times we need
           if (autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE]==0){            // Note: Consider to encapsulate the next feature (chronometer).
             if (!flags[ID_FLAG_CHRONO_IS_RUNNING]){
               autoModeTimers[ID_AUTOMODETIMER_TIMESTAMP]=millis();
