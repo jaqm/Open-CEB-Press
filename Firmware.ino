@@ -227,6 +227,17 @@ void initializeAutoMode(short autoModeFlags[], unsigned long solenoidTimes[],uns
 // *** END OF INITIALIZERS
 
 // *** BOOLEAN FUNCTIONS
+
+// We consider the solenoid times calibrated if all the values within it are different to null.
+boolean isSolenoidTimesCalibrated(unsigned long solenoidTimes[]){
+  int i=0;
+  boolean result=true;
+  while (i<SOLENOID_TIMES_SIZE && result){
+    if (solenoidTimes[i]==VALUE_TIME_NULL) result = false;
+  }
+  return result;
+}
+
 // Return true is cylinderPin is a main cylinder movement pin.
 boolean isMainCylinder(int cylinderPin){
   return (cylinderPin==PIN_SOLU || cylinderPin==PIN_SOLD);
