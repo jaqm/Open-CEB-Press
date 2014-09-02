@@ -620,10 +620,11 @@ void releasePressureManualMode(uint8_t digitalInputs[]){
 // ** MACHINE MOVEMENTS -- CHECK-AND-GO FUNCTIONS
 
 // It measures the time it take to move the cylinder defined by pin until high pressure.
-void measureCylinderTravelUntilHighPressure(int pin, boolean &chronoIsRunning, unsigned long &timestamp, boolean &hpf, unsigned long &timeResult){
+void measureCylinderTravelUntilHighPressure(int pin, boolean &chronoIsRunning, unsigned long &timestamp, boolean &hpf,
+                                            unsigned long solenoidTime[]){
   if (!chronoIsRunning) startChrono(chronoIsRunning,timestamp);
   moveCylinderUntilHighPressure(pin, hpf);
-  if (hpf) timeResult=stopChrono(chronoIsRunning,timestamp);
+  if (hpf) solenoidTime[getSolenoidTimeId(pin)]=stopChrono(chronoIsRunning,timestamp);
 };
 
 // Moves the cylinder to the top position and returns the time itgets to reach that place.
@@ -719,28 +720,25 @@ void applyTestMode( uint8_t digitalInputs[], unsigned long solenoidTimes[], int 
               break;
               
             case 2:  // Start taking times - SOLD
-                measureCylinderTravelUntilHighPressure(PIN_SOLD, chronoIsRunning, timestamp, hpf, solenoidTimes[ID_TIME_SOLD]);
-                if (hpf){
-                  testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]++;
-                }
+                measureCylinderTravelUntilHighPressure(PIN_SOLD, chronoIsRunning, timestamp, hpf, solenoidTimes);
+                if (hpf) testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]++;
               break;
-              
-            case 4:  // SOLU
-                measureCylinderTravelUntilHighPressure(PIN_SOLU, chronoIsRunning, timestamp, hpf, solenoidTimes[ID_TIME_SOLU]);
+
+            case 3:  // SOLU
+                measureCylinderTravelUntilHighPressure(PIN_SOLU, chronoIsRunning, timestamp, hpf, solenoidTimes);
                 if (hpf){
                   testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]++;
                 }
               break;
 
-            case 5:  // SOLL
-                measureCylinderTravelUntilHighPressure(PIN_SOLL, chronoIsRunning, timestamp, hpf, solenoidTimes[ID_TIME_SOLL]);
-                if (hpf){
-                  testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]++;
-                }
+            case 4:  // SOLL
+                Serial.println("Moving SOLL");
+                measureCylinderTravelUntilHighPressure(PIN_SOLL, chronoIsRunning, timestamp, hpf, solenoidTimes);
+                if (hpf) testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]++;
               break;
 
-            case 6:  // SOLR
-                measureCylinderTravelUntilHighPressure(PIN_SOLR, chronoIsRunning, timestamp, hpf, solenoidTimes[ID_TIME_SOLR]);
+            case 5:  // SOLR
+                measureCylinderTravelUntilHighPressure(PIN_SOLR, chronoIsRunning, timestamp, hpf, solenoidTimes);
                 if (hpf){
                   testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]=0;
                   testModeFlags[ID_TESTMODEFLAG_STAGE]=MOVEMENT;
