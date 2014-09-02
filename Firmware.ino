@@ -192,6 +192,13 @@ int testModeCylinderPin;  // test mode pin
 // ********************************
 // **** INITIALIZERS
 // Initialize the autoModeTimers array.
+// **** INITIALIZERS -- test-mode
+void initializeTestModeFlags(short flags[]){
+  flags[ID_TESTMODEFLAG_STAGE]=INITIAL;
+  flags[ID_TESTMODEFLAG_SUBSTAGE]=0;
+};
+
+// **** INITIALIZERS -- auto-mode
 void intializeAutoModeTimers(unsigned long autoModeTimers[]){
   autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER]=VALUE_TIME_NULL;
   autoModeTimers[ID_AUTOMODETIMER_DRAWER_CYLINDER]=VALUE_TIME_NULL;
