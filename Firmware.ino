@@ -168,7 +168,7 @@ const int ID_TESTMODEFLAG_STAGE=0;        // ID of the test-mode stage.
 const int ID_TESTMODEFLAG_SUBSTAGE=1;     // ID of the test-mode substage.
 short testModeFlags[]={FAILSAFE,0};
 
-// solenoidTimes - contains the time that takes to each solenoid to do a complete travel
+// solenoidTimes - contains the time that takes to each solenoid to do a *complete travel*
 const int ID_TIME_SOLU=0;
 const int ID_TIME_SOLD=1;
 const int ID_TIME_SOLL=2;
@@ -447,7 +447,6 @@ void startChrono(boolean &chronoIsRunning, unsigned long &timestamp){
 // Stops the chrono and return the time measured
 unsigned long stopChrono(boolean &chronoIsRunning, unsigned long &timestamp){
   unsigned long time=VALUE_TIME_NULL;
-    if (DEBUG_DELAYED_MODE) delay(4000);
   if (chronoIsRunning){
     time = millis() - timestamp;
     timestamp=VALUE_TIME_NULL;
@@ -500,12 +499,10 @@ void recalibrateSolenoidTimesBasedOnSolr(unsigned long solenoidTimes[], unsigned
 // *** END of DATA HANDLING
 // *******
 // *** MACHINE MOVEMENTS
-
 // ** MACHINE MOVEMENTS -- NON-STOP FUNCTIONS
 // Description: Moves the opposite cylinder during a short period of time. Used to release pressure.
 unsigned long releasePressure(int cylinderPin, boolean &hpf){
 //void releasePressure(int cylinderPin, boolean &hpf){  
-
   unsigned long auxT=VALUE_TIME_NULL;
   
   if (DEBUG_MODE) Serial.println("Starting to ReleasePressure()..");
