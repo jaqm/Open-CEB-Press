@@ -813,7 +813,16 @@ void applyAutoMode( uint8_t digitalInputs[], int analogInputs[], unsigned long s
 
       case FAILSAFE:    // FAILSAFE: Startup procedure: Clean the platform and go to the initial position.
 
-          if (!hpf){
+          // If solenoidTimes is already calibrated we move the SOLR until high pressure and start pressing bricks!
+          if (isSolenoidTimesCalibrated(solenoidTimes)){
+            if (autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE]==0){
+              moveCylinderUntilHighPressure(PIN_SOLR, hpf);
+              if (hpf) autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE]++;
+            }else {
+              autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE]==0;
+              autoModeFlags[ID_AUTOMODEFLAG_STAGE]=CLOSE_CHAMBER;
+            }
+          }else if (!hpf){
             if (autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE]==0){
               setSolenoids(VALUE_SOL_DISABLED);                                   // switch off the solenoids - as described in the documentation.
                 // Release pressure from SOLU if neccesary.
