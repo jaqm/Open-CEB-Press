@@ -408,6 +408,37 @@ int getEnabledCylinder(uint8_t array[]){
 
 // **** CHRONO FUNCTIONS
 // Starts the chrono
+// **** FORMULA FUNCTIONS
+
+unsigned long calculateMainCylinderTime(unsigned long solenoidTime, int potM){
+  // We can't operate with numbers below 1 with unsigned long. So we write the operation in another way. The next two expression should be equal.
+  // So what we do is group all the multiplications, group all the divisors together, and then we do the division.
+  //  calculatedTimers[ID_TIME_CALCULATED_SOLD] = solenoidTimes[ID_TIME_SOLD] * (analogInputs[ID_POTM]/VALUE_MAX_POTM);
+  return (solenoidTime * potM)/VALUE_MAX_POTM;
+
+}
+
+unsigned long calculateDrawerTime(unsigned long solenoidTime,  int potD){
+  //// We can't operate with numbers below 1 with unsigned long. So we write the operation in another way. The next two expression should be equal.
+  ////startingPoint = ((1/4)*solenoidTimes[ID_TIME_SOLL]); // == (solenoidTimes[ID_TIME_SOLL]/4)
+  //startingPoint = (solenoidTimes[ID_TIME_SOLL]/4);
+  ////variableTravelTime = ( (1/2) * solenoidTimes[ID_TIME_SOLL] * (analogInputs[ID_POTD] / VALUE_MAX_POTD * 2) ); // == ( (solenoidTimes[ID_TIME_SOLL] * analogInputs[ID_POTD]) / (VALUE_MAX_POTD * 2) )
+  //variableTravelTime = ( (solenoidTimes[ID_TIME_SOLL] * analogInputs[ID_POTD]) / (VALUE_MAX_POTD * 2) );
+  // Maximun value for drawer calculatedTimers[ID_TIME_CALCULATED_SOLL] = 3/4 * drawerTravelTime
+  return ( (solenoidTime/4) + ( (solenoidTime * potD) / (VALUE_MAX_POTD * 2)) );
+}
+
+void updateCalculatedTimes(int analogInputs[], unsigned long solenoidTimers[], unsigned long calculatedTimers[]){
+  calculatedTimers[ID_TIME_CALCULATED_SOLL]=calculateDrawerTime(solenoidTimes[ID_TIME_SOLL], analogInputs[ID_POTD]);
+  calculatedTimers[ID_TIME_CALCULATED_SOLR]=calculateDrawerTime(solenoidTimes[ID_TIME_SOLR], analogInputs[ID_POTD]);
+  calculatedTimers[ID_TIME_CALCULATED_SOLD]=calculateMainCylinderTime(solenoidTimes[ID_TIME_SOLD], analogInputs[ID_POTM]);
+  calculatedTimers[ID_TIME_CALCULATED_SOLU]=calculateMainCylinderTime(solenoidTimes[ID_TIME_SOLU], analogInputs[ID_POTM]);
+
+}
+
+// **** END OF FORMULA FUNCTIONS
+
+
 void startChrono(boolean &chronoIsRunning, unsigned long &timestamp){
   if (!chronoIsRunning){
     timestamp=millis();
