@@ -1,11 +1,14 @@
   //******************
   // ** TODO **
-  // - Redesign the test-mode to be able to work in timed and high pressure mode.
+  // - Reviewe the test-mode:
+  //  -- The timers used in the movement stage, substage 2. SolenoidTimes are the times for a complete travel. autoModeTimes are the calculated times.
+  //  -- Review the initialization of the variables related to the test-mode.
   // - Reuse the times applied during the test mode in the auto-mode.
   // - Review the blinking procedure. Specially for auto, manual and test mode.
   // - Review the documentation of every function.
   // *****************
   // ** DONE **
+  // - Redesign the test-mode to be able to work in timed and high pressure mode.
   // - We want to recalibrate the time for the main cylinder based on the changed hapenned in the drawer cylinder:
   //   - We want to measure the drawer cylinder travel.
   //   - This is happening in the PUSH_BRICK stage.
