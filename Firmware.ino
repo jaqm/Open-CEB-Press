@@ -1242,7 +1242,15 @@ void loop() {
       } 
 
       // Set auto-mode values to the default
-      initializeAutoMode(autoModeFlags,solenoidTimes,autoModeTimers);
+      initializeAutoMode(autoModeFlags);
+      initializeTestMode(testModeFlags);
+      initializeTimers(solenoidTimes, calculatedTimers);      
+      // TO REMOVE
+      //if (DEBUG_MODE){ printSolenoidTimes(solenoidTimes);printCalculatedTimes(calculatedTimers);};
+      //if (DEBUG_DELAYED_MODE) delay(2000);
+      
+      testModeCylinderPin=VALUE_PIN_NULL;
+      if (chronoIsRunning) stopChrono(chronoIsRunning,timestamp);
       // Apply manual-mode.
       applyManualMode(digitalInputs,flagHighPressure);
       
