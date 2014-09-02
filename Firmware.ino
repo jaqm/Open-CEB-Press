@@ -688,13 +688,6 @@ void applyManualMode(uint8_t digitalInputs[], boolean &hpf){
 void applyTestMode( uint8_t digitalInputs[], unsigned long solenoidTimes[], int &cylinderPin, short testModeFlags[], short autoModeFlags[],
                     boolean &chronoIsRunning, unsigned long &timestamp, boolean &hpf){
 
-  switch(testModeFlags[ID_TESTMODEFLAG_STAGE]){
-
-    case INITIAL:
-        setSolenoids(VALUE_SOL_DISABLED);      // Init default values for the other modes
-        initializeAutoModeFlags(autoModeFlags);
-        initializeTestModeFlags(testModeFlags);
-        testModeFlags[ID_TESTMODEFLAG_STAGE]=TESTMODE_CALIBRATION;
   if (DEBUG_MODE){
       Serial.println("**************");
       Serial.println("* TEST MODE *");
@@ -703,10 +696,19 @@ void applyTestMode( uint8_t digitalInputs[], unsigned long solenoidTimes[], int 
       Serial.print(" SubStage: ");Serial.println(testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]);
     }
 
+  switch(testModeFlags[ID_TESTMODEFLAG_STAGE]){
+
+    case INITIAL:
+        setSolenoids(VALUE_SOL_DISABLED);      // Init default values for the other modes
+        initializeAutoModeFlags(autoModeFlags);
+        initializeTestModeFlags(testModeFlags);
+        testModeFlags[ID_TESTMODEFLAG_STAGE]=TESTMODE_CALIBRATION;
       break;
       
     case TESTMODE_CALIBRATION:
+        if (DEBUG_MODE) Serial.println("TEST_MODE_CALIBRATION");
         if (!isSolenoidTimesCalibrated(solenoidTimes)){
+          if (DEBUG_MODE) Serial.println("The solenoidTimesIs NOT calibrated yet.");
           switch (testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]){
             
             case 0:
@@ -750,9 +752,9 @@ void applyTestMode( uint8_t digitalInputs[], unsigned long solenoidTimes[], int 
                 testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]=0;
               break;
           }
-        }
+        }else testModeFlags[ID_TESTMODEFLAG_STAGE]=MOVEMENT;
       break;
-    
+
     case MOVEMENT:
         switch (testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]){
           case 0:
@@ -768,25 +770,27 @@ void applyTestMode( uint8_t digitalInputs[], unsigned long solenoidTimes[], int 
           case 2:
               if (!chronoIsRunning) startChrono(chronoIsRunning, timestamp);
               moveCylinderUntilHighPressure(cylinderPin,hpf);
+
               if (hpf){
-                solenoidTimes[getSolenoidId(cylinderPin)] = stopChrono(chronoIsRunning,timestamp);
-                testModeCylinderPin=VALUE_PIN_NULL;
-                testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]=0;                
-              }else if ( millis() > (solenoidTimes[getSolenoidId(cylinderPin)] - timestamp) ){
-                stopChrono(chronoIsRunning,timestamp);
+                 solenoidTimes[getSolenoidTimeId(cylinderPin)] = stopChrono(chronoIsRunning,timestamp);
+                 if (DEBUG_MODE) Serial.println("Warning: High pressure enabled before reaching the calculated time point.");
+                 if (DEBUG_DELAYED_MODE) delay(1000);
+              }
+              
+              if ( isTimeFinished(timestamp,calculatedTimers[getCalculatedTimeId(cylinderPin)]) || (hpf) ){
                 digitalWrite(cylinderPin,VALUE_SOL_DISABLED);
                 testModeCylinderPin=VALUE_PIN_NULL;
                 testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]=0;
               }
             break;
           default:
-              showErrorMessage("test-mode - movement - substage unknown");
+              showErrorMessage("test-mode - movement - unknown substage");
             break;
         }        
       break;
     
     default:
-        showErrorMessage("TEST-MODE: Unkown stage.");
+        showErrorMessage("TEST-MODE: Unknown stage.");
       break;
   }
   
@@ -797,7 +801,7 @@ void applyTestMode( uint8_t digitalInputs[], unsigned long solenoidTimes[], int 
 // panel[]: the information readed from the machine.
 // stage: which stage of the auto-mode do we want to run.
 // &hpf: high pressure flag.
-void applyAutoMode( uint8_t digitalInputs[], int analogInputs[], unsigned long solenoidTimes[], unsigned long autoModeTimers[], 
+void applyAutoMode( uint8_t digitalInputs[], int analogInputs[], unsigned long solenoidTimes[], unsigned long calculatedTimers[], 
                     short autoModeFlags[], boolean &chronoIsRunning, unsigned long &timestamp, boolean &hpf){
   
   if (DEBUG_MODE){
