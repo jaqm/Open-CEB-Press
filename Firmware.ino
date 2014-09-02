@@ -238,7 +238,7 @@ void initializeSolenoidTimes(unsigned long solenoidTimes[]){
 }
 
 // Initialize all the arrays related to the auto-mode.
-void initializeAutoMode(short autoModeFlags[], unsigned long solenoidTimes[],unsigned long autoModeTimers[]){
+void initializeAutoMode(short autoModeFlags[]){  //, unsigned long solenoidTimes[],unsigned long calculatedTimers[]){
   initializeAutoModeFlags(autoModeFlags);
   intializeAutoModeTimers(autoModeTimers);
   initializeSolenoidTimes(solenoidTimes);
