@@ -278,7 +278,21 @@ boolean isMainCylinder(int cylinderPin){
 // ******* GETTERS && SETTERS *****
 
 // Returns the solenoid time id for the cylinderPin
-unsigned long getSolenoidId(int cylinderPin){
+unsigned long getCalculatedTimeId(int cylinderPin){
+  
+  int idValue=VALUE_TIME_NULL;
+  if (cylinderPin==PIN_SOLU) idValue=ID_TIME_CALCULATED_SOLU;
+  else if (cylinderPin==PIN_SOLD) idValue=ID_TIME_CALCULATED_SOLD;
+  else if (cylinderPin==PIN_SOLL) idValue=ID_TIME_CALCULATED_SOLL;
+  else if (cylinderPin==PIN_SOLR) idValue=ID_TIME_CALCULATED_SOLR;
+  else if (cylinderPin==PIN_SOLS) showErrorMessage("getSolenoidTime: shaker pin received.");
+  else showErrorMessage("getSolenoidTime: unknown pin received.");
+  return idValue;
+  
+}
+
+// Returns the solenoid time id for the cylinderPin
+unsigned long getSolenoidTimeId(int cylinderPin){
   
   int idValue=VALUE_TIME_NULL;
   if (cylinderPin==PIN_SOLU) idValue=ID_TIME_SOLU;
