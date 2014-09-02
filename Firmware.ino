@@ -1222,7 +1222,9 @@ void loop() {
 
   readPanel(digitalInputs, analogInputs, VALUE_INPUT_READ_DELAY);
   updateLeds(digitalInputs, blinkingTimers[ID_BLINKING_TIMER_STATUS_LED], flagHighPressure, blinkingTimers[ID_BLINKING_TIMER_HIGH_PRESSURE_LED]);
-  if (DEBUG_MODE){ printPanel(digitalInputs,analogInputs); printTimesArray(solenoidTimes);};
+  if (isSolenoidTimesCalibrated(solenoidTimes)) updateCalculatedTimes(analogInputs, solenoidTimes, calculatedTimers);
+  
+  if (DEBUG_MODE){ printPanel(digitalInputs,analogInputs); printSolenoidTimes(solenoidTimes);printCalculatedTimes(calculatedTimers);};
 
   // Being able to move the shaker at any time in every mode if the !chronoIsRunning
   if (digitalInputs[ID_BUTTON_SHAKER]==VALUE_INPUT_ENABLED && !chronoIsRunning){
