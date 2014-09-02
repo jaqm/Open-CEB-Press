@@ -271,13 +271,13 @@ boolean isSolenoidTimesCalibrated(unsigned long solenoidTimes[]){
 }
 
 // Return true is cylinderPin is a main cylinder movement pin.
+boolean isMainCylinder(int cylinderPin){
   return (cylinderPin==PIN_SOLU || cylinderPin==PIN_SOLD);
 }
 // *** END OF BOOLEAN FUNCTIONS
 
 
 // ******* GETTERS && SETTERS *****
-boolean isMainCylinder(int cylinderPin){
 
 // Returns the solenoid time id for the cylinderPin
 unsigned long getCalculatedTimeId(int cylinderPin){
@@ -447,6 +447,7 @@ void startChrono(boolean &chronoIsRunning, unsigned long &timestamp){
     chronoIsRunning=true;
   }else{
     if (DEBUG_MODE) Serial.println("ERROR: Chrono was already running");
+    if (DEBUG_DELAYED_MODE) delay(4000);
   }
 }
 
@@ -501,14 +502,16 @@ void recalibrateSolenoidTimesBasedOnSolr(unsigned long solenoidTimes[], unsigned
   }  
 }
 
-
 // *** END of DATA HANDLING
 // *******
 // *** MACHINE MOVEMENTS
+
 // ** MACHINE MOVEMENTS -- NON-STOP FUNCTIONS
+
 // Description: Moves the opposite cylinder during a short period of time. Used to release pressure.
 unsigned long releasePressure(int cylinderPin, boolean &hpf){
 //void releasePressure(int cylinderPin, boolean &hpf){  
+
   unsigned long auxT=VALUE_TIME_NULL;
   
   if (DEBUG_MODE) Serial.println("Starting to ReleasePressure()..");
@@ -785,12 +788,12 @@ void applyTestMode( uint8_t digitalInputs[], unsigned long solenoidTimes[], int 
                 testModeCylinderPin=VALUE_PIN_NULL;
                 testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]=0;
               }
+              if (DEBUG_DELAYED_MODE) delay(1000);
+
             break;
           default:
               showErrorMessage("test-mode - movement - unknown substage");
             break;
-              if (DEBUG_DELAYED_MODE) delay(1000);
-
         }        
       break;
     
