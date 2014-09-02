@@ -910,7 +910,7 @@ void applyAutoMode( uint8_t digitalInputs[], int analogInputs[], unsigned long s
             if (DEBUG_MODE){
               Serial.println("Timing mode.");
               Serial.print("Time that is gonna be applied to SOLD");
-              if (ID_AUTOMODETIMER_MAIN_CYLINDER) Serial.print(" and SOLS");
+              if (ID_TIME_CALCULATED_SOLD) Serial.print(" and SOLS");
               Serial.print(": ");
               Serial.println(autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER]) ;
               //delay(10000);
@@ -922,14 +922,14 @@ void applyAutoMode( uint8_t digitalInputs[], int analogInputs[], unsigned long s
             if (DEBUG_MODE){
               Serial.print("Until-high-pressure-mode.");
             }
-            autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER] = solenoidTimes[ID_TIME_SOLD] * 2; // We double the value of the solenoidTimes[ID_TIME_SOLD] for this solenoid to reach the high pressure point.
+            calculatedTimers[ID_TIME_CALCULATED_SOLD] = solenoidTimes[ID_TIME_SOLD] * 2; // We double the value of the solenoidTimes[ID_TIME_SOLD] for this solenoid to reach the high pressure point.
             chronoIsRunning=false;
           }
           
           moveCylinderUntilHighPressure(PIN_SOLD, hpf);
           if (MOVE_SHAKER_AUTOMATICALLY_ON_AUTO_MODE) moveCylinderUntilHighPressure(PIN_SOLS, hpf);
 
-          if ( (hpf) || (millis()-timestamp > autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER]) ){
+          if ( (hpf) || (millis()-timestamp > calculatedTimers[ID_TIME_CALCULATED_SOLD]) ){
             setSolenoids(VALUE_SOL_DISABLED);                
             stopChrono(chronoIsRunning,timestamp);
             autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER]=VALUE_TIME_NULL;    // NOTE: Consider to remove this step
@@ -954,14 +954,14 @@ void applyAutoMode( uint8_t digitalInputs[], int analogInputs[], unsigned long s
               Serial.print("Drawer travel time: ");Serial.println(solenoidTimes[ID_TIME_SOLL]);
               //Serial.print("Drawer starting time: ");Serial.println(startingPoint);
               //Serial.print("Drawer variable time: ");Serial.println(variableTravelTime);
-              Serial.print("Time that will be applied to SOLL: ");Serial.println(autoModeTimers[ID_AUTOMODETIMER_DRAWER_CYLINDER]) ;
+              Serial.print("Time that will be applied to SOLL: ");Serial.println(calculatedTimers[ID_TIME_CALCULATED_SOLL]) ;
             }
           }
           if (!chronoIsRunning) startChrono(chronoIsRunning,timestamp);
           //delay(20000);
           moveCylinderUntilHighPressure(PIN_SOLL, hpf);
 
-          if ( (hpf) || (millis()-timestamp > autoModeTimers[ID_AUTOMODETIMER_DRAWER_CYLINDER]) ){
+          if ( (hpf) || (millis()-timestamp > calculatedTimers[ID_TIME_CALCULATED_SOLL]) ){
             digitalWrite(PIN_SOLL,VALUE_SOL_DISABLED);
             stopChrono(chronoIsRunning,timestamp);
             autoModeFlags[ID_AUTOMODEFLAG_STAGE]=COMPRESS_SOIL;
