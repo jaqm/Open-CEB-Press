@@ -327,8 +327,8 @@ int getOppositeSolenoid(int pinSol){
   else if (pinSol==PIN_SOLD){opposite=PIN_SOLU;}
   else if (pinSol==PIN_SOLL){opposite=PIN_SOLR;}
   else if (pinSol==PIN_SOLR){opposite=PIN_SOLL;}
-  else if (pinSol==PIN_SOLS){opposite=PIN_SOLS;}
-  else Serial.println("ERROR: Unexpected pin value received by getOppositeSolenoid()");
+  else if (pinSol==PIN_SOLS){showErrorMessage("Shaker solenoid pin value received by getOppositeSolenoid()");}
+  else showErrorMessage("Unexpected pin value received by getOppositeSolenoid()");
 
   if (DEBUG_VERBOSE_MODE){
     Serial.print("getOpposite() received the pin ");Serial.print(pinSol);
@@ -891,13 +891,8 @@ void printTimesArray(unsigned long ta[]){
 // panel[]: The array containing the information from the panel.
 // &sbt: the status blinking timer. It contains the last time (millisecs) in which the led status changed it's status.
 // &hpf: high pressure sensor flag. It is true if the high pressure sensor was activated.
-          if (!chronoIsRunning) startChrono(chronoIsRunning,timestamp);
-          if (!chronoIsRunning) startChrono(chronoIsRunning,timestamp);
 // &hpt: high pressure timer. It tracks the last time the led was activated dure to the high presure sensor flag.
-          moveCylinderUntilHighPressure(PIN_SOLL, hpf);
 // Output:
-          moveCylinderUntilHighPressure(PIN_SOLL, hpf);
-          moveCylinderUntilHighPressure(PIN_SOLL, hpf);
 // Led status: It blinks with different frequency depending on the mode we are running.
 // Led high pressure: It is enabled if the high pressure flag in true. If so we always turn on the led and put the flag false.
 //   Disabled if the flag is false and the time has passed.
@@ -984,6 +979,15 @@ void setup() {
     // Set initial status - OUTPUTS
     digitalWrite(PIN_BUTTON_UP, HIGH);
     digitalWrite(PIN_BUTTON_DOWN, HIGH);
+void showErrorMessage(char * cadena){
+  if (DEBUG_MODE){
+    Serial.print("ERROR: ");
+    Serial.println(cadena);
+  } 
+  if (DEBUG_DELAYED_MODE) delay(4000);
+}
+
+
     digitalWrite(PIN_BUTTON_LEFT, HIGH);
     digitalWrite(PIN_BUTTON_RIGHT, HIGH);
     digitalWrite(PIN_BUTTON_SHAKER, HIGH);
@@ -1080,3 +1084,4 @@ void loop() {
 // ******* END OF SETUP && LOOP *******
 // ************************************
 // EOF
+
