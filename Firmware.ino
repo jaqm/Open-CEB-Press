@@ -1247,7 +1247,7 @@ void loop() {
       applyManualMode(digitalInputs,flagHighPressure);
       
     }else{                            // AUTO MODE
-        applyAutoMode(digitalInputs, analogInputs, solenoidTimes, autoModeTimers, autoModeFlags, chronoIsRunning, timestamp, flagHighPressure);
+        applyAutoMode(digitalInputs, analogInputs, solenoidTimes, calculatedTimers, autoModeFlags, chronoIsRunning, timestamp, flagHighPressure);
     }
 
   }else{       // SWON is Disabled -> TEST MODE
