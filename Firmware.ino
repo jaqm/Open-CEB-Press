@@ -236,8 +236,13 @@ void initializeSolenoidTimes(unsigned long solenoidTimes[]){
 // Initialize all the arrays related to the auto-mode.
 void initializeAutoMode(short autoModeFlags[]){  //, unsigned long solenoidTimes[],unsigned long calculatedTimers[]){
   initializeAutoModeFlags(autoModeFlags);
-  intializeAutoModeTimers(autoModeTimers);
-  initializeSolenoidTimes(solenoidTimes);
+//  initializeTimers(solenoidTimes,calculatedTimers);
+};
+
+// Initialize all the arrays related to the test-mode.
+void initializeTestMode(short testModeFlags[]){  //, unsigned long solenoidTimes[],unsigned long calculatedTimers[]){
+  initializeTestModeFlags(testModeFlags);
+//  initializeTimers(solenoidTimes,calculatedTimers);
 };
 
 // *** END OF INITIALIZERS
