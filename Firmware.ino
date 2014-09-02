@@ -616,6 +616,109 @@ void applyManualMode(uint8_t digitalInputs[], boolean &hpf){
 //  }
 }
 
+void applyTestMode( uint8_t digitalInputs[], unsigned long solenoidTimes[], int &cylinderPin, short testModeFlags[], short autoModeFlags[],
+                    boolean &chronoIsRunning, unsigned long &timestamp, boolean &hpf){
+
+  switch(testModeFlags[ID_TESTMODEFLAG_STAGE]){
+
+    case INITIAL:
+        setSolenoids(VALUE_SOL_DISABLED);      // Init default values for the other modes
+        initializeAutoModeFlags(autoModeFlags);
+        initializeTestModeFlags(testModeFlags);
+        testModeFlags[ID_TESTMODEFLAG_STAGE]=TESTMODE_CALIBRATION;
+      break;
+      
+    case TESTMODE_CALIBRATION:
+        if (!isSolenoidTimesCalibrated(solenoidTimes)){
+          switch (testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]){
+            
+            case 0:
+                moveCylinderUntilHighPressure(PIN_SOLU, hpf);
+                if (hpf) testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]++;
+              break;
+              
+            case 1:
+                moveCylinderUntilHighPressure(PIN_SOLR, hpf);
+                if (hpf) testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]++;
+              break;
+              
+            case 2:  // Start taking times - SOLD
+                measureCylinderTravelUntilHighPressure(PIN_SOLD, chronoIsRunning, timestamp, hpf, solenoidTimes[ID_TIME_SOLD]);
+                if (hpf){
+                  testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]++;
+                }
+              break;
+              
+            case 4:  // SOLU
+                measureCylinderTravelUntilHighPressure(PIN_SOLU, chronoIsRunning, timestamp, hpf, solenoidTimes[ID_TIME_SOLU]);
+                if (hpf){
+                  testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]++;
+                }
+              break;
+
+            case 5:  // SOLL
+                measureCylinderTravelUntilHighPressure(PIN_SOLL, chronoIsRunning, timestamp, hpf, solenoidTimes[ID_TIME_SOLL]);
+                if (hpf){
+                  testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]++;
+                }
+              break;
+
+            case 6:  // SOLR
+                measureCylinderTravelUntilHighPressure(PIN_SOLR, chronoIsRunning, timestamp, hpf, solenoidTimes[ID_TIME_SOLR]);
+                if (hpf){
+                  testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]=0;
+                  testModeFlags[ID_TESTMODEFLAG_STAGE]=MOVEMENT;
+                }
+              break;
+
+            default:
+                showErrorMessage("test-mode - calibration - substage UNKNOWN.");
+                testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]=0;
+              break;
+          }
+        }
+      break;
+    
+    case MOVEMENT:
+        switch (testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]){
+          case 0:
+              cylinderPin = getEnabledCylinder(digitalInputs);
+              if (cylinderPin!=VALUE_PIN_NULL) testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]++;
+            break;
+          case 1:
+              if (getOppositeSolenoid(cylinderPin)==VALUE_PIN_NULL){
+                showErrorMessage("test mode - movement - substage 1 - NULL value for opposite solenoid");
+              }else moveCylinderUntilHighPressure(getOppositeSolenoid(cylinderPin),hpf);
+              if (hpf) testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]++;
+            break;
+          case 2:
+              if (!chronoIsRunning) startChrono(chronoIsRunning, timestamp);
+              moveCylinderUntilHighPressure(cylinderPin,hpf);
+              if (hpf){
+                solenoidTimes[getSolenoidId(cylinderPin)] = stopChrono(chronoIsRunning,timestamp);
+                testModeCylinderPin=VALUE_PIN_NULL;
+                testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]=0;                
+              }else if ( millis() > (solenoidTimes[getSolenoidId(cylinderPin)] - timestamp) ){
+                stopChrono(chronoIsRunning,timestamp);
+                digitalWrite(cylinderPin,VALUE_SOL_DISABLED);
+                testModeCylinderPin=VALUE_PIN_NULL;
+                testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]=0;
+              }
+            break;
+          default:
+              showErrorMessage("test-mode - movement - substage unknown");
+            break;
+        }        
+      break;
+    
+    default:
+        showErrorMessage("TEST-MODE: Unkown stage.");
+      break;
+  }
+  
+}
+
+
 // Applies the auto-mode.
 // panel[]: the information readed from the machine.
 // stage: which stage of the auto-mode do we want to run.
@@ -1053,21 +1156,9 @@ void loop() {
     if (DEBUG_MODE) Serial.println("SWON is DISABLED -> I'm on TEST-MODE!");
 
     // Apply test-mode.
-    if (testModeCylinderPin==VALUE_PIN_NULL){
-      setSolenoids(VALUE_SOL_DISABLED);      // Init default values for the other modes
-      autoModeFlags[ID_AUTOMODEFLAG_STAGE]=FAILSAFE;
-      autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE]=0;
-      testModeCylinderPin = getEnabledCylinder(digitalInputs);
-    }else{
-      moveCylinderUntilHighPressure(testModeCylinderPin,flags[ID_FLAG_HP]);
-      if (flags[ID_FLAG_HP]){
-        //auxTimer= 
-        releasePressure(testModeCylinderPin,flags[ID_FLAG_HP]);
-        testModeCylinderPin=VALUE_PIN_NULL;
-        //if (DEBUG_MODE) {Serial.print("It took ");Serial.print(auxTimer); Serial.print(" to relase th pressure from pin ");Serial.println(testModeCylinderPin);}
-      }
-    } 
-
+    applyTestMode( digitalInputs, solenoidTimes, testModeCylinderPin, testModeFlags, autoModeFlags,
+                    chronoIsRunning, timestamp, flagHighPressure);
+    
   }
 
   if (DEBUG_DELAYED_MODE) delay(1000);
