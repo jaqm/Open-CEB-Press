@@ -264,12 +264,13 @@ boolean isSolenoidTimesCalibrated(unsigned long solenoidTimes[]){
   boolean result=true;
   while (i<SOLENOID_TIMES_SIZE && result){
     if (solenoidTimes[i]==VALUE_TIME_NULL) result = false;
+    i++;
   }
   return result;
 }
 
-// Return true is cylinderPin is a main cylinder movement pin.
 boolean isMainCylinder(int cylinderPin){
+// Return true is cylinderPin is a main cylinder movement pin.
   return (cylinderPin==PIN_SOLU || cylinderPin==PIN_SOLD);
 }
 // *** END OF BOOLEAN FUNCTIONS
