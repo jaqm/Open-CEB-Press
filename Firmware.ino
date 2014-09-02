@@ -1062,10 +1062,6 @@ void printSolenoidTimes(unsigned long st[]){
   Serial.println("********************************************"); 
 
 }
-
-void showErrorMessage(char * cadena){
-  if (DEBUG_MODE){
-    Serial.print("ERROR: ");
 // Shows the content of the solenoidTimes
 void printCalculatedTimes(unsigned long ct[]){
 
@@ -1080,6 +1076,10 @@ void printCalculatedTimes(unsigned long ct[]){
 }
 
 
+
+void showErrorMessage(char * cadena){
+  if (DEBUG_MODE){
+    Serial.print("ERROR: ");
     Serial.println(cadena);
   } 
   if (DEBUG_DELAYED_MODE) delay(4000);
