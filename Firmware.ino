@@ -912,7 +912,7 @@ void applyAutoMode( uint8_t digitalInputs[], int analogInputs[], unsigned long s
               Serial.print("Time that is gonna be applied to SOLD");
               if (ID_TIME_CALCULATED_SOLD) Serial.print(" and SOLS");
               Serial.print(": ");
-              Serial.println(autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER]) ;
+              Serial.println(calculatedTimers[ID_TIME_CALCULATED_SOLD]) ;
               //delay(10000);
             }
 
@@ -932,7 +932,7 @@ void applyAutoMode( uint8_t digitalInputs[], int analogInputs[], unsigned long s
           if ( (hpf) || (millis()-timestamp > calculatedTimers[ID_TIME_CALCULATED_SOLD]) ){
             setSolenoids(VALUE_SOL_DISABLED);                
             stopChrono(chronoIsRunning,timestamp);
-            autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER]=VALUE_TIME_NULL;    // NOTE: Consider to remove this step
+            calculatedTimers[ID_TIME_CALCULATED_SOLD]=VALUE_TIME_NULL;    // NOTE: Consider to remove this step
             autoModeFlags[ID_AUTOMODEFLAG_STAGE]=CLOSE_CHAMBER;
             if (DEBUG_MODE){Serial.println("LOAD_SOIL stage finished.");};
           }
@@ -1209,8 +1209,7 @@ void setup() {
     timestamp=millis();
     chronoIsRunning=false;
     testModeCylinderPin=VALUE_PIN_NULL;
-    autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER]=VALUE_TIME_NULL;
-    autoModeTimers[ID_AUTOMODETIMER_DRAWER_CYLINDER]=VALUE_TIME_NULL;
+    initializeCalculatedTimers(calculatedTimers);
 
     Serial.begin(9600);
 }
