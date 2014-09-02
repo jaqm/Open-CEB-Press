@@ -248,6 +248,16 @@ void initializeAutoMode(short autoModeFlags[], unsigned long solenoidTimes[],uns
 
 // *** BOOLEAN FUNCTIONS
 
+boolean isTimeFinished(unsigned long timestamp, unsigned long limitTime){
+  boolean result = (millis() - timestamp> limitTime);
+  if (DEBUG_MODE){Serial.print("The result of isTimeFinished is:");
+    if (result) Serial.println("TRUE");
+    else Serial.println("FALSE");
+  }
+  if (DEBUG_DELAYED_MODE) delay(1000);
+  return result;
+}
+
 // We consider the solenoid times calibrated if all the values within it are different to null.
 boolean isSolenoidTimesCalibrated(unsigned long solenoidTimes[]){
   int i=0;
