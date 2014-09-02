@@ -183,9 +183,11 @@ const int ID_BLINKING_TIMER_STATUS_LED=0;          // ID of the timer used to tr
 const int ID_BLINKING_TIMER_HIGH_PRESSURE_LED=1;   // ID of the timer used to track the high pressure led blinking procedure.
 unsigned long blinkingTimers[]={millis(),millis()};
 // autoMode timers
-const int ID_AUTOMODETIMER_MAIN_CYLINDER=1;    // ID of the time calculated to move the main cylinder.
-const int ID_AUTOMODETIMER_DRAWER_CYLINDER=2;  // ID of the time calculated to move the drawer cylinder.
-unsigned long autoModeTimers[]={0,0,0};
+const int ID_TIME_CALCULATED_SOLU=0;    // ID of the time calculated to move the SOLU.
+const int ID_TIME_CALCULATED_SOLD=1;  // ID of the time calculated to move the SOLD.
+const int ID_TIME_CALCULATED_SOLL=2;    // ID of the time calculated to move the SOLL.
+const int ID_TIME_CALCULATED_SOLR=3;  // ID of the time calculated to move the SOLR.
+unsigned long calculatedTimers[]={VALUE_TIME_NULL,VALUE_TIME_NULL,VALUE_TIME_NULL,VALUE_TIME_NULL};
 
 // test-mode variables
 int testModeCylinderPin;  // test mode pin
