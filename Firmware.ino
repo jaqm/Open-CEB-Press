@@ -362,18 +362,6 @@ int getEnabledCylinder(uint8_t array[]){
 
 // **** END of GETTERS && SETTERS
 
-// **** DATA HANDLING
-
-// This function inverts a digital value read from a pin like HIGH or LOW.
-// val: HIGH or LOW
-// return: if val=HGH then return LOW, if val=LOW then return HIGH. Default: B00001111.
-uint8_t revertDigitalSignalValue(uint8_t val){
-
- uint8_t oppositeValue=B00001111;
- 
- if (val==HIGH){
-   oppositeValue=LOW;
- }else if (val==LOW){
 // **** CHRONO FUNCTIONS
 // Starts the chrono
 void startChrono(boolean &chronoIsRunning, unsigned long &timestamp){
@@ -403,6 +391,18 @@ unsigned long stopChrono(boolean &chronoIsRunning, unsigned long &timestamp){
 
 
 
+// **** DATA HANDLING
+
+// This function inverts a digital value read from a pin like HIGH or LOW.
+// val: HIGH or LOW
+// return: if val=HGH then return LOW, if val=LOW then return HIGH. Default: B00001111.
+uint8_t revertDigitalSignalValue(uint8_t val){
+
+ uint8_t oppositeValue=B00001111;
+ 
+ if (val==HIGH){
+   oppositeValue=LOW;
+ }else if (val==LOW){
    oppositeValue=HIGH;
  }
 
@@ -550,6 +550,13 @@ void releasePressureManualMode(uint8_t digitalInputs[]){
 // ** MACHINE MOVEMENTS -- END of NON-STOP FUNCTIONS
 // **
 // ** MACHINE MOVEMENTS -- CHECK-AND-GO FUNCTIONS
+
+// It measures the time it take to move the cylinder defined by pin until high pressure.
+void measureCylinderTravelUntilHighPressure(int pin, boolean &chronoIsRunning, unsigned long &timestamp, boolean &hpf, unsigned long &timeResult){
+  if (!chronoIsRunning) startChrono(chronoIsRunning,timestamp);
+  moveCylinderUntilHighPressure(pin, hpf);
+  if (hpf) timeResult=stopChrono(chronoIsRunning,timestamp);
+};
 
 // Moves the cylinder to the top position and returns the time itgets to reach that place.
 // cylinderPin: the pin assigned to the cylinder we want to move.
