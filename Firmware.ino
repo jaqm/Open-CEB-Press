@@ -204,11 +204,6 @@ void initializeTestModeFlags(short flags[]){
 };
 
 // **** INITIALIZERS -- auto-mode
-// Initialize the autoModeTimers array.
-void intializeAutoModeTimers(unsigned long autoModeTimers[]){
-  autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER]=VALUE_TIME_NULL;
-  autoModeTimers[ID_AUTOMODETIMER_DRAWER_CYLINDER]=VALUE_TIME_NULL;
-}
 
 void initializeAutoModeFlags(short flags[]){
   flags[ID_AUTOMODEFLAG_STAGE]=FAILSAFE;
