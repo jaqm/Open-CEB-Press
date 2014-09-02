@@ -641,7 +641,7 @@ void moveCylinderUntilHighPressure(int cylinderPin, boolean &hpf){
   if(pinDigitalValueIs(PIN_PRESSURE,VALUE_HP_READ_DELAY)==VALUE_HP_ENABLED){
     hpf=true;
     digitalWrite(cylinderPin,VALUE_SOL_DISABLED);
-    if (DEBUG_MODE){Serial.print("moveCylinderUntilHighPressure: DONE");}
+    if (DEBUG_MODE){Serial.println("moveCylinderUntilHighPressure: DONE");}
     
     if (DEBUG_VERBOSE_MODE){Serial.println("moveCylinderUntilHighPressure: Releasing pressure..");}
     releasePressure(cylinderPin,hpf);
