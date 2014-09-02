@@ -247,18 +247,6 @@ boolean isMainCylinder(int cylinderPin){
 
 // ******* GETTERS && SETTERS *****
 
-// Returns the release pressure time defined for the solenoid defined for cylinderPin.
-unsigned long getReleasePressureTime(int cylinderPin){
-  return (isMainCylinder(cylinderPin)?VALUE_MIN_TIME_MAIN_CYLINDER_RELEASE_PRESSURE:VALUE_MIN_TIME_DEFAULT_CYLINDER_RELEASE_PRESSURE);
-}
-
-// returns the name of the solenoid
-char* getSolenoidName(int pin){
-  
-  char* value;
-
-  if (pin==PIN_SOLL){
-    value="LEFT";  
 // Returns the solenoid time id for the cylinderPin
 unsigned long getSolenoidId(int cylinderPin){
   
@@ -273,6 +261,18 @@ unsigned long getSolenoidId(int cylinderPin){
   
 }
 
+// Returns the release pressure time defined for the solenoid defined for cylinderPin.
+unsigned long getReleasePressureTime(int cylinderPin){
+  return (isMainCylinder(cylinderPin)?VALUE_MIN_TIME_MAIN_CYLINDER_RELEASE_PRESSURE:VALUE_MIN_TIME_DEFAULT_CYLINDER_RELEASE_PRESSURE);
+}
+
+// returns the name of the solenoid
+char* getSolenoidName(int pin){
+  
+  char* value;
+
+  if (pin==PIN_SOLL){
+    value="LEFT";  
   }else if (pin==PIN_SOLR){
     value="RIGHT";
   }else if (pin==PIN_SOLD){
