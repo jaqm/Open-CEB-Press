@@ -785,6 +785,7 @@ void applyTestMode( uint8_t digitalInputs[], unsigned long solenoidTimes[], int 
               
               if ( isTimeFinished(timestamp,calculatedTimers[getCalculatedTimeId(cylinderPin)]) || (hpf) ){
                 digitalWrite(cylinderPin,VALUE_SOL_DISABLED);
+                if (chronoIsRunning) stopChrono(chronoIsRunning,timestamp);
                 testModeCylinderPin=VALUE_PIN_NULL;
                 testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]=0;
               }
