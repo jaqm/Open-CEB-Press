@@ -795,7 +795,7 @@ void applyAutoMode(uint8_t digitalInputs[], int analogInputs[], unsigned long so
       default:
           Serial.print("ERROR: Stage not defined. Value of stage = ");Serial.print(autoModeFlags[ID_AUTOMODEFLAG_STAGE]);
           Serial.print("Going into FAILSAFE");
-          delay(4000);
+          if (DEBUG_DELAYED_MODE) delay(4000);
           autoModeFlags[ID_AUTOMODEFLAG_STAGE]=FAILSAFE;
 
         break;
@@ -1071,8 +1071,8 @@ void loop() {
   }
 
   if (DEBUG_DELAYED_MODE) delay(1000);
+
 }
 // ******* END OF SETUP && LOOP *******
 // ************************************
 // EOF
-
