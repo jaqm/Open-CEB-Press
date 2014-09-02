@@ -723,7 +723,8 @@ void applyTestMode( uint8_t digitalInputs[], unsigned long solenoidTimes[], int 
 // panel[]: the information readed from the machine.
 // stage: which stage of the auto-mode do we want to run.
 // &hpf: high pressure flag.
-void applyAutoMode(uint8_t digitalInputs[], int analogInputs[], unsigned long solenoidTimes[], unsigned long autoModeTimers[], short autoModeFlags[], boolean flags[]){
+void applyAutoMode( uint8_t digitalInputs[], int analogInputs[], unsigned long solenoidTimes[], unsigned long autoModeTimers[], 
+                    short autoModeFlags[], boolean &chronoIsRunning, unsigned long &timestamp, boolean &hpf){
   
   if (DEBUG_MODE){
       Serial.println("**************");
