@@ -215,11 +215,26 @@ void initializeAutoModeFlags(short flags[]){
   flags[ID_AUTOMODEFLAG_SUBSTAGE]=0;
 };
 
+void initializeTimers(unsigned long solenoidTimes[], unsigned long calculatedTimers[]){
+  initializeSolenoidTimes(solenoidTimes);
+  initializeCalculatedTimers(calculatedTimers);
+
+}
+
+// Initialize the calculatedTimers array.
+void initializeCalculatedTimers(unsigned long calculatedTimers[]){
+  calculatedTimers[ID_TIME_CALCULATED_SOLU]=VALUE_TIME_NULL;
+  calculatedTimers[ID_TIME_CALCULATED_SOLD]=VALUE_TIME_NULL;
+  calculatedTimers[ID_TIME_CALCULATED_SOLL]=VALUE_TIME_NULL;
+  calculatedTimers[ID_TIME_CALCULATED_SOLR]=VALUE_TIME_NULL;
+}
+
 // Initialize the solenoid times array
 void initializeSolenoidTimes(unsigned long solenoidTimes[]){
-  for (int i = 0; i++; i<SOLENOID_TIMES_SIZE){
-    solenoidTimes[i]=VALUE_TIME_NULL;
-  }
+  solenoidTimes[ID_TIME_CALCULATED_SOLU]=VALUE_TIME_NULL;
+  solenoidTimes[ID_TIME_CALCULATED_SOLD]=VALUE_TIME_NULL;
+  solenoidTimes[ID_TIME_CALCULATED_SOLL]=VALUE_TIME_NULL;
+  solenoidTimes[ID_TIME_CALCULATED_SOLR]=VALUE_TIME_NULL;
 }
 
 // Initialize all the arrays related to the auto-mode.
