@@ -789,6 +789,8 @@ void applyTestMode( uint8_t digitalInputs[], unsigned long solenoidTimes[], int 
           default:
               showErrorMessage("test-mode - movement - unknown substage");
             break;
+              if (DEBUG_DELAYED_MODE) delay(1000);
+
         }        
       break;
     
