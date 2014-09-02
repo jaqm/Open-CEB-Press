@@ -1051,13 +1051,13 @@ void printPanel(uint8_t panel[], int analogInputs[]){
 }
 
 // Shows the content of the solenoidTimes
-void printTimesArray(unsigned long ta[]){
+void printSolenoidTimes(unsigned long st[]){
 
   Serial.println("********************************************");
-  Serial.print("Time SOLU: "); Serial.println(ta[ID_TIME_SOLU],DEC);
-  Serial.print("Time SOLD: "); Serial.println(ta[ID_TIME_SOLD],DEC);
-  Serial.print("Time SOLL: "); Serial.println(ta[ID_TIME_SOLL],DEC);
-  Serial.print("Time SOLR: "); Serial.println(ta[ID_TIME_SOLR],DEC);
+  Serial.print("Time SOLU: "); Serial.println(st[ID_TIME_SOLU],DEC);
+  Serial.print("Time SOLD: "); Serial.println(st[ID_TIME_SOLD],DEC);
+  Serial.print("Time SOLL: "); Serial.println(st[ID_TIME_SOLL],DEC);
+  Serial.print("Time SOLR: "); Serial.println(st[ID_TIME_SOLR],DEC);
 //  Serial.print("Time SOLS: "); Serial.println(ta[ID_TIME_SOLS],DEC);
   Serial.println("********************************************"); 
 
