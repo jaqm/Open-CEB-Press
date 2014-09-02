@@ -407,8 +407,6 @@ int getEnabledCylinder(uint8_t array[]){
 
 // **** END of GETTERS && SETTERS
 
-// **** CHRONO FUNCTIONS
-// Starts the chrono
 // **** FORMULA FUNCTIONS
 
 unsigned long calculateMainCylinderTime(unsigned long solenoidTime, int potM){
@@ -440,13 +438,15 @@ void updateCalculatedTimes(int analogInputs[], unsigned long solenoidTimers[], u
 // **** END OF FORMULA FUNCTIONS
 
 
+// **** CHRONO FUNCTIONS
+// Starts the chrono
 void startChrono(boolean &chronoIsRunning, unsigned long &timestamp){
   if (!chronoIsRunning){
     timestamp=millis();
     chronoIsRunning=true;
   }else{
-    if (DEBUG_MODE) Serial.println("ERROR: Chrono was already running");
     if (DEBUG_DELAYED_MODE) delay(4000);
+    if (DEBUG_MODE) Serial.println("ERROR: Chrono was already running");
   }
 }
 
@@ -458,7 +458,7 @@ unsigned long stopChrono(boolean &chronoIsRunning, unsigned long &timestamp){
     timestamp=VALUE_TIME_NULL;
     chronoIsRunning=false;
   }else {
-    showErrorMessage("Chrono was already running");    
+    showErrorMessage("Chrono was NOT running");    
   }
   return time;
 }
