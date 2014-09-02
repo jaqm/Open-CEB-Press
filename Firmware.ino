@@ -1,12 +1,14 @@
   //******************
   // ** TODO **
   // - Redesign the test-mode to be able to work in timed and high pressure mode.
-  // - We want to recalibrate the time for the main cylinder based on the changed hapenned in the drawer cylinder. 
-  // - We want to measure the drawer cylinder travel.
-  // - Review the documentation of every function.
+  // - Reuse the times applied during the test mode in the auto-mode.
   // - Review the blinking procedure. Specially for auto, manual and test mode.
+  // - Review the documentation of every function.
   // *****************
   // ** DONE **
+  // - We want to recalibrate the time for the main cylinder based on the changed hapenned in the drawer cylinder:
+  //   - We want to measure the drawer cylinder travel.
+  //   - This is happening in the PUSH_BRICK stage.
   // - We want to use different release pressure values for the main cylinder and the other cylinders.
   // - Review the use of the ID_AUTOMODETIMER_TIMER and ID_AUTOMODETIMER_TIMESTAMP. Done: replacing TIMER with TIMESTAMP.
   // - We want to be able to move the shaker at any time in any mode.
