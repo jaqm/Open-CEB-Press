@@ -947,7 +947,8 @@ void applyAutoMode( uint8_t digitalInputs[], int analogInputs[], unsigned long s
           if (MOVE_SHAKER_AUTOMATICALLY_ON_AUTO_MODE) moveCylinderUntilHighPressure(PIN_SOLS, hpf);
 
           if ( (hpf) || (millis()-timestamp > calculatedTimers[ID_TIME_CALCULATED_SOLD]) ){
-            setSolenoids(VALUE_SOL_DISABLED);                
+            setSolenoids(VALUE_SOL_DISABLED);
+            if (MOVE_SHAKER_AUTOMATICALLY_ON_AUTO_MODE) digitalWrite(PIN_SOLS, VALUE_SOL_DISABLED);
             stopChrono(chronoIsRunning,timestamp);
             calculatedTimers[ID_TIME_CALCULATED_SOLD]=VALUE_TIME_NULL;    // NOTE: Consider to remove this step
             autoModeFlags[ID_AUTOMODEFLAG_STAGE]=CLOSE_CHAMBER;
