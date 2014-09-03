@@ -924,10 +924,6 @@ void applyAutoMode( uint8_t digitalInputs[], int analogInputs[], unsigned long s
             //if ( (analogInputs[ID_POTM])/(VALUE_MAX_POTM) < 0.95){ // Go into timing mode
             calculatedTimers[ID_TIME_CALCULATED_SOLD] = calculateMainCylinderTime(solenoidTimes[ID_TIME_SOLD], analogInputs[ID_POTM]);
 
-            // We can't operate with numbers below 1 with unsigned long. So we write the operation in another way. The next two expression should be equal.
-            // So what we do is group all the multiplications, group all the divisors together, and then we do the division.
-            //  autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER] = solenoidTimes[ID_TIME_SOLD] * (analogInputs[ID_POTM]/VALUE_MAX_POTM);
-            autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER] = (solenoidTimes[ID_TIME_SOLD] * analogInputs[ID_POTM])/VALUE_MAX_POTM;
             if (DEBUG_MODE){
               Serial.println("Timing mode.");
               Serial.print("Time that is gonna be applied to SOLD");
