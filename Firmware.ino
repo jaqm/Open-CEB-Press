@@ -155,8 +155,11 @@ const int AMOUNT_ANALOG_INPUTS=2;
 int analogInputs[AMOUNT_ANALOG_INPUTS];
 
 // Chrono
-boolean chronoIsRunning=false;    // ID of the flag used to know if we are running the chrono.
+boolean chronoIsRunning=false;    // flag used to know if we are running the chrono.
 unsigned long timestamp=VALUE_TIME_NULL;        // Timestamp variable
+// Chrono - shaker
+boolean chronoIsRunningShaker=false;    // flag used to know if we are running the chrono.
+unsigned long timestampShaker=VALUE_TIME_NULL;        // Timestamp variable used for the shaker
 
 // flags - general purpose
 boolean flagHighPressure=false;                   // Flag used to track if a highPressure signal was received.
