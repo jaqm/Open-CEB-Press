@@ -262,8 +262,8 @@ boolean isTimeFinished(unsigned long timestamp, unsigned long limitTime){
   return result;
 }
 
-// We consider the solenoid times calibrated if all the values within it are different to null.
-boolean isSolenoidTimesCalibrated(unsigned long solenoidTimes[]){
+// We consider the solenoid times fully-calibrated if all the values within solenoidTimes are different than null.
+boolean isSolenoidTimesFullyCalibrated(unsigned long solenoidTimes[]){
   int i=0;
   boolean result=true;
   while (i<SOLENOID_TIMES_SIZE && result){
