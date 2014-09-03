@@ -651,7 +651,7 @@ void releasePressureManualMode(uint8_t digitalInputs[]){
 // ** MACHINE MOVEMENTS -- CHECK-AND-GO FUNCTIONS
 
 // Moves the cylinder on timed mode.
-void moveCylinderTimedMode(int cylinderPin, boolean &chronoIsRunning, unsigned long &timestamp, boolean &hpf){
+void moveCylinderTimedMode(int cylinderPin, unsigned long solenoidTimes[], unsigned long calculatedTimes[], boolean &chronoIsRunning, unsigned long &timestamp, boolean &hpf){
   if (!chronoIsRunning) startChrono(chronoIsRunning, timestamp);
   moveCylinderUntilHighPressure(cylinderPin,hpf);
   if (hpf){
@@ -660,7 +660,7 @@ void moveCylinderTimedMode(int cylinderPin, boolean &chronoIsRunning, unsigned l
      if (DEBUG_DELAYED_MODE) delay(1000);
   }
   
-  if ( isTimeFinished(timestamp,calculatedTimers[getCalculatedTimeId(cylinderPin)]) || (hpf) ){
+  if ( isTimeFinished(timestamp,calculatedTimes[getCalculatedTimeId(cylinderPin)]) || (hpf) ){
     digitalWrite(cylinderPin,VALUE_SOL_DISABLED);
     if (chronoIsRunning) stopChrono(chronoIsRunning,timestamp);
   }
@@ -752,7 +752,7 @@ void applyManualMode(uint8_t digitalInputs[], boolean &hpf){
 //  }
 }
 
-void applyTestMode( uint8_t digitalInputs[], unsigned long solenoidTimes[], int &cylinderPin, short testModeFlags[],
+void applyTestMode( uint8_t digitalInputs[], unsigned long solenoidTimes[], unsigned long calculatedTimes[], int &cylinderPin, short testModeFlags[],
                     boolean &chronoIsRunning, unsigned long &timestamp, boolean &hpf){
 
   if (DEBUG_MODE){
@@ -785,34 +785,24 @@ void applyTestMode( uint8_t digitalInputs[], unsigned long solenoidTimes[], int 
           if (isSolenoidTimesHalfCalibrated(solenoidTimes) ){
 
             if (testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]==0){
-
               moveCylinderUntilHighPressure(getOppositeSolenoid(cylinderPin), hpf);
               if (hpf) testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]++;
 
             }else if (testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]==1){
 
-              if (!chronoIsRunning) startChrono(chronoIsRunning, timestamp);
-              moveCylinderUntilHighPressure(cylinderPin,hpf);
-              if (hpf){
-                 solenoidTimes[getSolenoidTimeId(cylinderPin)] = stopChrono(chronoIsRunning,timestamp);
-                 if (DEBUG_MODE) Serial.println("Warning: High pressure enabled before reaching the calculated time point.");
-                 if (DEBUG_DELAYED_MODE) delay(1000);
-              }
-              
-              if ( isTimeFinished(timestamp,calculatedTimers[getCalculatedTimeId(cylinderPin)]) || (hpf) ){
-                digitalWrite(cylinderPin,VALUE_SOL_DISABLED);
-                if (chronoIsRunning) stopChrono(chronoIsRunning,timestamp);
+              moveCylinderTimedMode(cylinderPin,solenoidTimes, calculatedTimes,chronoIsRunning,timestamp,hpf);
+              if (!chronoIsRunning){
                 cylinderPin=VALUE_PIN_NULL;
                 testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]=0;
-              }else{
-                showErrorMessage("test-mode - calibration - substage UNKNOWN.");
-                testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]=0;
               }
-              if (DEBUG_DELAYED_MODE) delay(1000);
+              
+            }else{
+              showErrorMessage("test-mode - calibration - substage UNKNOWN.");
+              testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]=0;
             }
-          }else if (DEBUG_MODE) Serial.println("SolenoidTimes was NOT CALIBRATED yet.");          
-        } 
-
+          }
+        }else if (DEBUG_MODE) Serial.println("SolenoidTimes was NOT CALIBRATED yet.");          
+        if (DEBUG_DELAYED_MODE) delay(1000);
       break;
     default:
         showErrorMessage("TEST-MODE: Unknown stage.");
@@ -1283,7 +1273,7 @@ void loop() {
     } 
 
     // Apply test-mode.
-    applyTestMode( digitalInputs, solenoidTimes, testModeCylinderPin, testModeFlags,
+    applyTestMode( digitalInputs, solenoidTimes, calculatedTimers, testModeCylinderPin, testModeFlags,
                     chronoIsRunning, timestamp, flagHighPressure);
     
   }
