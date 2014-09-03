@@ -737,7 +737,7 @@ void applyManualMode(uint8_t digitalInputs[], boolean &hpf){
 //  }
 }
 
-void applyTestMode( uint8_t digitalInputs[], unsigned long solenoidTimes[], int &cylinderPin, short testModeFlags[], short autoModeFlags[],
+void applyTestMode( uint8_t digitalInputs[], unsigned long solenoidTimes[], int &cylinderPin, short testModeFlags[],
                     boolean &chronoIsRunning, unsigned long &timestamp, boolean &hpf){
 
   if (DEBUG_MODE){
@@ -751,8 +751,7 @@ void applyTestMode( uint8_t digitalInputs[], unsigned long solenoidTimes[], int 
   switch(testModeFlags[ID_TESTMODEFLAG_STAGE]){
 
     case INITIAL:
-        setSolenoids(VALUE_SOL_DISABLED);      // Init default values for the other modes
-        initializeAutoModeFlags(autoModeFlags);
+        
         initializeTestModeFlags(testModeFlags);
         cylinderPin=VALUE_PIN_NULL;
         testModeFlags[ID_TESTMODEFLAG_STAGE]=TESTMODE;
@@ -1258,26 +1257,31 @@ void loop() {
 
       // Set auto-mode values to the default
       initializeAutoMode(autoModeFlags);
+      // Set test-mode values to the default
       initializeTestMode(testModeFlags);
-      initializeTimers(solenoidTimes, calculatedTimers);      
-      // TO REMOVE
-      //if (DEBUG_MODE){ printSolenoidTimes(solenoidTimes);printCalculatedTimes(calculatedTimers);};
-      //if (DEBUG_DELAYED_MODE) delay(2000);
-      
       testModeCylinderPin=VALUE_PIN_NULL;
+      // Stop the chrono
       if (chronoIsRunning) stopChrono(chronoIsRunning,timestamp);
+
       // Apply manual-mode.
       applyManualMode(digitalInputs,flagHighPressure);
       
     }else{                            // AUTO MODE
-        applyAutoMode(digitalInputs, analogInputs, solenoidTimes, calculatedTimers, autoModeFlags, chronoIsRunning, timestamp, flagHighPressure);
+        applyAutoMode(digitalInputs, analogInputs, solenoidTimes, calculatedTimers, 
+                      autoModeFlags, chronoIsRunning, timestamp, flagHighPressure);
     }
 
   }else{       // SWON is Disabled -> TEST MODE
     if (DEBUG_MODE) Serial.println("SWON is DISABLED -> I'm on TEST-MODE!");
 
+    // Init default values for the other modes
+    if (testModeFlags[ID_TESTMODEFLAG_STAGE]==INITIAL){
+      setSolenoids(VALUE_SOL_DISABLED);
+      initializeAutoModeFlags(autoModeFlags);
+    } 
+
     // Apply test-mode.
-    applyTestMode( digitalInputs, solenoidTimes, testModeCylinderPin, testModeFlags, autoModeFlags,
+    applyTestMode( digitalInputs, solenoidTimes, testModeCylinderPin, testModeFlags,
                     chronoIsRunning, timestamp, flagHighPressure);
     
   }
