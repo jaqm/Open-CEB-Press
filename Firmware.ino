@@ -1,10 +1,11 @@
   //******************
   // ** TODO **
+  // - Use moveCylinderTimedMode() for all the timed movements. Like Auto-mode.
   // - Review the blinking procedure. Specially for auto, manual and test mode.
   // - Review the documentation of every function.
   // *****************
   // ** DONE **
-  // - If the solenoidTimes are calibrated, auto-mode starts inmediately pressing bricks.
+  // - If solenoidTimes is calibrated, auto-mode starts inmediately pressing bricks.
   // - Reuse the times applied during the test mode in the auto-mode.
   // - Reviewe the test-mode:
   //  -- The timers used in the movement stage, substage 2. SolenoidTimes are the times for a complete travel. autoModeTimes are the calculated times.
