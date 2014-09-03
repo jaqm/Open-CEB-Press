@@ -649,6 +649,22 @@ void releasePressureManualMode(uint8_t digitalInputs[]){
 // **
 // ** MACHINE MOVEMENTS -- CHECK-AND-GO FUNCTIONS
 
+// Moves the cylinder on timed mode.
+void moveCylinderTimedMode(int cylinderPin, boolean &chronoIsRunning, unsigned long &timestamp, boolean &hpf){
+  if (!chronoIsRunning) startChrono(chronoIsRunning, timestamp);
+  moveCylinderUntilHighPressure(cylinderPin,hpf);
+  if (hpf){
+     solenoidTimes[getSolenoidTimeId(cylinderPin)] = stopChrono(chronoIsRunning,timestamp);
+     if (DEBUG_MODE) Serial.println("Warning: High pressure enabled before reaching the calculated time point.");
+     if (DEBUG_DELAYED_MODE) delay(1000);
+  }
+  
+  if ( isTimeFinished(timestamp,calculatedTimers[getCalculatedTimeId(cylinderPin)]) || (hpf) ){
+    digitalWrite(cylinderPin,VALUE_SOL_DISABLED);
+    if (chronoIsRunning) stopChrono(chronoIsRunning,timestamp);
+  }
+}
+
 // Function thought to be used in test-mode.
 // It goes all the way in the cylinderDirection, then all the way in the opposite direction measuring the time,
 // and all the way in the cylinder pin direction this time measuring the time the travel takes.
