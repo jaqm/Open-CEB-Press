@@ -517,6 +517,23 @@ void recalibrateSolenoidTimesBasedOnSolr(unsigned long solenoidTimes[], unsigned
 
 // ** MACHINE MOVEMENTS -- NON-STOP FUNCTIONS
 
+// Moves the shaker and updates the timestamp properly if necessary.
+// We want to be be able to move the shaker at any time in every mode.
+// To do this we stop the machine movement and just move the shaker
+// if the chronoIsRunning we need to adjust the timestamp to keep the original timing.
+void moveShaker(boolean chronoIsRunning, unsigned long &timestamp){
+
+  boolean chronoIsRunningShaker=false;
+  unsigned long timestampShaker=VALUE_TIME_NULL;
+     
+  setSolenoids(VALUE_SOL_DISABLED);
+  if (chronoIsRunning) startChrono(chronoIsRunningShaker,timestampShaker);
+  digitalWrite(PIN_SOLS,VALUE_SOL_ENABLED);
+  while (pinDigitalValueIs(PIN_BUTTON_SHAKER, VALUE_INPUT_READ_DELAY)==VALUE_INPUT_ENABLED){}
+  digitalWrite(PIN_SOLS,VALUE_SOL_DISABLED);
+  if (chronoIsRunning) timestamp=timestamp+stopChrono(chronoIsRunningShaker,timestampShaker);
+}
+
 // Description: Moves the opposite cylinder during a short period of time. Used to release pressure.
 unsigned long releasePressure(int cylinderPin, boolean &hpf){
 //void releasePressure(int cylinderPin, boolean &hpf){  
