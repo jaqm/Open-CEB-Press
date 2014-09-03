@@ -157,9 +157,6 @@ int analogInputs[AMOUNT_ANALOG_INPUTS];
 // Chrono
 boolean chronoIsRunning=false;    // flag used to know if we are running the chrono.
 unsigned long timestamp=VALUE_TIME_NULL;        // Timestamp variable
-// Chrono - shaker
-boolean chronoIsRunningShaker=false;    // flag used to know if we are running the chrono.
-unsigned long timestampShaker=VALUE_TIME_NULL;        // Timestamp variable used for the shaker
 
 // flags - general purpose
 boolean flagHighPressure=false;                   // Flag used to track if a highPressure signal was received.
@@ -1227,17 +1224,7 @@ void loop() {
   
   if (DEBUG_MODE){ printPanel(digitalInputs,analogInputs); printSolenoidTimes(solenoidTimes);printCalculatedTimes(calculatedTimers);};
 
-  // Being able to move the shaker at any time in every mode.
-  // To do this we stop the machine movement and just move the shaker
-  // if the chronoIsRunning we need to adjust the timestamp to keep the original timing.
-  if (digitalInputs[ID_BUTTON_SHAKER]==VALUE_INPUT_ENABLED){
-    setSolenoids(VALUE_SOL_DISABLED);
-    if (chronoIsRunning && !chronoIsRunningShaker) startChrono(chronoIsRunningShaker,timestampShaker);
-    digitalWrite(PIN_SOLS,VALUE_SOL_ENABLED);
-    while (pinDigitalValueIs(PIN_BUTTON_SHAKER, VALUE_INPUT_READ_DELAY)==VALUE_INPUT_ENABLED){}
-    digitalWrite(PIN_SOLS,VALUE_SOL_DISABLED);
-    if (chronoIsRunning) timestamp=timestamp+stopChrono(chronoIsRunningShaker,timestampShaker);
-  }
+  if (digitalInputs[ID_BUTTON_SHAKER]==VALUE_INPUT_ENABLED) moveShaker(chronoIsRunning, timestamp);
 
   if (digitalInputs[ID_SWON]==VALUE_INPUT_SW_ENABLED){  // Power ON
 
