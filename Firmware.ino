@@ -884,9 +884,10 @@ void applyAutoMode( uint8_t digitalInputs[], int analogInputs[], unsigned long s
             moveCylinderUntilHighPressure(PIN_SOLL,hpf);
             if (hpf){
               solenoidTimes[ID_TIME_SOLL] = stopChrono(chronoIsRunning,timestamp);
-              if (DEBUG_MODE) {Serial.print("The for SOLL has been: ");Serial.println(solenoidTimes[ID_TIME_SOLL]);}
               autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE]=0;
               autoModeFlags[ID_AUTOMODEFLAG_STAGE]=EJECT_BRICK;
+              if (DEBUG_MODE) {Serial.print("The for SOLL has been: ");Serial.println(solenoidTimes[ID_TIME_SOLL]);}
+              if (DEBUG_DELAYED_MODE) delay(1000);
             }
           }
         break;
