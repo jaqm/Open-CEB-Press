@@ -3,6 +3,7 @@
   // - Use moveCylinderTimedMode() for all the timed movements. Like Auto-mode.
   // - Review the blinking procedure. Specially for auto, manual and test mode.
   // - Review the documentation of every function.
+  // - Try: make the machine work, whenever is possible, in timed mode, as the timed mode already implements high-pressure protection and is check-and-go function.
   // *****************
   // ** DONE **
   // - If solenoidTimes is calibrated, auto-mode starts inmediately pressing bricks.
