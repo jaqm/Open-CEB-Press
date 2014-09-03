@@ -416,6 +416,7 @@ int getEnabledCylinder(uint8_t array[]){
 
 // **** FORMULA FUNCTIONS
 
+// We can't use a coefficient with unsigned long because every result between 0 and 1 will be rounded to 0.
 unsigned long calculateMainCylinderTime(unsigned long solenoidTime, int potM){
   // We can't operate with numbers below 1 with unsigned long. So we write the operation in another way. The next two expression should be equal.
   // So what we do is group all the multiplications, group all the divisors together, and then we do the division.
