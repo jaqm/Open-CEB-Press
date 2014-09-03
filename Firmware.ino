@@ -811,7 +811,7 @@ void applyAutoMode( uint8_t digitalInputs[], int analogInputs[], unsigned long s
       case FAILSAFE:    // FAILSAFE: Startup procedure: Clean the platform and go to the initial position.
 
           // If solenoidTimes is already calibrated we move the SOLR until high pressure and start pressing bricks!
-          if (isSolenoidTimesCalibrated(solenoidTimes)){
+          if (isSolenoidTimesHalfCalibrated(solenoidTimes)){
             if (autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE]==0){
               moveCylinderUntilHighPressure(PIN_SOLR, hpf);
               if (hpf) autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE]++;
@@ -1207,7 +1207,7 @@ void loop() {
 
   readPanel(digitalInputs, analogInputs, VALUE_INPUT_READ_DELAY);
   updateLeds(digitalInputs, blinkingTimers[ID_BLINKING_TIMER_STATUS_LED], flagHighPressure, blinkingTimers[ID_BLINKING_TIMER_HIGH_PRESSURE_LED]);
-  if (isSolenoidTimesCalibrated(solenoidTimes)) updateCalculatedTimes(analogInputs, solenoidTimes, calculatedTimers);
+  if (isSolenoidTimesHalfCalibrated(solenoidTimes)) updateCalculatedTimes(analogInputs, solenoidTimes, calculatedTimers);
   
   if (DEBUG_MODE){ printPanel(digitalInputs,analogInputs); printSolenoidTimes(solenoidTimes);printCalculatedTimes(calculatedTimers);};
 
