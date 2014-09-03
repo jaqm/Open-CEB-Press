@@ -1,10 +1,12 @@
   //******************
   // ** TODO **
+  // - Use moveCylinderTimedMode() for all the timed movements. Like Auto-mode.
   // - Review the blinking procedure. Specially for auto, manual and test mode.
   // - Review the documentation of every function.
+  // - Try: make the machine work, whenever is possible, in timed mode, as the timed mode already implements high-pressure protection and is check-and-go function.
   // *****************
   // ** DONE **
-  // - If the solenoidTimes are calibrated, auto-mode starts inmediately pressing bricks.
+  // - If solenoidTimes is calibrated, auto-mode starts inmediately pressing bricks.
   // - Reuse the times applied during the test mode in the auto-mode.
   // - Reviewe the test-mode:
   //  -- The timers used in the movement stage, substage 2. SolenoidTimes are the times for a complete travel. autoModeTimes are the calculated times.
@@ -41,6 +43,7 @@ const boolean DEBUG_LED_MODE=false;  // Caution: DEBUG_LED_MODE and DEBUG_DELAYE
 const boolean DEBUG_DELAYED_MODE=false;
 // CONST - BEHAVIOUR CONFIG
 const boolean MOVE_SHAKER_AUTOMATICALLY_ON_AUTO_MODE=false;  // true if you want to move the shaker automatically in auto-mode.
+const int VALUE_MIN_POTENTIOMETER_FOR_TIMED_MODE=950;        // Above this value, the main cylinder, in timed modes, will go until high pressure. (Max 1023)
 // CONST - STATUS LED blinking times for each mode.
 const unsigned long VALUE_TIME_BLINKING_MANUAL=1000;  // DEPRECATED: On manual mode the status led will be always on.
 const unsigned long VALUE_TIME_BLINKING_AUTO=250;
@@ -133,7 +136,7 @@ const short OPEN_CHAMBER = 7;
 
 // CONST - TEST-MODE STAGES
 const short INITIAL=0;
-const short TESTMODE_CALIBRATION = 1;
+const short TESTMODE = 1;
 const short MOVEMENT = 2;
 
 // PANEL ARRAY - contains all the digital input panel values.
@@ -155,7 +158,7 @@ const int AMOUNT_ANALOG_INPUTS=2;
 int analogInputs[AMOUNT_ANALOG_INPUTS];
 
 // Chrono
-boolean chronoIsRunning=false;    // ID of the flag used to know if we are running the chrono.
+boolean chronoIsRunning=false;    // flag used to know if we are running the chrono.
 unsigned long timestamp=VALUE_TIME_NULL;        // Timestamp variable
 
 // flags - general purpose
@@ -259,8 +262,8 @@ boolean isTimeFinished(unsigned long timestamp, unsigned long limitTime){
   return result;
 }
 
-// We consider the solenoid times calibrated if all the values within it are different to null.
-boolean isSolenoidTimesCalibrated(unsigned long solenoidTimes[]){
+// We consider the solenoid times fully-calibrated if all the values within solenoidTimes are different than null.
+boolean isSolenoidTimesFullyCalibrated(unsigned long solenoidTimes[]){
   int i=0;
   boolean result=true;
   while (i<SOLENOID_TIMES_SIZE && result){
@@ -269,6 +272,12 @@ boolean isSolenoidTimesCalibrated(unsigned long solenoidTimes[]){
   }
   return result;
 }
+
+// We consider the solenoid times half-calibrated if the time values for SOLL and SOLD are different than null.
+boolean isSolenoidTimesHalfCalibrated(unsigned long solenoidTimes[]){
+  return ( (solenoidTimes[ID_TIME_SOLL]!=VALUE_TIME_NULL) && (solenoidTimes[ID_TIME_SOLD]!=VALUE_TIME_NULL) );
+}
+
 
 // Return true is cylinderPin is a main cylinder movement pin.
 boolean isMainCylinder(int cylinderPin){
@@ -410,6 +419,7 @@ int getEnabledCylinder(uint8_t array[]){
 
 // **** FORMULA FUNCTIONS
 
+// We can't use a coefficient with unsigned long because every result between 0 and 1 will be rounded to 0.
 unsigned long calculateMainCylinderTime(unsigned long solenoidTime, int potM){
   // We can't operate with numbers below 1 with unsigned long. So we write the operation in another way. The next two expression should be equal.
   // So what we do is group all the multiplications, group all the divisors together, and then we do the division.
@@ -507,6 +517,23 @@ void recalibrateSolenoidTimesBasedOnSolr(unsigned long solenoidTimes[], unsigned
 // *** MACHINE MOVEMENTS
 
 // ** MACHINE MOVEMENTS -- NON-STOP FUNCTIONS
+
+// Moves the shaker and updates the timestamp properly if necessary.
+// We want to be be able to move the shaker at any time in every mode.
+// To do this we stop the machine movement and just move the shaker
+// if the chronoIsRunning we need to adjust the timestamp to keep the original timing.
+void moveShaker(boolean chronoIsRunning, unsigned long &timestamp){
+
+  boolean chronoIsRunningShaker=false;
+  unsigned long timestampShaker=VALUE_TIME_NULL;
+     
+  setSolenoids(VALUE_SOL_DISABLED);
+  if (chronoIsRunning) startChrono(chronoIsRunningShaker,timestampShaker);
+  digitalWrite(PIN_SOLS,VALUE_SOL_ENABLED);
+  while (pinDigitalValueIs(PIN_BUTTON_SHAKER, VALUE_INPUT_READ_DELAY)==VALUE_INPUT_ENABLED){}
+  digitalWrite(PIN_SOLS,VALUE_SOL_DISABLED);
+  if (chronoIsRunning) timestamp=timestamp+stopChrono(chronoIsRunningShaker,timestampShaker);
+}
 
 // Description: Moves the opposite cylinder during a short period of time. Used to release pressure.
 unsigned long releasePressure(int cylinderPin, boolean &hpf){
@@ -625,6 +652,42 @@ void releasePressureManualMode(uint8_t digitalInputs[]){
 // **
 // ** MACHINE MOVEMENTS -- CHECK-AND-GO FUNCTIONS
 
+// Moves the cylinder on timed mode.
+void moveCylinderTimedMode(int cylinderPin, unsigned long solenoidTimes[], unsigned long calculatedTimes[], boolean &chronoIsRunning, unsigned long &timestamp, boolean &hpf){
+  if (!chronoIsRunning) startChrono(chronoIsRunning, timestamp);
+  moveCylinderUntilHighPressure(cylinderPin,hpf);
+  if (hpf){
+     solenoidTimes[getSolenoidTimeId(cylinderPin)] = stopChrono(chronoIsRunning,timestamp);
+     if (DEBUG_MODE) Serial.println("Warning: High pressure enabled before reaching the calculated time point.");
+     if (DEBUG_DELAYED_MODE) delay(1000);
+  }
+  
+  if ( isTimeFinished(timestamp,calculatedTimes[getCalculatedTimeId(cylinderPin)]) || (hpf) ){
+    digitalWrite(cylinderPin,VALUE_SOL_DISABLED);
+    if (chronoIsRunning) stopChrono(chronoIsRunning,timestamp);
+  }
+}
+
+// Function thought to be used in test-mode.
+// It goes all the way in the cylinderDirection, then all the way in the opposite direction measuring the time,
+// and all the way in the cylinder pin direction this time measuring the time the travel takes.
+void cylinderBounce( short testModeFlags[], unsigned long solenoidTimes[], int &cylinderPin, boolean &chronoIsRunning, 
+                     unsigned long &timestamp, boolean &hpf){
+  if (testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]==0){
+    moveCylinderUntilHighPressure(cylinderPin, hpf);
+    if (hpf) testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]++;
+  }else if (testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]==1){
+    measureCylinderTravelUntilHighPressure(getOppositeSolenoid(cylinderPin), chronoIsRunning, timestamp, hpf, solenoidTimes);
+    if (hpf) testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]++;
+  }else if (testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]==2){
+    measureCylinderTravelUntilHighPressure(cylinderPin, chronoIsRunning, timestamp, hpf, solenoidTimes);
+    if (hpf) {
+      testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]=0;
+      cylinderPin=VALUE_PIN_NULL;
+    }
+  }
+}
+
 // It measures the time it take to move the cylinder defined by pin until high pressure.
 void measureCylinderTravelUntilHighPressure(int pin, boolean &chronoIsRunning, unsigned long &timestamp, boolean &hpf,
                                             unsigned long solenoidTime[]){
@@ -691,7 +754,7 @@ void applyManualMode(uint8_t digitalInputs[], boolean &hpf){
 //  }
 }
 
-void applyTestMode( uint8_t digitalInputs[], unsigned long solenoidTimes[], int &cylinderPin, short testModeFlags[], short autoModeFlags[],
+void applyTestMode( uint8_t digitalInputs[], unsigned long solenoidTimes[], unsigned long calculatedTimes[], int &cylinderPin, short testModeFlags[],
                     boolean &chronoIsRunning, unsigned long &timestamp, boolean &hpf){
 
   if (DEBUG_MODE){
@@ -705,99 +768,44 @@ void applyTestMode( uint8_t digitalInputs[], unsigned long solenoidTimes[], int 
   switch(testModeFlags[ID_TESTMODEFLAG_STAGE]){
 
     case INITIAL:
-        setSolenoids(VALUE_SOL_DISABLED);      // Init default values for the other modes
-        initializeAutoModeFlags(autoModeFlags);
         initializeTestModeFlags(testModeFlags);
-        testModeFlags[ID_TESTMODEFLAG_STAGE]=TESTMODE_CALIBRATION;
+        setSolenoids(VALUE_SOL_DISABLED);
+        cylinderPin=VALUE_PIN_NULL;
+        testModeFlags[ID_TESTMODEFLAG_STAGE]=TESTMODE;
       break;
       
-    case TESTMODE_CALIBRATION:
-        if (DEBUG_MODE) Serial.println("TEST_MODE_CALIBRATION");
-        if (!isSolenoidTimesCalibrated(solenoidTimes)){
-          if (DEBUG_MODE) Serial.println("The solenoidTimesIs NOT calibrated yet.");
-          switch (testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]){
-            
-            case 0:
-                moveCylinderUntilHighPressure(PIN_SOLU, hpf);
-                if (hpf) testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]++;
-              break;
-              
-            case 1:
-                moveCylinderUntilHighPressure(PIN_SOLR, hpf);
-                if (hpf) testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]++;
-              break;
-              
-            case 2:  // Start taking times - SOLD
-                measureCylinderTravelUntilHighPressure(PIN_SOLD, chronoIsRunning, timestamp, hpf, solenoidTimes);
-                if (hpf) testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]++;
-              break;
+    case TESTMODE:
+        if (DEBUG_MODE) Serial.println("TESTMODE STAGE");
 
-            case 3:  // SOLU
-                measureCylinderTravelUntilHighPressure(PIN_SOLU, chronoIsRunning, timestamp, hpf, solenoidTimes);
-                if (hpf){
-                  testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]++;
-                }
-              break;
+        if (cylinderPin==VALUE_PIN_NULL) cylinderPin = getEnabledCylinder(digitalInputs);
 
-            case 4:  // SOLL
-                Serial.println("Moving SOLL");
-                measureCylinderTravelUntilHighPressure(PIN_SOLL, chronoIsRunning, timestamp, hpf, solenoidTimes);
-                if (hpf) testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]++;
-              break;
+        if (cylinderPin==PIN_SOLR || cylinderPin==PIN_SOLU)
+          cylinderBounce( testModeFlags,solenoidTimes, cylinderPin, chronoIsRunning, timestamp, hpf);
 
-            case 5:  // SOLR
-                measureCylinderTravelUntilHighPressure(PIN_SOLR, chronoIsRunning, timestamp, hpf, solenoidTimes);
-                if (hpf){
-                  testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]=0;
-                  testModeFlags[ID_TESTMODEFLAG_STAGE]=MOVEMENT;
-                }
-              break;
+        else if ( (cylinderPin==PIN_SOLD || cylinderPin==PIN_SOLL) ){
 
-            default:
-                showErrorMessage("test-mode - calibration - substage UNKNOWN.");
-                testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]=0;
-              break;
-          }
-        }else testModeFlags[ID_TESTMODEFLAG_STAGE]=MOVEMENT;
-      break;
+          if (isSolenoidTimesHalfCalibrated(solenoidTimes) ){
 
-    case MOVEMENT:
-        switch (testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]){
-          case 0:
-              cylinderPin = getEnabledCylinder(digitalInputs);
-              if (cylinderPin!=VALUE_PIN_NULL) testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]++;
-            break;
-          case 1:
-              if (getOppositeSolenoid(cylinderPin)==VALUE_PIN_NULL){
-                showErrorMessage("test mode - movement - substage 1 - NULL value for opposite solenoid");
-              }else moveCylinderUntilHighPressure(getOppositeSolenoid(cylinderPin),hpf);
+            if (testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]==0){
+              moveCylinderUntilHighPressure(getOppositeSolenoid(cylinderPin), hpf);
               if (hpf) testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]++;
-            break;
-          case 2:
-              if (!chronoIsRunning) startChrono(chronoIsRunning, timestamp);
-              moveCylinderUntilHighPressure(cylinderPin,hpf);
 
-              if (hpf){
-                 solenoidTimes[getSolenoidTimeId(cylinderPin)] = stopChrono(chronoIsRunning,timestamp);
-                 if (DEBUG_MODE) Serial.println("Warning: High pressure enabled before reaching the calculated time point.");
-                 if (DEBUG_DELAYED_MODE) delay(1000);
-              }
-              
-              if ( isTimeFinished(timestamp,calculatedTimers[getCalculatedTimeId(cylinderPin)]) || (hpf) ){
-                digitalWrite(cylinderPin,VALUE_SOL_DISABLED);
-                if (chronoIsRunning) stopChrono(chronoIsRunning,timestamp);
-                testModeCylinderPin=VALUE_PIN_NULL;
+            }else if (testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]==1){
+
+              moveCylinderTimedMode(cylinderPin,solenoidTimes, calculatedTimes,chronoIsRunning,timestamp,hpf);
+              if (!chronoIsRunning){
+                cylinderPin=VALUE_PIN_NULL;
                 testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]=0;
               }
-              if (DEBUG_DELAYED_MODE) delay(1000);
-
-            break;
-          default:
-              showErrorMessage("test-mode - movement - unknown substage");
-            break;
-        }        
+              
+            }else{
+              showErrorMessage("test-mode - calibration - substage UNKNOWN.");
+              testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]=0;
+            }
+          }else if (DEBUG_MODE) Serial.println("SolenoidTimes was NOT CALIBRATED yet.");
+        }
+        if (DEBUG_DELAYED_MODE) delay(1000);
       break;
-    
     default:
         showErrorMessage("TEST-MODE: Unknown stage.");
       break;
@@ -826,7 +834,7 @@ void applyAutoMode( uint8_t digitalInputs[], int analogInputs[], unsigned long s
       case FAILSAFE:    // FAILSAFE: Startup procedure: Clean the platform and go to the initial position.
 
           // If solenoidTimes is already calibrated we move the SOLR until high pressure and start pressing bricks!
-          if (isSolenoidTimesCalibrated(solenoidTimes)){
+          if (isSolenoidTimesHalfCalibrated(solenoidTimes)){
             if (autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE]==0){
               moveCylinderUntilHighPressure(PIN_SOLR, hpf);
               if (hpf) autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE]++;
@@ -878,9 +886,10 @@ void applyAutoMode( uint8_t digitalInputs[], int analogInputs[], unsigned long s
             moveCylinderUntilHighPressure(PIN_SOLL,hpf);
             if (hpf){
               solenoidTimes[ID_TIME_SOLL] = stopChrono(chronoIsRunning,timestamp);
-              if (DEBUG_MODE) {Serial.print("The for SOLL has been: ");Serial.println(solenoidTimes[ID_TIME_SOLL]);}
               autoModeFlags[ID_AUTOMODEFLAG_SUBSTAGE]=0;
               autoModeFlags[ID_AUTOMODEFLAG_STAGE]=EJECT_BRICK;
+              if (DEBUG_MODE) {Serial.print("The for SOLL has been: ");Serial.println(solenoidTimes[ID_TIME_SOLL]);}
+              if (DEBUG_DELAYED_MODE) delay(1000);
             }
           }
         break;
@@ -910,13 +919,15 @@ void applyAutoMode( uint8_t digitalInputs[], int analogInputs[], unsigned long s
           // digitalInputs[ID_POTM]/VALUE_MAX_POTM < 0.95 ( close to the maximum) we want to move it until High pressure.
           // In other case: go into timed mode.
 
-          // We can't use a coefficient with unsigned long because every result between 0 and 1 will be rounded to 0.
-          //if ( (analogInputs[ID_POTM])/(VALUE_MAX_POTM) < 0.95){ // Go into timing mode
+          if ( analogInputs[ID_POTM] < VALUE_MIN_POTENTIOMETER_FOR_TIMED_MODE ){ // Go into timing mode
 
-          if ( analogInputs[ID_POTM] < 950 ){ // Go into timing mode
-
+            //if ( (analogInputs[ID_POTM])/(VALUE_MAX_POTM) < 0.95){ // Go into timing mode
             calculatedTimers[ID_TIME_CALCULATED_SOLD] = calculateMainCylinderTime(solenoidTimes[ID_TIME_SOLD], analogInputs[ID_POTM]);
 
+            // We can't operate with numbers below 1 with unsigned long. So we write the operation in another way. The next two expression should be equal.
+            // So what we do is group all the multiplications, group all the divisors together, and then we do the division.
+            //  autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER] = solenoidTimes[ID_TIME_SOLD] * (analogInputs[ID_POTM]/VALUE_MAX_POTM);
+            autoModeTimers[ID_AUTOMODETIMER_MAIN_CYLINDER] = (solenoidTimes[ID_TIME_SOLD] * analogInputs[ID_POTM])/VALUE_MAX_POTM;
             if (DEBUG_MODE){
               Serial.println("Timing mode.");
               Serial.print("Time that is gonna be applied to SOLD");
@@ -1222,14 +1233,11 @@ void loop() {
 
   readPanel(digitalInputs, analogInputs, VALUE_INPUT_READ_DELAY);
   updateLeds(digitalInputs, blinkingTimers[ID_BLINKING_TIMER_STATUS_LED], flagHighPressure, blinkingTimers[ID_BLINKING_TIMER_HIGH_PRESSURE_LED]);
-  if (isSolenoidTimesCalibrated(solenoidTimes)) updateCalculatedTimes(analogInputs, solenoidTimes, calculatedTimers);
+  if (isSolenoidTimesHalfCalibrated(solenoidTimes)) updateCalculatedTimes(analogInputs, solenoidTimes, calculatedTimers);
   
   if (DEBUG_MODE){ printPanel(digitalInputs,analogInputs); printSolenoidTimes(solenoidTimes);printCalculatedTimes(calculatedTimers);};
 
-  // Being able to move the shaker at any time in every mode if the !chronoIsRunning
-  if (digitalInputs[ID_BUTTON_SHAKER]==VALUE_INPUT_ENABLED && !chronoIsRunning){
-    digitalWrite(PIN_SOLS,VALUE_SOL_ENABLED);
-  }else digitalWrite(PIN_SOLS,VALUE_SOL_DISABLED);
+  if (digitalInputs[ID_BUTTON_SHAKER]==VALUE_INPUT_ENABLED) moveShaker(chronoIsRunning, timestamp);
 
   if (digitalInputs[ID_SWON]==VALUE_INPUT_SW_ENABLED){  // Power ON
 
@@ -1249,26 +1257,30 @@ void loop() {
 
       // Set auto-mode values to the default
       initializeAutoMode(autoModeFlags);
+      // Set test-mode values to the default
       initializeTestMode(testModeFlags);
-      initializeTimers(solenoidTimes, calculatedTimers);      
-      // TO REMOVE
-      //if (DEBUG_MODE){ printSolenoidTimes(solenoidTimes);printCalculatedTimes(calculatedTimers);};
-      //if (DEBUG_DELAYED_MODE) delay(2000);
-      
       testModeCylinderPin=VALUE_PIN_NULL;
+      // Stop the chrono
       if (chronoIsRunning) stopChrono(chronoIsRunning,timestamp);
+
       // Apply manual-mode.
       applyManualMode(digitalInputs,flagHighPressure);
       
     }else{                            // AUTO MODE
-        applyAutoMode(digitalInputs, analogInputs, solenoidTimes, calculatedTimers, autoModeFlags, chronoIsRunning, timestamp, flagHighPressure);
+        applyAutoMode(digitalInputs, analogInputs, solenoidTimes, calculatedTimers, 
+                      autoModeFlags, chronoIsRunning, timestamp, flagHighPressure);
     }
 
   }else{       // SWON is Disabled -> TEST MODE
     if (DEBUG_MODE) Serial.println("SWON is DISABLED -> I'm on TEST-MODE!");
 
+    // Init default values for the other modes
+    if (testModeFlags[ID_TESTMODEFLAG_STAGE]==INITIAL){
+      initializeAutoModeFlags(autoModeFlags);
+    } 
+
     // Apply test-mode.
-    applyTestMode( digitalInputs, solenoidTimes, testModeCylinderPin, testModeFlags, autoModeFlags,
+    applyTestMode( digitalInputs, solenoidTimes, calculatedTimers, testModeCylinderPin, testModeFlags,
                     chronoIsRunning, timestamp, flagHighPressure);
     
   }
