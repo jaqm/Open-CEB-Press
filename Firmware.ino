@@ -41,6 +41,7 @@ const boolean DEBUG_LED_MODE=false;  // Caution: DEBUG_LED_MODE and DEBUG_DELAYE
 const boolean DEBUG_DELAYED_MODE=false;
 // CONST - BEHAVIOUR CONFIG
 const boolean MOVE_SHAKER_AUTOMATICALLY_ON_AUTO_MODE=false;  // true if you want to move the shaker automatically in auto-mode.
+const int VALUE_MIN_POTENTIOMETER_FOR_TIMED_MODE=950;        // Above this value, the main cylinder, in timed modes, will go until high pressure. (Max 1023)
 // CONST - STATUS LED blinking times for each mode.
 const unsigned long VALUE_TIME_BLINKING_MANUAL=1000;  // DEPRECATED: On manual mode the status led will be always on.
 const unsigned long VALUE_TIME_BLINKING_AUTO=250;
@@ -925,11 +926,9 @@ void applyAutoMode( uint8_t digitalInputs[], int analogInputs[], unsigned long s
           // digitalInputs[ID_POTM]/VALUE_MAX_POTM < 0.95 ( close to the maximum) we want to move it until High pressure.
           // In other case: go into timed mode.
 
-          // We can't use a coefficient with unsigned long because every result between 0 and 1 will be rounded to 0.
-          //if ( (analogInputs[ID_POTM])/(VALUE_MAX_POTM) < 0.95){ // Go into timing mode
+          if ( analogInputs[ID_POTM] < VALUE_MIN_POTENTIOMETER_FOR_TIMED_MODE ){ // Go into timing mode
 
-          if ( analogInputs[ID_POTM] < 950 ){ // Go into timing mode
-
+            //if ( (analogInputs[ID_POTM])/(VALUE_MAX_POTM) < 0.95){ // Go into timing mode
             calculatedTimers[ID_TIME_CALCULATED_SOLD] = calculateMainCylinderTime(solenoidTimes[ID_TIME_SOLD], analogInputs[ID_POTM]);
 
             if (DEBUG_MODE){
