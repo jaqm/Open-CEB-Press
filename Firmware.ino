@@ -273,6 +273,12 @@ boolean isSolenoidTimesFullyCalibrated(unsigned long solenoidTimes[]){
   return result;
 }
 
+// We consider the solenoid times half-calibrated if the time values for SOLL and SOLD are different than null.
+boolean isSolenoidTimesHalfCalibrated(unsigned long solenoidTimes[]){
+  return ( (solenoidTimes[ID_TIME_SOLL]!=VALUE_TIME_NULL) && (solenoidTimes[ID_TIME_SOLD]!=VALUE_TIME_NULL) );
+}
+
+
 // Return true is cylinderPin is a main cylinder movement pin.
 boolean isMainCylinder(int cylinderPin){
   return (cylinderPin==PIN_SOLU || cylinderPin==PIN_SOLD);
