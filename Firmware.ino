@@ -634,6 +634,26 @@ void releasePressureManualMode(uint8_t digitalInputs[]){
 // **
 // ** MACHINE MOVEMENTS -- CHECK-AND-GO FUNCTIONS
 
+// Function thought to be used in test-mode.
+// It goes all the way in the cylinderDirection, then all the way in the opposite direction measuring the time,
+// and all the way in the cylinder pin direction this time measuring the time the travel takes.
+void cylinderBounce( short testModeFlags[], unsigned long solenoidTimes[], int &cylinderPin, boolean &chronoIsRunning, 
+                     unsigned long &timestamp, boolean &hpf){
+  if (testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]==0){
+    moveCylinderUntilHighPressure(cylinderPin, hpf);
+    if (hpf) testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]++;
+  }else if (testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]==1){
+    measureCylinderTravelUntilHighPressure(getOppositeSolenoid(cylinderPin), chronoIsRunning, timestamp, hpf, solenoidTimes);
+    if (hpf) testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]++;
+  }else if (testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]==2){
+    measureCylinderTravelUntilHighPressure(cylinderPin, chronoIsRunning, timestamp, hpf, solenoidTimes);
+    if (hpf) {
+      testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]=0;
+      cylinderPin=VALUE_PIN_NULL;
+    }
+  }
+}
+
 // It measures the time it take to move the cylinder defined by pin until high pressure.
 void measureCylinderTravelUntilHighPressure(int pin, boolean &chronoIsRunning, unsigned long &timestamp, boolean &hpf,
                                             unsigned long solenoidTime[]){
