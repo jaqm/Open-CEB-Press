@@ -765,14 +765,14 @@ void applyTestMode( uint8_t digitalInputs[], unsigned long solenoidTimes[], int 
   switch(testModeFlags[ID_TESTMODEFLAG_STAGE]){
 
     case INITIAL:
-        
         initializeTestModeFlags(testModeFlags);
+        setSolenoids(VALUE_SOL_DISABLED);
         cylinderPin=VALUE_PIN_NULL;
         testModeFlags[ID_TESTMODEFLAG_STAGE]=TESTMODE;
       break;
       
     case TESTMODE:
-        if (DEBUG_MODE) Serial.println("TESTMODE_STAGE");
+        if (DEBUG_MODE) Serial.println("TESTMODE STAGE");
 
         if (cylinderPin==VALUE_PIN_NULL) cylinderPin = getEnabledCylinder(digitalInputs);
 
@@ -1280,7 +1280,6 @@ void loop() {
 
     // Init default values for the other modes
     if (testModeFlags[ID_TESTMODEFLAG_STAGE]==INITIAL){
-      setSolenoids(VALUE_SOL_DISABLED);
       initializeAutoModeFlags(autoModeFlags);
     } 
 
