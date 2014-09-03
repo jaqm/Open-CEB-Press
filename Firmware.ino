@@ -801,8 +801,8 @@ void applyTestMode( uint8_t digitalInputs[], unsigned long solenoidTimes[], unsi
               showErrorMessage("test-mode - calibration - substage UNKNOWN.");
               testModeFlags[ID_TESTMODEFLAG_SUBSTAGE]=0;
             }
-          }
-        }else if (DEBUG_MODE) Serial.println("SolenoidTimes was NOT CALIBRATED yet.");          
+          }else if (DEBUG_MODE) Serial.println("SolenoidTimes was NOT CALIBRATED yet.");
+        }
         if (DEBUG_DELAYED_MODE) delay(1000);
       break;
     default:
