@@ -110,9 +110,9 @@ int PIN_LED_STATUS=PIN_E1;
 
 // ** END OF PINS **
 
-// ***********************************************************+++++************************
+// ****************************************************************************************
 // *** From now on, don't change anything if you don't know exactly what you are doing. ***
-// ***********************************************************+++++************************
+// ****************************************************************************************
 
 // ** CONSTANT && VARIABLES **
 
@@ -181,17 +181,17 @@ const int ID_TIME_SOLR=3;
 //unsigned long solenoidTimes[]={VALUE_TIME_NULL,VALUE_TIME_NULL,VALUE_TIME_NULL,VALUE_TIME_NULL,VALUE_TIME_NULL};
 const int SOLENOID_TIMES_SIZE=4;
 unsigned long solenoidTimes[]={VALUE_TIME_NULL,VALUE_TIME_NULL,VALUE_TIME_NULL,VALUE_TIME_NULL};
-
-// Blinking Timers
-const int ID_BLINKING_TIMER_STATUS_LED=0;          // ID of the timer used to track the status led blinking procedure.
-const int ID_BLINKING_TIMER_HIGH_PRESSURE_LED=1;   // ID of the timer used to track the high pressure led blinking procedure.
-unsigned long blinkingTimers[]={millis(),millis()};
 // autoMode timers
 const int ID_TIME_CALCULATED_SOLU=0;    // ID of the time calculated to move the SOLU.
 const int ID_TIME_CALCULATED_SOLD=1;  // ID of the time calculated to move the SOLD.
 const int ID_TIME_CALCULATED_SOLL=2;    // ID of the time calculated to move the SOLL.
 const int ID_TIME_CALCULATED_SOLR=3;  // ID of the time calculated to move the SOLR.
 unsigned long calculatedTimers[]={VALUE_TIME_NULL,VALUE_TIME_NULL,VALUE_TIME_NULL,VALUE_TIME_NULL};
+
+// Blinking Timers
+const int ID_BLINKING_TIMER_STATUS_LED=0;          // ID of the timer used to track the status led blinking procedure.
+const int ID_BLINKING_TIMER_HIGH_PRESSURE_LED=1;   // ID of the timer used to track the high pressure led blinking procedure.
+unsigned long blinkingTimers[]={millis(),millis()};
 
 // test-mode variables
 int testModeCylinderPin;  // test mode pin
@@ -438,16 +438,7 @@ unsigned long calculateDrawerTime(unsigned long solenoidTime,  int potD){
   return ( (solenoidTime/4) + ( (solenoidTime * potD) / (VALUE_MAX_POTD * 2)) );
 }
 
-void updateCalculatedTimes(int analogInputs[], unsigned long solenoidTimers[], unsigned long calculatedTimers[]){
-  calculatedTimers[ID_TIME_CALCULATED_SOLL]=calculateDrawerTime(solenoidTimes[ID_TIME_SOLL], analogInputs[ID_POTD]);
-  calculatedTimers[ID_TIME_CALCULATED_SOLR]=calculateDrawerTime(solenoidTimes[ID_TIME_SOLR], analogInputs[ID_POTD]);
-  calculatedTimers[ID_TIME_CALCULATED_SOLD]=calculateMainCylinderTime(solenoidTimes[ID_TIME_SOLD], analogInputs[ID_POTM]);
-  calculatedTimers[ID_TIME_CALCULATED_SOLU]=calculateMainCylinderTime(solenoidTimes[ID_TIME_SOLU], analogInputs[ID_POTM]);
-
-}
-
 // **** END OF FORMULA FUNCTIONS
-
 
 // **** CHRONO FUNCTIONS
 // Starts the chrono
@@ -476,8 +467,6 @@ unsigned long stopChrono(boolean &chronoIsRunning, unsigned long &timestamp){
 
 // **** END OF CHRONO FUNCTIONS
 
-
-
 // **** DATA HANDLING
 
 // This function inverts a digital value read from a pin like HIGH or LOW.
@@ -499,6 +488,14 @@ uint8_t revertDigitalSignalValue(uint8_t val){
   }
 
  return oppositeValue;
+}
+
+void updateCalculatedTimes(int analogInputs[], unsigned long solenoidTimers[], unsigned long calculatedTimers[]){
+  calculatedTimers[ID_TIME_CALCULATED_SOLL]=calculateDrawerTime(solenoidTimes[ID_TIME_SOLL], analogInputs[ID_POTD]);
+  calculatedTimers[ID_TIME_CALCULATED_SOLR]=calculateDrawerTime(solenoidTimes[ID_TIME_SOLR], analogInputs[ID_POTD]);
+  calculatedTimers[ID_TIME_CALCULATED_SOLD]=calculateMainCylinderTime(solenoidTimes[ID_TIME_SOLD], analogInputs[ID_POTM]);
+  calculatedTimers[ID_TIME_CALCULATED_SOLU]=calculateMainCylinderTime(solenoidTimes[ID_TIME_SOLU], analogInputs[ID_POTM]);
+
 }
 
 // Recalibrates the solenoid times based on the newSolrTime and updates the solR time.
@@ -1086,8 +1083,6 @@ void printCalculatedTimes(unsigned long ct[]){
   Serial.println("********************************************"); 
 
 }
-
-
 
 void showErrorMessage(char * cadena){
   if (DEBUG_MODE){
