@@ -1,32 +1,39 @@
-  //******************
-  // ** TODO **
-  // - Use moveCylinderTimedMode() for all the timed movements. Like Auto-mode.
-  // - Review the blinking procedure. Specially for auto, manual and test mode.
-  // - Review the documentation of every function.
-    // - Try: make the machine work, whenever is possible, in timed mode, as the timed mode already implements high-pressure protection and is check-and-go function.
-  // *****************
-  // ** DONE **
-  // - If solenoidTimes is calibrated, auto-mode starts inmediately pressing bricks.
-  // - Reuse the times applied during the test mode in the auto-mode.
-  // - Reviewe the test-mode:
-  //  -- The timers used in the movement stage, substage 2. SolenoidTimes are the times for a complete travel. autoModeTimes are the calculated times.
-  //  -- Review the initialization of the variables related to the test-mode.
-  // - Redesign the test-mode to be able to work in timed and high pressure mode.
-  // - We want to recalibrate the time for the main cylinder based on the changed hapenned in the drawer cylinder:
-  //   - We want to measure the drawer cylinder travel.
-  //   - This is happening in the PUSH_BRICK stage.
-  // - We want to use different release pressure values for the main cylinder and the other cylinders.
-  // - Review the use of the ID_TIME_CALCULATED_TIMER and ID_TIME_CALCULATED_TIMESTAMP. Done: replacing TIMER with TIMESTAMP.
-  // - We want to be able to move the shaker at any time in any mode.
-  // - We don't want to move the shaker automatically in auto-mode. Bu twe want to be able to move automatically.
-  // - Review the documentation of the initial variables and constants.
-  // - SHAKER: we want to be able to move the shaker when the cylinders are NOT moving under timing. (<- Beginning of the auto-mode)
-  // - Added Test mode.
-  // - MAIN CYLINDER: we want all the time travel
-  // If the potM value is close to the maximum we want to move it until High pressure
-  // - DRAW CYLINDER: we want to be able to move it from the 1/4 to the 3/4
-  //******************
-  
+/********************************************************************************/
+/* Written by: Jose Antonio Quevedo Muñoz <joseantonio.quevedo@gmail.com>  */
+/* During 2014-08 for OpenSourceEcology                                         */
+/* Special thanks to C.L. Software and Factor eFarm DPV interns 2014.           */
+/* License: GPLv2.                                                              */
+/********************************************************************************/
+
+//******************
+// ** TODO **
+// - Use moveCylinderTimedMode() for all the timed movements. Like Auto-mode.
+// - Review the blinking procedure. Specially for auto, manual and test mode.
+// - Review the documentation of every function.
+// - Try: make the machine work, whenever is possible, in timed mode, as the timed mode already implements high-pressure protection and is check-and-go function.
+// *****************
+// ** DONE **
+// - If solenoidTimes is calibrated, auto-mode starts inmediately pressing bricks.
+// - Reuse the times applied during the test mode in the auto-mode.
+// - Reviewe the test-mode:
+//  -- The timers used in the movement stage, substage 2. SolenoidTimes are the times for a complete travel. autoModeTimes are the calculated times.
+//  -- Review the initialization of the variables related to the test-mode.
+// - Redesign the test-mode to be able to work in timed and high pressure mode.
+// - We want to recalibrate the time for the main cylinder based on the changed hapenned in the drawer cylinder:
+//   - We want to measure the drawer cylinder travel.
+//   - This is happening in the PUSH_BRICK stage.
+// - We want to use different release pressure values for the main cylinder and the other cylinders.
+// - Review the use of the ID_TIME_CALCULATED_TIMER and ID_TIME_CALCULATED_TIMESTAMP. Done: replacing TIMER with TIMESTAMP.
+// - We want to be able to move the shaker at any time in any mode.
+// - We don't want to move the shaker automatically in auto-mode. Bu twe want to be able to move automatically.
+// - Review the documentation of the initial variables and constants.
+// - SHAKER: we want to be able to move the shaker when the cylinders are NOT moving under timing. (<- Beginning of the auto-mode)
+// - Added Test mode.
+// - MAIN CYLINDER: we want all the time travel
+// If the potM value is close to the maximum we want to move it until High pressure
+// - DRAW CYLINDER: we want to be able to move it from the 1/4 to the 3/4
+//******************
+
 //***********************************
 // NOTES:
 // * untilHighPressure functions always release pressure.
