@@ -8,11 +8,11 @@
 //******************
 // ** TODO **
 // - Use moveCylinderTimedMode() for all the timed movements. Like Auto-mode.
-// - Review the blinking procedure. Specially for auto, manual and test mode.
 // - Review the documentation of every function.
 // - Try: make the machine work, whenever is possible, in timed mode, as the timed mode already implements high-pressure protection and is check-and-go function.
 // *****************
 // ** DONE **
+// - Review the blinking procedures.
 // - If solenoidTimes is calibrated, auto-mode starts inmediately pressing bricks.
 // - Reuse the times applied during the test mode in the auto-mode.
 // - Reviewe the test-mode:
@@ -1117,7 +1117,8 @@ void updateLeds(uint8_t panel[],unsigned long &sbt, boolean &hpf, unsigned long 
 
   // BLINKING PROCEDURE - STATUS LED
   // Note: Consider taking out this variable
-  unsigned long timer=((panel[ID_SWAUTO]==VALUE_INPUT_SW_ENABLED)?VALUE_TIME_BLINKING_AUTO:VALUE_TIME_BLINKING_MANUAL);
+  unsigned long timer=VALUE_TIME_NULL;
+  
   unsigned long presentTime=millis();
   uint8_t value=0;
   uint8_t value1=0;
@@ -1127,11 +1128,17 @@ void updateLeds(uint8_t panel[],unsigned long &sbt, boolean &hpf, unsigned long 
     Serial.print("timer: ");Serial.println(timer);
     delay(5000);
   }
-  if (presentTime > sbt+timer){
+  if (panel[ID_SWON]==VALUE_INPUT_SW_ENABLED && (panel[ID_SWAUTO]==VALUE_INPUT_SW_DISABLED) ){  // Manual mode blinking procedure - always on
+    digitalWrite(PIN_LED_STATUS,VALUE_LED_ENABLED);
+  }else{
+    timer=((panel[ID_SWAUTO]==VALUE_INPUT_SW_ENABLED)?VALUE_TIME_BLINKING_AUTO:VALUE_TIME_BLINKING_TEST);
+    if (presentTime > sbt+timer){                                                               // Auto && Test mode blinking procedure
       digitalWrite(PIN_LED_STATUS,revertDigitalSignalValue(pinDigitalValueIs(PIN_LED_STATUS, VALUE_INPUT_READ_DELAY)) );
       sbt=presentTime;
       if (DEBUG_LED_MODE){Serial.println("LED STATUS HAS BEEN UPDATED"); delay(1000);}
+    }
   }
+
 
   // BLINKING PROCEDURE - HIGH PRESSURE LED
   if (DEBUG_LED_MODE){
